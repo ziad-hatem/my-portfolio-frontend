@@ -16,15 +16,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-<<<<<<< HEAD
-    // Send email using Resend
-    const { data, error } = await resend.emails.send({
-      from: "Portfolio Contact Form <onboarding@resend.dev>", // Replace with your verified domain
-=======
     // Send email to yourself (notification)
     const { data, error } = await resend.emails.send({
       from: "Portfolio Contact Form <contact@ziadhatem.dev>", // Replace with your verified domain
->>>>>>> c27f158bf440b6fb86699f9dd93b277af5c7134c
       to: ["contact@ziadhatem.dev"], // Your email
       replyTo: email, // The sender's email for easy reply
       subject: `Portfolio Contact: ${subject}`,
@@ -60,8 +54,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-<<<<<<< HEAD
-=======
     // Send confirmation email to the sender
     const confirmationResult = await resend.emails.send({
       from: "Ziad Hatem <contact@ziadhatem.dev>",
@@ -110,7 +102,6 @@ export async function POST(request: NextRequest) {
       console.error("Confirmation email error:", confirmationResult.error);
     }
 
->>>>>>> c27f158bf440b6fb86699f9dd93b277af5c7134c
     return NextResponse.json(
       { message: "Email sent successfully", id: data?.id },
       { status: 200 }
