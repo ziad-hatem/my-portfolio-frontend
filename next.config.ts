@@ -14,13 +14,7 @@ const nextConfig: NextConfig = {
   },
   // Optimize heavy packages - Next.js 16 automatic tree-shaking
   experimental: {
-    optimizePackageImports: [
-      "lucide-react",
-      "react-icons",
-      "motion",
-      "gsap",
-      "ogl",
-    ],
+    optimizePackageImports: ["motion", "gsap"],
   },
 };
 
