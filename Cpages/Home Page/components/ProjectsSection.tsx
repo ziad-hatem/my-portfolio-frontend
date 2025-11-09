@@ -58,13 +58,13 @@ const ProjectsSection = () => {
           <div className="w-full lg:w-2/5 flex flex-col">
             <h2
               className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4"
-              data-aos="fade-right"
+              data-aos="fade-up"
             >
               Featured Projects
             </h2>
             <p
               className="text-lg text-muted-foreground mb-8"
-              data-aos="fade-right"
+              data-aos="fade-up"
               data-aos-delay="100"
             >
               Explore some of my recent work spanning web development, banking
@@ -75,7 +75,7 @@ const ProjectsSection = () => {
             {/* Navigation Arrows */}
             <div
               className="flex items-center gap-4 mb-8"
-              data-aos="fade-right"
+              data-aos="fade-up"
               data-aos-delay="200"
             >
               <button
@@ -97,7 +97,7 @@ const ProjectsSection = () => {
             </div>
 
             {/* View All Link */}
-            <div className="" data-aos="fade-right" data-aos-delay="300">
+            <div className="" data-aos="fade-up" data-aos-delay="300">
               <Link
                 href="/projects"
                 className="inline-flex items-center gap-2 text-accent hover:gap-3 transition-all text-lg font-medium"
@@ -111,7 +111,7 @@ const ProjectsSection = () => {
           {/* Right Side - Projects Swiper */}
           <div
             className="w-full lg:w-3/5 max-w-[600px] "
-            data-aos="fade-left"
+            data-aos="fade-up"
             data-aos-delay="100"
           >
             <Swiper
@@ -133,7 +133,7 @@ const ProjectsSection = () => {
                 <SwiperSlide key={project.id}>
                   <div
                     className="bg-background rounded-lg overflow-hidden h-full"
-                    data-aos="zoom-in"
+                    data-aos="fade-up"
                   >
                     <div className="relative h-64 sm:h-80 w-full">
                       <Image

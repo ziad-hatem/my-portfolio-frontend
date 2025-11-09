@@ -100,7 +100,7 @@ export default function ExperienceSection() {
                           ? "md:pr-8 md:text-right"
                           : "md:pl-8 md:text-left"
                       }`}
-                      data-aos={index % 2 === 0 ? "fade-right" : "fade-left"}
+                      data-aos="fade-up"
                       data-aos-delay={index * 100}
                     >
                       <div className="bg-card border border-border rounded-lg p-4 md:p-6 hover:shadow-lg hover:shadow-accent/10 transition-all duration-300 hover:scale-105">

@@ -46,13 +46,13 @@ const PostsSection = () => {
           <div className="w-full lg:w-2/5 flex flex-col">
             <h2
               className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4"
-              data-aos="fade-right"
+              data-aos="fade-up"
             >
               Latest Blog Posts
             </h2>
             <p
               className="text-lg text-muted-foreground mb-8"
-              data-aos="fade-right"
+              data-aos="fade-up"
               data-aos-delay="100"
             >
               Insights, tutorials, and thoughts on web development, modern
@@ -62,7 +62,7 @@ const PostsSection = () => {
             {/* Navigation Arrows */}
             <div
               className="flex items-center gap-4 mb-8"
-              data-aos="fade-right"
+              data-aos="fade-up"
               data-aos-delay="200"
             >
               <button
@@ -84,7 +84,7 @@ const PostsSection = () => {
             </div>
 
             {/* View All Link */}
-            <div className="" data-aos="fade-right" data-aos-delay="300">
+            <div className="" data-aos="fade-up" data-aos-delay="300">
               <Link
                 href="/posts"
                 className="inline-flex items-center gap-2 text-accent hover:gap-3 transition-all text-lg font-medium"
@@ -98,7 +98,7 @@ const PostsSection = () => {
           {/* Right Side - Posts Swiper */}
           <div
             className="w-full lg:w-3/5 max-w-[600px]"
-            data-aos="fade-left"
+            data-aos="fade-up"
             data-aos-delay="100"
           >
             <Swiper
@@ -124,7 +124,7 @@ const PostsSection = () => {
                     excerpt={post.excerpt}
                     image={post.image}
                     date={post.date}
-                    data-aos="zoom-in"
+                    data-aos="fade-up"
                   />
                 </SwiperSlide>
               ))}
