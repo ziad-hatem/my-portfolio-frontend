@@ -14,20 +14,12 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-20 flex flex-col justify-between h-full">
         <div className="flex-1 flex flex-col gap-2 justify-center">
           <h1 className="text-4xl md:text-5xl font-bold">
-<<<<<<< HEAD
             <span className="flex gap-2 md:gap-4 items-center flex-wrap">
-=======
-            <span className="flex gap-4 items-center flex-wrap">
->>>>>>> c27f158bf440b6fb86699f9dd93b277af5c7134c
               Let's Get In Touch and Bring
               <span className="w-full flex items-center gap-4">
                 Your
                 <RotatingText
-<<<<<<< HEAD
                   texts={["Brilliant", "Cool", "Inspiring", "Creative"]}
-=======
-                  texts={["Brilliant", "Cool!", "Inspiring", "Creative"]}
->>>>>>> c27f158bf440b6fb86699f9dd93b277af5c7134c
                   mainClassName="px-2 sm:px-2 md:px-3 bg-[#00F3BE] text-[#19192E] overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center rounded-lg w-fit"
                   staggerFrom="last"
                   initial={{ y: "100%" }}
@@ -46,11 +38,7 @@ export function Footer() {
 
         {/* Social Links & Info Section */}
         <div className="mt-auto pt-8">
-<<<<<<< HEAD
           <div className="flex flex-row flex-wrap items-center justify-between gap-6 md:gap-8 rounded-2xl py-5 w-full transition-all duration-300">
-=======
-          <div className="flex flex-row items-center justify-between gap-6 md:gap-8 rounded-2xl py-5 w-full transition-all duration-300">
->>>>>>> c27f158bf440b6fb86699f9dd93b277af5c7134c
             {/* Social Links */}
             <div className="flex max-md:flex-col max-md:items-start items-center gap-4 md:gap-6 flex-wrap justify-center md:justify-start">
               <Link
@@ -87,16 +75,8 @@ export function Footer() {
               </Link>
             </div>
 
-<<<<<<< HEAD
             {/* Email & Copyright */}
             <div className="flex flex-col md:flex-row items-center max-w-xs:mx-auto gap-3 md:gap-6 text-muted-foreground">
-=======
-            {/* Divider - Hidden on mobile */}
-            <div className="hidden md:block w-px h-8 bg-border/50"></div>
-
-            {/* Email & Copyright */}
-            <div className="flex flex-col md:flex-row items-center gap-3 md:gap-6 text-muted-foreground">
->>>>>>> c27f158bf440b6fb86699f9dd93b277af5c7134c
               <Link
                 href="mailto:contact@ziadhatem.dev"
                 className="hover:text-[#00F3BE] transition-colors duration-300 font-medium text-xl md:text-2xl"
