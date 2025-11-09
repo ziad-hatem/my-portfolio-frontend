@@ -124,9 +124,9 @@ export function SinglePostPage({ postId }: SinglePostPageProps) {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-20 pt-[150px]!">
       {/* Back Button */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Link
           href="/posts"
           className="flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors"
@@ -137,7 +137,7 @@ export function SinglePostPage({ postId }: SinglePostPageProps) {
       </div>
 
       {/* Article Content */}
-      <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+      <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         {/* Title & Meta */}
         <header className="mb-8">
           <h1 className="text-3xl md:text-5xl text-foreground mb-6">

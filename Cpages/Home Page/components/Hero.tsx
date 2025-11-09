@@ -1,13 +1,23 @@
 "use client";
 
-import Link from "next/link";
-import { LinkedinIcon, GithubIcon, ArrowRight } from "lucide-react";
-
 import { BackgroundBeams } from "@/components/ui/background-beams";
+import { ArrowRight, GithubIcon, LinkedinIcon } from "lucide-react";
+import Link from "next/link";
+import { useEffect } from "react";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 const Hero = () => {
+  useEffect(() => {
+    AOS.init({
+      duration: 1000,
+      once: true,
+      easing: "ease-out-cubic",
+    });
+  }, []);
+
   return (
-    <div className="relative ">
+    <div className="relative">
       <div className="w-full h-full absolute">
         <BackgroundBeams />
       </div>
@@ -15,22 +25,37 @@ const Hero = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="space-y-8">
             <div>
-              <h1 className="text-5xl md:text-7xl lg:text-8xl text-foreground mb-6 font-bold tracking-tight">
+              <h1
+                className="text-5xl md:text-7xl lg:text-8xl text-foreground mb-6 font-bold tracking-tight"
+                data-aos="fade-up"
+              >
                 Ziad Hatem
               </h1>
-              <div className="text-2xl md:text-4xl lg:text-5xl text-accent mb-8 font-light">
+              <div
+                className="text-2xl md:text-4xl lg:text-5xl text-accent mb-8 font-light"
+                data-aos="fade-up"
+                data-aos-delay="100"
+              >
                 Frontend Developer
               </div>
             </div>
 
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            <p
+              className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed"
+              data-aos="fade-up"
+              data-aos-delay="200"
+            >
               Front-end developer skilled in React, Next.js, TypeScript,
               Tailwind CSS and Redux, turning complex requirements into fast,
               user-centric web apps. I thrive in collaborative environments and
               stay ahead of industry trends to deliver cutting-edge solutions.
             </p>
 
-            <div className="flex flex-wrap justify-center gap-6 pt-4">
+            <div
+              className="flex flex-wrap justify-center gap-6 pt-4"
+              data-aos="fade-up"
+              data-aos-delay="300"
+            >
               <Link
                 href="/projects"
                 className="inline-flex items-center gap-2 text-accent hover:gap-3 transition-all text-lg font-medium"
@@ -48,7 +73,11 @@ const Hero = () => {
               </Link>
             </div>
 
-            <div className="flex items-center justify-center gap-8 pt-4">
+            <div
+              className="flex items-center justify-center gap-8 pt-4"
+              data-aos="fade-up"
+              data-aos-delay="400"
+            >
               <a
                 href="https://linkedin.com/in/ziadhatem"
                 target="_blank"

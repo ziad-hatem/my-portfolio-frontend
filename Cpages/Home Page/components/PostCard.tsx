@@ -12,6 +12,8 @@ interface PostCardProps {
   image: string;
   date: string;
   postId: string | number;
+  "data-aos"?: string;
+  "data-aos-delay"?: string | number;
 }
 
 export function PostCard({
@@ -20,6 +22,8 @@ export function PostCard({
   image,
   date,
   postId,
+  "data-aos": dataAos,
+  "data-aos-delay": dataAosDelay,
 }: PostCardProps) {
   const handleClick = () => {
     // Track post card click
@@ -35,6 +39,8 @@ export function PostCard({
       href={`/posts/${postId}`}
       onClick={handleClick}
       className="group bg-card rounded-xl overflow-hidden border border-border transition-all duration-300 cursor-pointer block"
+      data-aos={dataAos}
+      data-aos-delay={dataAosDelay}
     >
       {/* Image */}
       <div className="relative aspect-video overflow-hidden bg-muted">

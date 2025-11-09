@@ -28,10 +28,17 @@ export default function SkillsSection() {
     <section className="py-20">
       <div className="w-full">
         <div className="text-center mb-20">
-          <h2 className="text-4xl md:text-6xl font-bold text-foreground mb-4">
+          <h2
+            className="text-4xl md:text-6xl font-bold text-foreground mb-4"
+            data-aos="fade-up"
+          >
             Core Technologies
           </h2>
-          <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto">
+          <p
+            className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto"
+            data-aos="fade-up"
+            data-aos-delay="100"
+          >
             My professional journey in software development
           </p>
         </div>

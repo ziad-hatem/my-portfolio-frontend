@@ -5,6 +5,7 @@ import { Navigation } from "@/components/Layout/Navigation";
 import { Footer } from "@/components/Layout/Footer";
 import { CookieConsent } from "@/components/cookies/CookieConsent";
 import { Toaster } from "sonner";
+import ClientEffects from "@/components/ClientEffects";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,6 +25,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <div className="min-h-screen bg-background text-foreground dark">
           <Navigation />
+          <ClientEffects />
           <main className="z-50 relative">{children}</main>
           <Footer />
           <Toaster position="bottom-right" theme="dark" />

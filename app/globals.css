@@ -138,3 +138,27 @@
 html {
   font-size: var(--font-size);
 }
+
+.loader {
+  width: 8.3333333333vw;
+  height: 8.3333333333vw;
+  border: 0.6944444444vw solid #fff;
+  border-bottom-color: #00f5c0;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+
+@media (max-width: 768) {
+  .loader {
+    width: 32vw;
+    height: 32vw;
+    border: 2.6666666667vw solid #fff;
+    border-bottom-color: #00f5c0;
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+  }
+}

@@ -61,10 +61,17 @@ export default function ExperienceSection() {
           <div className="max-w-5xl w-full">
             {/* Header */}
             <div className="text-center mb-20">
-              <h2 className="text-4xl md:text-6xl font-bold text-foreground mb-4">
+              <h2
+                className="text-4xl md:text-6xl font-bold text-foreground mb-4"
+                data-aos="fade-up"
+              >
                 Experience
               </h2>
-              <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto">
+              <p
+                className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto"
+                data-aos="fade-up"
+                data-aos-delay="100"
+              >
                 My professional journey in software development
               </p>
             </div>
@@ -93,6 +100,8 @@ export default function ExperienceSection() {
                           ? "md:pr-8 md:text-right"
                           : "md:pl-8 md:text-left"
                       }`}
+                      data-aos={index % 2 === 0 ? "fade-right" : "fade-left"}
+                      data-aos-delay={index * 100}
                     >
                       <div className="bg-card border border-border rounded-lg p-4 md:p-6 hover:shadow-lg hover:shadow-accent/10 transition-all duration-300 hover:scale-105">
                         <div className="flex items-start md:items-center gap-3 mb-3 flex-col md:flex-row md:justify-end">

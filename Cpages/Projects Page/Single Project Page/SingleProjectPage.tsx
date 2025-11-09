@@ -241,17 +241,6 @@ export function SingleProjectPage({ projectId }: SingleProjectPageProps) {
 
   return (
     <div className="min-h-screen">
-      {/* Back Button */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Link
-          href="/projects"
-          className="flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors"
-        >
-          <ArrowLeft size={20} />
-          <span>Back to Projects</span>
-        </Link>
-      </div>
-
       {/* Hero Banner */}
       <div className="relative w-full h-[400px] md:h-[500px] bg-muted">
         <ImageWithFallback
