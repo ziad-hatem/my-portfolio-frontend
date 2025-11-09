@@ -1,8 +1,12 @@
 {
   "permissions": {
     "allow": [
+<<<<<<< HEAD
       "Bash(npm run build:*)",
       "Bash(npm install:*)"
+=======
+      "Bash(npm run build:*)"
+>>>>>>> c27f158bf440b6fb86699f9dd93b277af5c7134c
     ],
     "deny": [],
     "ask": []

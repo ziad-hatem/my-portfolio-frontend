@@ -191,7 +191,11 @@ export function ProjectsPage() {
   }, []);
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen pb-20 pt-[150px]!">
+=======
+    <div className="min-h-screen py-20">
+>>>>>>> c27f158bf440b6fb86699f9dd93b277af5c7134c
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-12">

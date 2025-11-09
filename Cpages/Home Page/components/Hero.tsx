@@ -10,11 +10,19 @@ import { BackgroundBeams } from "@/components/ui/background-beams";
 
 const Hero = () => {
   return (
+<<<<<<< HEAD
     <div className="relative ">
       <div className="w-full h-full absolute">
         <BackgroundBeams />
       </div>
       <section className="relative min-h-[65vh] flex items-center justify-center overflow-hidden z-10 py-[5vh] pt-[150px]">
+=======
+    <div className="relative">
+      <div className="w-full h-full absolute">
+        <BackgroundBeams />
+      </div>
+      <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden z-10">
+>>>>>>> c27f158bf440b6fb86699f9dd93b277af5c7134c
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="space-y-8">
             <div>

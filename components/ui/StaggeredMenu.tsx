@@ -492,7 +492,11 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
         >
           <GlassSurface
             opacity={0.8}
+<<<<<<< HEAD
             displace={2}
+=======
+            displace={1}
+>>>>>>> c27f158bf440b6fb86699f9dd93b277af5c7134c
             distortionScale={-150}
             redOffset={5}
             greenOffset={15}
