@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/mongodb';
 import { validateApiKey } from '@/lib/auth';
+import type { UserProfile } from '@/lib/user-profile-types';
 
 export async function GET(request: NextRequest) {
   // Validate API key
