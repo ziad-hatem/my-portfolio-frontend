@@ -1,16 +1,16 @@
 // User profile API endpoints
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import {
   getUserProfile,
   getAllUserProfiles,
   addTagToProfile,
   removeTagFromProfile,
   deleteUserProfile,
-} from '@/lib/user-profile-manager';
-import { getDatabase } from '@/lib/mongodb';
-import { analyticsRateLimiter } from '@/lib/rate-limit';
-import type { ProfileAnalytics } from '@/lib/user-profile-types';
+} from "@/lib/user-profile-manager";
+import { getDatabase } from "@/lib/mongodb";
+import { analyticsRateLimiter } from "@/lib/rate-limit";
+import type { ProfileAnalytics } from "@/lib/user-profile-types";
 
 /**
  * GET /api/profile?userId=xxx
@@ -21,20 +21,21 @@ import type { ProfileAnalytics } from '@/lib/user-profile-types';
 export async function GET(req: NextRequest) {
   try {
     // Rate limiting
-    const identifier = req.ip || 'anonymous';
+    // @ts-ignore
+    const identifier = req.ip || "anonymous";
     try {
       await analyticsRateLimiter.check(identifier, 20);
     } catch {
       return NextResponse.json(
-        { success: false, error: 'Rate limit exceeded' },
+        { success: false, error: "Rate limit exceeded" },
         { status: 429 }
       );
     }
 
     const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = parseInt(searchParams.get('limit') || '50', 10);
+    const userId = searchParams.get("userId");
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "50", 10);
 
     if (userId) {
       // Get specific user profile
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest) {
 
       if (!profile) {
         return NextResponse.json(
-          { success: false, error: 'Profile not found' },
+          { success: false, error: "Profile not found" },
           { status: 404 }
         );
       }
@@ -62,9 +63,9 @@ export async function GET(req: NextRequest) {
       });
     }
   } catch (error) {
-    console.error('Profile retrieval error:', error);
+    console.error("Profile retrieval error:", error);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }
@@ -76,12 +77,13 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
-    const identifier = req.ip || 'anonymous';
+    // @ts-ignore
+    const identifier = req.ip || "anonymous";
     try {
       await analyticsRateLimiter.check(identifier, 10);
     } catch {
       return NextResponse.json(
-        { success: false, error: 'Rate limit exceeded' },
+        { success: false, error: "Rate limit exceeded" },
         { status: 429 }
       );
     }
@@ -91,7 +93,7 @@ export async function POST(req: NextRequest) {
 
     if (!userId || !tag) {
       return NextResponse.json(
-        { success: false, error: 'userId and tag are required' },
+        { success: false, error: "userId and tag are required" },
         { status: 400 }
       );
     }
@@ -100,9 +102,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Add tag error:', error);
+    console.error("Add tag error:", error);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }
@@ -114,23 +116,24 @@ export async function POST(req: NextRequest) {
  */
 export async function DELETE(req: NextRequest) {
   try {
-    const identifier = req.ip || 'anonymous';
+    // @ts-ignore
+    const identifier = req.ip || "anonymous";
     try {
       await analyticsRateLimiter.check(identifier, 10);
     } catch {
       return NextResponse.json(
-        { success: false, error: 'Rate limit exceeded' },
+        { success: false, error: "Rate limit exceeded" },
         { status: 429 }
       );
     }
 
     const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
-    const tag = searchParams.get('tag');
+    const userId = searchParams.get("userId");
+    const tag = searchParams.get("tag");
 
     if (!userId) {
       return NextResponse.json(
-        { success: false, error: 'userId is required' },
+        { success: false, error: "userId is required" },
         { status: 400 }
       );
     }
@@ -138,16 +141,16 @@ export async function DELETE(req: NextRequest) {
     if (tag) {
       // Remove tag
       await removeTagFromProfile(userId, tag);
-      return NextResponse.json({ success: true, message: 'Tag removed' });
+      return NextResponse.json({ success: true, message: "Tag removed" });
     } else {
       // Delete entire profile
       await deleteUserProfile(userId);
-      return NextResponse.json({ success: true, message: 'Profile deleted' });
+      return NextResponse.json({ success: true, message: "Profile deleted" });
     }
   } catch (error) {
-    console.error('Profile delete error:', error);
+    console.error("Profile delete error:", error);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }

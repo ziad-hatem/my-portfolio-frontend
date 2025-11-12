@@ -456,11 +456,13 @@
     },
   };
 
-  // Auto-initialize on page load (optional)
+  // Auto-initialize on page load
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-      // Uncomment to auto-collect on page load:
-      // window.BrowserFingerprint.collect();
+      window.BrowserFingerprint.collect();
     });
+  } else {
+    // Page already loaded, collect immediately
+    window.BrowserFingerprint.collect();
   }
 })(window);

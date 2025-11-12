@@ -1,25 +1,26 @@
 // Profile analytics aggregation endpoint
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getDatabase } from '@/lib/mongodb';
-import { analyticsRateLimiter } from '@/lib/rate-limit';
-import type { ProfileAnalytics, UserProfile } from '@/lib/user-profile-types';
+import { NextRequest, NextResponse } from "next/server";
+import { getDatabase } from "@/lib/mongodb";
+import { analyticsRateLimiter } from "@/lib/rate-limit";
+import type { ProfileAnalytics, UserProfile } from "@/lib/user-profile-types";
 
 export async function GET(req: NextRequest) {
   try {
     // Rate limiting
-    const identifier = req.ip || 'anonymous';
+    // @ts-ignore
+    const identifier = req.ip || "anonymous";
     try {
       await analyticsRateLimiter.check(identifier, 10);
     } catch {
       return NextResponse.json(
-        { success: false, error: 'Rate limit exceeded' },
+        { success: false, error: "Rate limit exceeded" },
         { status: 429 }
       );
     }
 
     const db = await getDatabase();
-    const profilesCollection = db.collection<UserProfile>('user_profiles');
+    const profilesCollection = db.collection<UserProfile>("user_profiles");
 
     // Get time windows
     const now = new Date();
@@ -54,9 +55,9 @@ export async function GET(req: NextRequest) {
         {
           $group: {
             _id: null,
-            totalPageViews: { $sum: '$totalPageViews' },
-            totalInteractions: { $sum: '$totalInteractions' },
-            avgSessionDuration: { $avg: '$averageSessionDuration' },
+            totalPageViews: { $sum: "$totalPageViews" },
+            totalInteractions: { $sum: "$totalInteractions" },
+            avgSessionDuration: { $avg: "$averageSessionDuration" },
           },
         },
       ])
@@ -70,10 +71,10 @@ export async function GET(req: NextRequest) {
     // Top countries
     const countryAgg = await profilesCollection
       .aggregate([
-        { $unwind: '$locations' },
+        { $unwind: "$locations" },
         {
           $group: {
-            _id: '$locations.country',
+            _id: "$locations.country",
             count: { $sum: 1 },
           },
         },
@@ -83,18 +84,18 @@ export async function GET(req: NextRequest) {
       .toArray();
 
     const topCountries = countryAgg.map((item) => ({
-      country: item._id || 'Unknown',
+      country: item._id || "Unknown",
       count: item.count,
     }));
 
     // Top pages
     const pageAgg = await profilesCollection
       .aggregate([
-        { $unwind: '$mostVisitedPages' },
+        { $unwind: "$mostVisitedPages" },
         {
           $group: {
-            _id: '$mostVisitedPages.page',
-            views: { $sum: '$mostVisitedPages.count' },
+            _id: "$mostVisitedPages.page",
+            views: { $sum: "$mostVisitedPages.count" },
           },
         },
         { $sort: { views: -1 } },
@@ -103,18 +104,18 @@ export async function GET(req: NextRequest) {
       .toArray();
 
     const topPages = pageAgg.map((item) => ({
-      page: item._id || '/',
+      page: item._id || "/",
       views: item.views,
     }));
 
     // Top devices
     const deviceAgg = await profilesCollection
       .aggregate([
-        { $unwind: '$deviceHistory' },
+        { $unwind: "$deviceHistory" },
         {
           $group: {
-            _id: '$deviceHistory.type',
-            count: { $sum: '$deviceHistory.count' },
+            _id: "$deviceHistory.type",
+            count: { $sum: "$deviceHistory.count" },
           },
         },
         { $sort: { count: -1 } },
@@ -122,7 +123,7 @@ export async function GET(req: NextRequest) {
       .toArray();
 
     const topDevices = deviceAgg.map((item) => ({
-      device: item._id || 'Unknown',
+      device: item._id || "Unknown",
       count: item.count,
     }));
 
@@ -146,9 +147,9 @@ export async function GET(req: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Analytics error:', error);
+    console.error("Analytics error:", error);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }

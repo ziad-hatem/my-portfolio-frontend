@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { Navigation } from "@/components/Layout/Navigation";
 import { Footer } from "@/components/Layout/Footer";
@@ -23,6 +24,18 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={inter.className}>
+        {/* Browser Fingerprinting & Analytics */}
+        <Script
+          src="/fingerprint-collector.js"
+          strategy="afterInteractive"
+          id="fingerprint-collector"
+        />
+        <Script
+          src="/interaction-tracker.js"
+          strategy="afterInteractive"
+          id="interaction-tracker"
+        />
+
         <div className="min-h-screen bg-background text-foreground dark">
           <Navigation />
           <ClientEffects />

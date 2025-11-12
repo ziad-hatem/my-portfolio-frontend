@@ -13,6 +13,18 @@ interface EmailTemplateData {
   topLocations: any[];
   uniqueVisitors: number;
   generatedAt: Date;
+  userProfiles?: {
+    total: number;
+    activeInPeriod: number;
+    activeToday: number;
+    newInPeriod: number;
+    totalSessions: number;
+    avgSessionDuration: number;
+    totalPageViews: number;
+    totalInteractions: number;
+    topLocations: any[];
+    devices: any[];
+  };
 }
 
 // Helper function to convert country code to flag emoji
@@ -40,6 +52,7 @@ export function generateEmailTemplate(data: EmailTemplateData): string {
     topLocations,
     uniqueVisitors,
     generatedAt,
+    userProfiles,
   } = data;
 
   return `
@@ -198,6 +211,102 @@ export function generateEmailTemplate(data: EmailTemplateData): string {
                 </tr>
                 `).join('')}
               </table>
+            </td>
+          </tr>
+          ` : ''}
+
+          ${userProfiles ? `
+          <!-- User Profile Analytics -->
+          <tr>
+            <td style="padding: 30px 40px; background-color: #F8FAFC; border-top: 1px solid #E2E8F0;">
+              <h2 style="margin: 0 0 20px; color: #1A1A2E; font-size: 20px; font-weight: 600;">👥 User Profile Analytics</h2>
+
+              <!-- User Stats Grid -->
+              <table width="100%" cellpadding="10" cellspacing="0">
+                <tr>
+                  <td style="background-color: #DBEAFE; border-radius: 8px; padding: 15px; text-align: center;" width="23%">
+                    <div style="font-size: 12px; color: #64748B; margin-bottom: 5px;">Total Users</div>
+                    <div style="font-size: 24px; font-weight: 700; color: #2563EB;">${userProfiles.total}</div>
+                  </td>
+                  <td width="2%"></td>
+                  <td style="background-color: #D1FAE5; border-radius: 8px; padding: 15px; text-align: center;" width="23%">
+                    <div style="font-size: 12px; color: #64748B; margin-bottom: 5px;">Active in Period</div>
+                    <div style="font-size: 24px; font-weight: 700; color: #10B981;">${userProfiles.activeInPeriod}</div>
+                  </td>
+                  <td width="2%"></td>
+                  <td style="background-color: #FEF3C7; border-radius: 8px; padding: 15px; text-align: center;" width="23%">
+                    <div style="font-size: 12px; color: #64748B; margin-bottom: 5px;">Active Today</div>
+                    <div style="font-size: 24px; font-weight: 700; color: #F59E0B;">${userProfiles.activeToday}</div>
+                  </td>
+                  <td width="2%"></td>
+                  <td style="background-color: #E0E7FF; border-radius: 8px; padding: 15px; text-align: center;" width="23%">
+                    <div style="font-size: 12px; color: #64748B; margin-bottom: 5px;">New Users</div>
+                    <div style="font-size: 24px; font-weight: 700; color: #6366F1;">${userProfiles.newInPeriod}</div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Sessions & Engagement -->
+              <div style="margin-top: 20px; background-color: #FFF; border-radius: 8px; padding: 20px; border: 1px solid #E2E8F0;">
+                <h3 style="margin: 0 0 15px; color: #1A1A2E; font-size: 16px; font-weight: 600;">📊 Sessions & Engagement</h3>
+                <table width="100%" cellpadding="8" cellspacing="0">
+                  <tr>
+                    <td style="padding: 10px; text-align: center; border-right: 1px solid #E2E8F0;" width="25%">
+                      <div style="font-size: 12px; color: #64748B;">Total Sessions</div>
+                      <div style="font-size: 20px; font-weight: 700; color: #00F5D4; margin-top: 5px;">${userProfiles.totalSessions}</div>
+                    </td>
+                    <td style="padding: 10px; text-align: center; border-right: 1px solid #E2E8F0;" width="25%">
+                      <div style="font-size: 12px; color: #64748B;">Avg Duration</div>
+                      <div style="font-size: 20px; font-weight: 700; color: #00F5D4; margin-top: 5px;">${Math.floor(userProfiles.avgSessionDuration / 60)}m ${userProfiles.avgSessionDuration % 60}s</div>
+                    </td>
+                    <td style="padding: 10px; text-align: center; border-right: 1px solid #E2E8F0;" width="25%">
+                      <div style="font-size: 12px; color: #64748B;">Page Views</div>
+                      <div style="font-size: 20px; font-weight: 700; color: #00F5D4; margin-top: 5px;">${userProfiles.totalPageViews}</div>
+                    </td>
+                    <td style="padding: 10px; text-align: center;" width="25%">
+                      <div style="font-size: 12px; color: #64748B;">Interactions</div>
+                      <div style="font-size: 20px; font-weight: 700; color: #00F5D4; margin-top: 5px;">${userProfiles.totalInteractions}</div>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- Device Breakdown -->
+              ${userProfiles.devices && userProfiles.devices.length > 0 ? `
+              <div style="margin-top: 20px; background-color: #FFF; border-radius: 8px; padding: 20px; border: 1px solid #E2E8F0;">
+                <h3 style="margin: 0 0 15px; color: #1A1A2E; font-size: 16px; font-weight: 600;">📱 Device Breakdown</h3>
+                <table width="100%" cellpadding="8" cellspacing="0">
+                  <tr>
+                    ${userProfiles.devices.map((device: any, idx: number) => `
+                      <td style="padding: 15px; text-align: center; background-color: #F8FAFC; border-radius: 8px; ${idx < userProfiles.devices.length - 1 ? 'padding-right: 10px;' : ''}" width="${Math.floor(100 / userProfiles.devices.length)}%">
+                        <div style="font-size: 12px; color: #64748B; text-transform: capitalize;">${device.device}</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #1A1A2E; margin-top: 5px;">${device.count}</div>
+                      </td>
+                      ${idx < userProfiles.devices.length - 1 ? '<td width="2%"></td>' : ''}
+                    `).join('')}
+                  </tr>
+                </table>
+              </div>
+              ` : ''}
+
+              <!-- Top Locations -->
+              ${userProfiles.topLocations && userProfiles.topLocations.length > 0 ? `
+              <div style="margin-top: 20px; background-color: #FFF; border-radius: 8px; padding: 20px; border: 1px solid #E2E8F0;">
+                <h3 style="margin: 0 0 15px; color: #1A1A2E; font-size: 16px; font-weight: 600;">🌍 Top User Locations</h3>
+                <table width="100%" cellpadding="8" cellspacing="0" style="border-collapse: separate; border-spacing: 0 5px;">
+                  ${userProfiles.topLocations.map((location: any) => `
+                    <tr>
+                      <td style="padding: 10px; background-color: #F8FAFC; border-radius: 6px; font-size: 14px; color: #1A1A2E;">
+                        ${location.countryCode ? getFlagEmoji(location.countryCode) : '🌐'} ${location.city}, ${location.country}
+                      </td>
+                      <td style="padding: 10px; background-color: #F8FAFC; border-radius: 6px; text-align: right; font-size: 14px; font-weight: 600; color: #00F5D4;">
+                        ${location.count}
+                      </td>
+                    </tr>
+                  `).join('')}
+                </table>
+              </div>
+              ` : ''}
             </td>
           </tr>
           ` : ''}

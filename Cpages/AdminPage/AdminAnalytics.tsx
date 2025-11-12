@@ -1,7 +1,18 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Mail, TrendingUp, Loader2, Key, Lock, Globe } from "lucide-react";
+import {
+  Mail,
+  TrendingUp,
+  Loader2,
+  Key,
+  Lock,
+  Globe,
+  Users,
+  Activity,
+  Clock,
+  MousePointer,
+} from "lucide-react";
 
 // Helper function to convert country code to flag emoji
 function getFlagEmoji(countryCode: string): string {
@@ -120,7 +131,7 @@ export function AdminAnalytics() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-6 pt-[150px]">
       <div className="bg-card border border-border rounded-lg p-8">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -348,6 +359,264 @@ export function AdminAnalytics() {
                           </tbody>
                         </table>
                       </div>
+                    </div>
+                  )}
+
+                  {/* USER PROFILE ANALYTICS */}
+                  {summary.userProfiles && (
+                    <div className="mt-8 pt-8 border-t border-border">
+                      <div className="flex items-center gap-2 mb-6">
+                        <Users className="text-accent" size={24} />
+                        <h3 className="text-xl text-foreground">
+                          User Profile Analytics
+                        </h3>
+                      </div>
+
+                      {/* User Stats Grid */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div className="bg-background p-4 rounded-lg border border-border">
+                          <div className="text-sm text-muted-foreground mb-1">
+                            Total Users
+                          </div>
+                          <div className="text-2xl text-accent font-bold">
+                            {summary.userProfiles.total}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {summary.userProfiles.returning} returning
+                          </div>
+                        </div>
+                        <div className="bg-background p-4 rounded-lg border border-border">
+                          <div className="text-sm text-muted-foreground mb-1">
+                            Active Today
+                          </div>
+                          <div className="text-2xl text-green-500 font-bold">
+                            {summary.userProfiles.active.today}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {summary.userProfiles.active.thisWeek} this week
+                          </div>
+                        </div>
+                        <div className="bg-background p-4 rounded-lg border border-border">
+                          <div className="text-sm text-muted-foreground mb-1">
+                            New Today
+                          </div>
+                          <div className="text-2xl text-blue-500 font-bold">
+                            {summary.userProfiles.new.today}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {summary.userProfiles.new.thisWeek} this week
+                          </div>
+                        </div>
+                        <div className="bg-background p-4 rounded-lg border border-border">
+                          <div className="text-sm text-muted-foreground mb-1">
+                            Bounce Rate
+                          </div>
+                          <div className="text-2xl text-orange-500 font-bold">
+                            {summary.userProfiles.bounceRate}%
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            single page visits
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Sessions & Interactions */}
+                      {summary.sessions && (
+                        <div className="bg-muted rounded-lg p-6 mb-6">
+                          <div className="flex items-center gap-2 mb-4">
+                            <Activity className="text-accent" size={20} />
+                            <h4 className="text-foreground font-semibold">
+                              Sessions & Engagement
+                            </h4>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div>
+                              <div className="text-sm text-muted-foreground mb-1">
+                                Total Sessions
+                              </div>
+                              <div className="text-xl text-accent font-bold">
+                                {summary.sessions.total}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-sm text-muted-foreground mb-1">
+                                Avg Duration
+                              </div>
+                              <div className="text-xl text-accent font-bold">
+                                {Math.floor(summary.sessions.avgDuration / 60)}m{" "}
+                                {summary.sessions.avgDuration % 60}s
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-sm text-muted-foreground mb-1">
+                                Total Time
+                              </div>
+                              <div className="text-xl text-accent font-bold">
+                                {summary.sessions.totalTimeSpent}h
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-sm text-muted-foreground mb-1">
+                                Interactions
+                              </div>
+                              <div className="text-xl text-accent font-bold">
+                                {summary.interactions.total}
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {summary.interactions.avgPerSession} per session
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Page Views */}
+                      {summary.pageViews &&
+                        summary.pageViews.topPages &&
+                        summary.pageViews.topPages.length > 0 && (
+                          <div className="bg-muted rounded-lg p-6 mb-6">
+                            <div className="flex items-center gap-2 mb-4">
+                              <MousePointer className="text-accent" size={20} />
+                              <h4 className="text-foreground font-semibold">
+                                Page Views
+                              </h4>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                              <div>
+                                <div className="text-sm text-muted-foreground mb-1">
+                                  Total Views
+                                </div>
+                                <div className="text-xl text-accent font-bold">
+                                  {summary.pageViews.total}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="text-sm text-muted-foreground mb-1">
+                                  Avg per Session
+                                </div>
+                                <div className="text-xl text-accent font-bold">
+                                  {summary.pageViews.avgPerSession}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="bg-background rounded-lg p-4">
+                              <div className="text-sm text-muted-foreground mb-2">
+                                Most Visited Pages:
+                              </div>
+                              <div className="space-y-2">
+                                {summary.pageViews.topPages
+                                  .slice(0, 5)
+                                  .map((page: any, idx: number) => (
+                                    <div
+                                      key={idx}
+                                      className="flex justify-between items-center"
+                                    >
+                                      <span className="text-sm text-foreground truncate max-w-[300px]">
+                                        {page.page}
+                                      </span>
+                                      <span className="text-sm text-accent font-semibold">
+                                        {page.views}
+                                      </span>
+                                    </div>
+                                  ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                      {/* Locations from Profiles */}
+                      {summary.locations &&
+                        summary.locations.topCountries &&
+                        summary.locations.topCountries.length > 0 && (
+                          <div className="bg-muted rounded-lg p-6 mb-6">
+                            <div className="flex items-center gap-2 mb-4">
+                              <Globe className="text-accent" size={20} />
+                              <h4 className="text-foreground font-semibold">
+                                User Locations
+                              </h4>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* Top Countries */}
+                              <div className="bg-background rounded-lg p-4">
+                                <div className="text-sm text-muted-foreground mb-3">
+                                  Top Countries:
+                                </div>
+                                <div className="space-y-2">
+                                  {summary.locations.topCountries
+                                    .slice(0, 5)
+                                    .map((location: any, idx: number) => (
+                                      <div
+                                        key={idx}
+                                        className="flex justify-between items-center"
+                                      >
+                                        <span className="text-sm text-foreground">
+                                          {location.countryCode && (
+                                            <span className="mr-2">
+                                              {getFlagEmoji(
+                                                location.countryCode
+                                              )}
+                                            </span>
+                                          )}
+                                          {location.country}
+                                        </span>
+                                        <span className="text-sm text-accent font-semibold">
+                                          {location.count}
+                                        </span>
+                                      </div>
+                                    ))}
+                                </div>
+                              </div>
+
+                              {/* Top Cities */}
+                              <div className="bg-background rounded-lg p-4">
+                                <div className="text-sm text-muted-foreground mb-3">
+                                  Top Cities:
+                                </div>
+                                <div className="space-y-2">
+                                  {summary.locations.topCities
+                                    .slice(0, 5)
+                                    .map((location: any, idx: number) => (
+                                      <div
+                                        key={idx}
+                                        className="flex justify-between items-center"
+                                      >
+                                        <span className="text-sm text-foreground">
+                                          {location.city}, {location.country}
+                                        </span>
+                                        <span className="text-sm text-accent font-semibold">
+                                          {location.count}
+                                        </span>
+                                      </div>
+                                    ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                      {/* Device Breakdown */}
+                      {summary.devices && summary.devices.length > 0 && (
+                        <div className="bg-muted rounded-lg p-6">
+                          <h4 className="text-foreground font-semibold mb-4">
+                            Device Breakdown
+                          </h4>
+                          <div className="grid grid-cols-3 gap-4">
+                            {summary.devices.map((device: any, idx: number) => (
+                              <div
+                                key={idx}
+                                className="bg-background rounded-lg p-4 text-center"
+                              >
+                                <div className="text-sm text-muted-foreground mb-1 capitalize">
+                                  {device.device}
+                                </div>
+                                <div className="text-2xl text-accent font-bold">
+                                  {device.count}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

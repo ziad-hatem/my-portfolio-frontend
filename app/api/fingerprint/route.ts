@@ -1,16 +1,19 @@
 // Main fingerprint API endpoint
 
-import { NextRequest, NextResponse } from 'next/server';
-import { createHash } from 'crypto';
-import { getDatabase } from '@/lib/mongodb';
-import { fingerprintRateLimiter } from '@/lib/rate-limit';
-import { identifyUser } from '@/lib/identity-resolver';
+import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "crypto";
+import { getDatabase } from "@/lib/mongodb";
+import { fingerprintRateLimiter } from "@/lib/rate-limit";
+import { identifyUser } from "@/lib/identity-resolver";
 import {
   detectInconsistencies,
   calculateBotScore,
-} from '@/lib/fingerprint-matcher';
-import { getLocationFromIP } from '@/lib/geolocation-service';
-import { getOrCreateUserProfile, addLocationToProfile } from '@/lib/user-profile-manager';
+} from "@/lib/fingerprint-matcher";
+import { getLocationFromIP } from "@/lib/geolocation-service";
+import {
+  getOrCreateUserProfile,
+  addLocationToProfile,
+} from "@/lib/user-profile-manager";
 import type {
   FingerprintRequest,
   FingerprintResponse,
@@ -18,28 +21,49 @@ import type {
   CompositeFingerprintData,
   NetworkInfo,
   FingerprintRecord,
-} from '@/lib/fingerprint-types';
+} from "@/lib/fingerprint-types";
 
 /**
  * Generate deterministic hash from fingerprint data
  */
 function generateFingerprintHash(data: any): string {
   const normalized = JSON.stringify(data, Object.keys(data).sort());
-  return createHash('sha256').update(normalized).digest('hex');
+  return createHash("sha256").update(normalized).digest("hex");
 }
 
 /**
  * Extract network-level identifiers from request
+ * Priority: x-forwarded-for (most common in production) > x-real-ip > req.ip
  */
 function extractNetworkInfo(req: NextRequest): NetworkInfo {
-  const forwardedFor = req.headers.get('x-forwarded-for');
-  const realIp = req.headers.get('x-real-ip');
+  const forwardedFor = req.headers.get("x-forwarded-for");
+  const realIp = req.headers.get("x-real-ip");
+
+  // Extract IP with correct priority for production environments
+  let ip = "unknown";
+  if (forwardedFor) {
+    // x-forwarded-for can contain multiple IPs, first one is the client
+    ip = forwardedFor.split(",")[0].trim();
+  } else if (realIp) {
+    ip = realIp.trim();
+    // @ts-ignore
+  } else if (req?.ip) {
+    // @ts-ignore
+    ip = req?.ip;
+  }
+
+  console.log("[Fingerprint] Extracted IP:", ip, "from headers:", {
+    forwardedFor,
+    realIp,
+    // @ts-ignore
+    reqIp: req.ip,
+  });
 
   return {
-    ip: req.ip || realIp || forwardedFor?.split(',')[0] || 'unknown',
-    userAgent: req.headers.get('user-agent') || 'unknown',
-    acceptLanguage: req.headers.get('accept-language') || '',
-    acceptEncoding: req.headers.get('accept-encoding') || '',
+    ip,
+    userAgent: req.headers.get("user-agent") || "unknown",
+    acceptLanguage: req.headers.get("accept-language") || "",
+    acceptEncoding: req.headers.get("accept-encoding") || "",
   };
 }
 
@@ -50,14 +74,19 @@ function extractNetworkInfo(req: NextRequest): NetworkInfo {
 export async function POST(req: NextRequest) {
   try {
     // Extract identifier for rate limiting
-    const identifier = req.ip || req.headers.get('x-forwarded-for') || 'anonymous';
+    const identifier =
+      // @ts-ignore
+      req.ip || req.headers.get("x-forwarded-for") || "anonymous";
 
     // Rate limiting check
     try {
       await fingerprintRateLimiter.check(identifier, 10); // 10 requests per minute
     } catch {
       return NextResponse.json(
-        { success: false, error: 'Rate limit exceeded. Please try again later.' },
+        {
+          success: false,
+          error: "Rate limit exceeded. Please try again later.",
+        },
         { status: 429 }
       );
     }
@@ -67,7 +96,7 @@ export async function POST(req: NextRequest) {
 
     if (!body.fingerprint || !body.hash) {
       return NextResponse.json(
-        { success: false, error: 'Invalid request payload' },
+        { success: false, error: "Invalid request payload" },
         { status: 400 }
       );
     }
@@ -94,15 +123,16 @@ export async function POST(req: NextRequest) {
     // Block obvious bots
     if (botScore > 85) {
       return NextResponse.json(
-        { success: false, error: 'Automated access detected' },
+        { success: false, error: "Automated access detected" },
         { status: 403 }
       );
     }
 
     // Get database connection
     const db = await getDatabase();
-    const fingerprintsCollection = db.collection<FingerprintRecord>('fingerprints');
-    const usersCollection = db.collection('users');
+    const fingerprintsCollection =
+      db.collection<FingerprintRecord>("fingerprints");
+    const usersCollection = db.collection("users");
 
     // Check for exact match
     let fingerprintRecord = await fingerprintsCollection.findOne({
@@ -134,7 +164,7 @@ export async function POST(req: NextRequest) {
 
       userId = identityResult.userId;
       confidence = identityResult.confidence;
-      isNewUser = identityResult.method === 'new_user';
+      isNewUser = identityResult.method === "new_user";
 
       // Create new fingerprint record
       const newFingerprintRecord: FingerprintRecord = {
@@ -170,28 +200,45 @@ export async function POST(req: NextRequest) {
     );
 
     // Create or update user profile
+    console.log("[Fingerprint] Creating/updating profile for user:", userId);
     await getOrCreateUserProfile(userId);
 
     // Get and store location data
     const location = await getLocationFromIP(networkInfo.ip);
-    if (location) {
+    console.log("[Fingerprint] Location result:", location);
+
+    if (location && location.country !== "Unknown") {
+      console.log(
+        "[Fingerprint] Adding location to profile:",
+        location.city,
+        location.country
+      );
       await addLocationToProfile(userId, location);
+    } else {
+      console.log("[Fingerprint] Skipping Unknown location");
     }
+
+    console.log(
+      "[Fingerprint] Fingerprint processed successfully for user:",
+      userId,
+      "isNewUser:",
+      isNewUser
+    );
 
     // Return response
     const response: FingerprintResponse = {
       success: true,
       userId,
-      fingerprintId: fingerprintRecord._id?.toString() || '',
+      fingerprintId: fingerprintRecord._id?.toString() || "",
       isNewUser,
       confidence,
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Fingerprint processing error:', error);
+    console.error("[Fingerprint] Processing error:", error);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }
@@ -204,36 +251,38 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
+    const userId = searchParams.get("userId");
 
     if (!userId) {
       return NextResponse.json(
-        { success: false, error: 'userId parameter required' },
+        { success: false, error: "userId parameter required" },
         { status: 400 }
       );
     }
 
     // Rate limiting
-    const identifier = req.ip || 'anonymous';
+    // @ts-ignore
+    const identifier = req.ip || "anonymous";
     try {
       await fingerprintRateLimiter.check(identifier, 20);
     } catch {
       return NextResponse.json(
-        { success: false, error: 'Rate limit exceeded' },
+        { success: false, error: "Rate limit exceeded" },
         { status: 429 }
       );
     }
 
     const db = await getDatabase();
-    const fingerprintsCollection = db.collection<FingerprintRecord>('fingerprints');
-    const usersCollection = db.collection('users');
+    const fingerprintsCollection =
+      db.collection<FingerprintRecord>("fingerprints");
+    const usersCollection = db.collection("users");
 
     // Get user
     const user = await usersCollection.findOne({ userId });
 
     if (!user) {
       return NextResponse.json(
-        { success: false, error: 'User not found' },
+        { success: false, error: "User not found" },
         { status: 404 }
       );
     }
@@ -251,7 +300,7 @@ export async function GET(req: NextRequest) {
       createdAt: user.createdAt,
       lastSeen: user.lastSeen,
       fingerprintCount: fingerprints.length,
-      fingerprints: fingerprints.map(fp => ({
+      fingerprints: fingerprints.map((fp) => ({
         id: fp._id?.toString(),
         hash: fp.hash,
         createdAt: fp.createdAt,
@@ -262,9 +311,9 @@ export async function GET(req: NextRequest) {
       })),
     });
   } catch (error) {
-    console.error('User retrieval error:', error);
+    console.error("User retrieval error:", error);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }

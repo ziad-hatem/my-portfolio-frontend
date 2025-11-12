@@ -12,6 +12,8 @@ const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
  * Uses ip-api.com free service (45 requests/minute limit)
  */
 export async function getLocationFromIP(ip: string): Promise<GeoLocation | null> {
+  console.log('[Geolocation] Looking up IP:', ip);
+
   // Skip local/private IPs
   if (
     !ip ||
@@ -22,6 +24,7 @@ export async function getLocationFromIP(ip: string): Promise<GeoLocation | null>
     ip.startsWith('10.') ||
     ip.startsWith('172.')
   ) {
+    console.log('[Geolocation] Local/private IP detected, returning Unknown');
     return {
       country: 'Unknown',
       countryCode: 'XX',
@@ -32,11 +35,13 @@ export async function getLocationFromIP(ip: string): Promise<GeoLocation | null>
   // Check cache
   const cached = geoCache.get(ip);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    console.log('[Geolocation] Returning cached location:', cached.data.city, cached.data.country);
     return cached.data;
   }
 
   try {
     // Use ip-api.com free service
+    console.log('[Geolocation] Fetching from ip-api.com...');
     const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as`, {
       headers: {
         'User-Agent': 'Mozilla/5.0 Portfolio Analytics',
@@ -44,14 +49,14 @@ export async function getLocationFromIP(ip: string): Promise<GeoLocation | null>
     });
 
     if (!response.ok) {
-      console.error('Geolocation API error:', response.statusText);
+      console.error('[Geolocation] API error:', response.statusText);
       return null;
     }
 
     const data = await response.json();
 
     if (data.status === 'fail') {
-      console.error('Geolocation failed:', data.message);
+      console.error('[Geolocation] Failed:', data.message);
       return null;
     }
 
@@ -70,12 +75,14 @@ export async function getLocationFromIP(ip: string): Promise<GeoLocation | null>
       as: data.as,
     };
 
+    console.log('[Geolocation] Success:', location.city, location.country);
+
     // Cache the result
     geoCache.set(ip, { data: location, timestamp: Date.now() });
 
     return location;
   } catch (error) {
-    console.error('Geolocation error:', error);
+    console.error('[Geolocation] Error:', error);
     return null;
   }
 }

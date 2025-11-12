@@ -93,6 +93,12 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   const gaussianBlurRef = useRef<SVGFEGaussianBlurElement>(null);
 
   const isDarkMode = useDarkMode();
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Only enable feature detection after hydration to avoid hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const generateDisplacementMap = () => {
     const rect = containerRef.current?.getBoundingClientRect();
@@ -225,12 +231,13 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
       width: typeof width === "number" ? `${width}px` : width,
       height: typeof height === "number" ? `${height}px` : height,
       borderRadius: `${borderRadius}px`,
-      "--glass-frost": backgroundOpacity,
-      "--glass-saturation": saturation,
+      "--glass-frost": String(backgroundOpacity),
+      "--glass-saturation": String(saturation),
     } as React.CSSProperties;
 
-    const svgSupported = supportsSVGFilters();
-    const backdropFilterSupported = supportsBackdropFilter();
+    // Only run feature detection after hydration to avoid mismatch
+    const svgSupported = isMounted && supportsSVGFilters();
+    const backdropFilterSupported = isMounted && supportsBackdropFilter();
 
     if (svgSupported) {
       return {

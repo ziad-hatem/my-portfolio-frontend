@@ -1,20 +1,22 @@
 // User Profile Management
 
-import { getDatabase } from './mongodb';
+import { getDatabase } from "./mongodb";
 import type {
   UserProfile,
   PageView,
   Interaction,
   Session,
   GeoLocation,
-} from './user-profile-types';
+} from "./user-profile-types";
 
 /**
  * Create or get user profile
  */
-export async function getOrCreateUserProfile(userId: string): Promise<UserProfile> {
+export async function getOrCreateUserProfile(
+  userId: string
+): Promise<UserProfile> {
   const db = await getDatabase();
-  const profilesCollection = db.collection<UserProfile>('user_profiles');
+  const profilesCollection = db.collection<UserProfile>("user_profiles");
 
   let profile = await profilesCollection.findOne({ userId });
 
@@ -41,9 +43,10 @@ export async function getOrCreateUserProfile(userId: string): Promise<UserProfil
     };
 
     await profilesCollection.insertOne(newProfile as any);
+    // @ts-ignore
     profile = newProfile;
   }
-
+  // @ts-ignore
   return profile;
 }
 
@@ -55,7 +58,7 @@ export async function addLocationToProfile(
   location: GeoLocation
 ): Promise<void> {
   const db = await getDatabase();
-  const profilesCollection = db.collection<UserProfile>('user_profiles');
+  const profilesCollection = db.collection<UserProfile>("user_profiles");
 
   await profilesCollection.updateOne(
     { userId },
@@ -79,7 +82,7 @@ export async function trackPageView(
   pageView: PageView
 ): Promise<void> {
   const db = await getDatabase();
-  const profilesCollection = db.collection<UserProfile>('user_profiles');
+  const profilesCollection = db.collection<UserProfile>("user_profiles");
 
   // Add page view
   await profilesCollection.updateOne(
@@ -108,7 +111,7 @@ export async function trackInteraction(
   interaction: Interaction
 ): Promise<void> {
   const db = await getDatabase();
-  const profilesCollection = db.collection<UserProfile>('user_profiles');
+  const profilesCollection = db.collection<UserProfile>("user_profiles");
 
   await profilesCollection.updateOne(
     { userId },
@@ -133,7 +136,11 @@ export async function startSession(
   session: Session
 ): Promise<void> {
   const db = await getDatabase();
-  const profilesCollection = db.collection<UserProfile>('user_profiles');
+  const profilesCollection = db.collection<UserProfile>("user_profiles");
+
+  // Get current profile to check if this is a returning visitor
+  const profile = await profilesCollection.findOne({ userId });
+  const isReturning = profile ? profile.totalVisits > 0 : false;
 
   await profilesCollection.updateOne(
     { userId },
@@ -147,7 +154,7 @@ export async function startSession(
       $inc: { totalVisits: 1 },
       $set: {
         lastSeen: new Date(),
-        returnVisitor: true, // If session is being started, they've visited before
+        returnVisitor: isReturning,
       },
     }
   );
@@ -167,17 +174,17 @@ export async function endSession(
   interactionCount: number
 ): Promise<void> {
   const db = await getDatabase();
-  const profilesCollection = db.collection<UserProfile>('user_profiles');
+  const profilesCollection = db.collection<UserProfile>("user_profiles");
 
   // Update the specific session
   await profilesCollection.updateOne(
-    { userId, 'sessions.sessionId': sessionId },
+    { userId, "sessions.sessionId": sessionId },
     {
       $set: {
-        'sessions.$.endTime': new Date(),
-        'sessions.$.duration': duration,
-        'sessions.$.pageViews': pageViewCount,
-        'sessions.$.interactions': interactionCount,
+        "sessions.$.endTime": new Date(),
+        "sessions.$.duration": duration,
+        "sessions.$.pageViews": pageViewCount,
+        "sessions.$.interactions": interactionCount,
       },
       $inc: { totalTimeSpent: duration },
     }
@@ -192,7 +199,7 @@ export async function endSession(
  */
 async function updateMostVisitedPages(userId: string): Promise<void> {
   const db = await getDatabase();
-  const profilesCollection = db.collection<UserProfile>('user_profiles');
+  const profilesCollection = db.collection<UserProfile>("user_profiles");
 
   const profile = await profilesCollection.findOne({ userId });
   if (!profile) return;
@@ -219,33 +226,32 @@ async function updateMostVisitedPages(userId: string): Promise<void> {
 /**
  * Update device history
  */
-async function updateDeviceHistory(userId: string, deviceType: string): Promise<void> {
+async function updateDeviceHistory(
+  userId: string,
+  deviceType: string
+): Promise<void> {
   const db = await getDatabase();
-  const profilesCollection = db.collection<UserProfile>('user_profiles');
+  const profilesCollection = db.collection<UserProfile>("user_profiles");
 
   const profile = await profilesCollection.findOne({ userId });
   if (!profile) return;
 
-  // Count device types
+  // Count device types from ALL sessions
   const deviceCounts = new Map<string, number>();
   profile.sessions.forEach((session) => {
     const count = deviceCounts.get(session.device.type) || 0;
     deviceCounts.set(session.device.type, count + 1);
   });
 
-  // Add current device
-  deviceCounts.set(deviceType, (deviceCounts.get(deviceType) || 0) + 1);
-
   // Convert to array
-  const deviceHistory = Array.from(deviceCounts.entries()).map(([type, count]) => ({
-    type,
-    count,
-  }));
-
-  await profilesCollection.updateOne(
-    { userId },
-    { $set: { deviceHistory } }
+  const deviceHistory = Array.from(deviceCounts.entries()).map(
+    ([type, count]) => ({
+      type,
+      count,
+    })
   );
+
+  await profilesCollection.updateOne({ userId }, { $set: { deviceHistory } });
 }
 
 /**
@@ -253,7 +259,7 @@ async function updateDeviceHistory(userId: string, deviceType: string): Promise<
  */
 async function recalculateAverages(userId: string): Promise<void> {
   const db = await getDatabase();
-  const profilesCollection = db.collection<UserProfile>('user_profiles');
+  const profilesCollection = db.collection<UserProfile>("user_profiles");
 
   const profile = await profilesCollection.findOne({ userId });
   if (!profile) return;
@@ -268,14 +274,17 @@ async function recalculateAverages(userId: string): Promise<void> {
 
   // Calculate average page views per session
   const avgPageViewsPerSession =
-    profile.sessions.length > 0 ? profile.totalPageViews / profile.sessions.length : 0;
+    profile.sessions.length > 0
+      ? profile.totalPageViews / profile.sessions.length
+      : 0;
 
   await profilesCollection.updateOne(
     { userId },
     {
       $set: {
         averageSessionDuration: Math.round(avgSessionDuration),
-        averagePageViewsPerSession: Math.round(avgPageViewsPerSession * 10) / 10,
+        averagePageViewsPerSession:
+          Math.round(avgPageViewsPerSession * 10) / 10,
       },
     }
   );
@@ -284,9 +293,11 @@ async function recalculateAverages(userId: string): Promise<void> {
 /**
  * Get user profile by userId
  */
-export async function getUserProfile(userId: string): Promise<UserProfile | null> {
+export async function getUserProfile(
+  userId: string
+): Promise<UserProfile | null> {
   const db = await getDatabase();
-  const profilesCollection = db.collection<UserProfile>('user_profiles');
+  const profilesCollection = db.collection<UserProfile>("user_profiles");
 
   return await profilesCollection.findOne({ userId });
 }
@@ -299,7 +310,7 @@ export async function getAllUserProfiles(
   limit: number = 50
 ): Promise<{ profiles: UserProfile[]; total: number }> {
   const db = await getDatabase();
-  const profilesCollection = db.collection<UserProfile>('user_profiles');
+  const profilesCollection = db.collection<UserProfile>("user_profiles");
 
   const skip = (page - 1) * limit;
 
@@ -319,27 +330,27 @@ export async function getAllUserProfiles(
 /**
  * Add tag to user profile
  */
-export async function addTagToProfile(userId: string, tag: string): Promise<void> {
+export async function addTagToProfile(
+  userId: string,
+  tag: string
+): Promise<void> {
   const db = await getDatabase();
-  const profilesCollection = db.collection<UserProfile>('user_profiles');
+  const profilesCollection = db.collection<UserProfile>("user_profiles");
 
-  await profilesCollection.updateOne(
-    { userId },
-    { $addToSet: { tags: tag } }
-  );
+  await profilesCollection.updateOne({ userId }, { $addToSet: { tags: tag } });
 }
 
 /**
  * Remove tag from user profile
  */
-export async function removeTagFromProfile(userId: string, tag: string): Promise<void> {
+export async function removeTagFromProfile(
+  userId: string,
+  tag: string
+): Promise<void> {
   const db = await getDatabase();
-  const profilesCollection = db.collection<UserProfile>('user_profiles');
+  const profilesCollection = db.collection<UserProfile>("user_profiles");
 
-  await profilesCollection.updateOne(
-    { userId },
-    { $pull: { tags: tag } }
-  );
+  await profilesCollection.updateOne({ userId }, { $pull: { tags: tag } });
 }
 
 /**
@@ -347,7 +358,7 @@ export async function removeTagFromProfile(userId: string, tag: string): Promise
  */
 export async function deleteUserProfile(userId: string): Promise<void> {
   const db = await getDatabase();
-  const profilesCollection = db.collection<UserProfile>('user_profiles');
+  const profilesCollection = db.collection<UserProfile>("user_profiles");
 
   await profilesCollection.deleteOne({ userId });
 }

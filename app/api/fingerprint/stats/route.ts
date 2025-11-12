@@ -1,15 +1,18 @@
 // Fingerprint statistics and analytics endpoint
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getDatabase } from '@/lib/mongodb';
-import { analyticsRateLimiter } from '@/lib/rate-limit';
+import { NextRequest, NextResponse } from "next/server";
+import { getDatabase } from "@/lib/mongodb";
+import { analyticsRateLimiter } from "@/lib/rate-limit";
 import {
   calculateObservedEntropy,
   formatEntropy,
   getTheoreticalTotalEntropy,
   analyzeAttributeDistribution,
-} from '@/lib/entropy-calculator';
-import type { FingerprintRecord, FingerprintStats } from '@/lib/fingerprint-types';
+} from "@/lib/entropy-calculator";
+import type {
+  FingerprintRecord,
+  FingerprintStats,
+} from "@/lib/fingerprint-types";
 
 /**
  * GET /api/fingerprint/stats
@@ -18,19 +21,21 @@ import type { FingerprintRecord, FingerprintStats } from '@/lib/fingerprint-type
 export async function GET(req: NextRequest) {
   try {
     // Rate limiting
-    const identifier = req.ip || 'anonymous';
+    // @ts-ignore
+    const identifier = req.ip || "anonymous";
     try {
       await analyticsRateLimiter.check(identifier, 10); // 10 requests per minute
     } catch {
       return NextResponse.json(
-        { success: false, error: 'Rate limit exceeded' },
+        { success: false, error: "Rate limit exceeded" },
         { status: 429 }
       );
     }
 
     const db = await getDatabase();
-    const fingerprintsCollection = db.collection<FingerprintRecord>('fingerprints');
-    const usersCollection = db.collection('users');
+    const fingerprintsCollection =
+      db.collection<FingerprintRecord>("fingerprints");
+    const usersCollection = db.collection("users");
 
     // Get basic counts
     const totalFingerprints = await fingerprintsCollection.countDocuments();
@@ -57,8 +62,8 @@ export async function GET(req: NextRequest) {
         {
           $group: {
             _id: null,
-            avgConfidence: { $avg: '$confidence' },
-            avgSeenCount: { $avg: '$seenCount' },
+            avgConfidence: { $avg: "$confidence" },
+            avgSeenCount: { $avg: "$seenCount" },
           },
         },
       ])
@@ -74,7 +79,7 @@ export async function GET(req: NextRequest) {
       .aggregate([
         {
           $group: {
-            _id: '$hash',
+            _id: "$hash",
             count: { $sum: 1 },
           },
         },
@@ -82,7 +87,7 @@ export async function GET(req: NextRequest) {
       .toArray();
 
     const hashCountMap = new Map(
-      hashCounts.map(item => [item._id, item.count])
+      hashCounts.map((item) => [item._id, item.count])
     );
 
     const observedEntropy = calculateObservedEntropy(hashCountMap);
@@ -95,22 +100,22 @@ export async function GET(req: NextRequest) {
       .toArray();
 
     // Analyze key attributes
-    const userAgents = sampleFingerprints.map(fp => fp.data.basic.userAgent);
+    const userAgents = sampleFingerprints.map((fp) => fp.data.basic.userAgent);
     const timezones = sampleFingerprints.map(
-      fp => fp.data.basic.timezone.timezone
+      (fp) => fp.data.basic.timezone.timezone
     );
-    const languages = sampleFingerprints.map(fp => fp.data.basic.language);
+    const languages = sampleFingerprints.map((fp) => fp.data.basic.language);
 
     const userAgentDistribution = analyzeAttributeDistribution(
-      'User-Agent',
+      "User-Agent",
       userAgents
     );
     const timezoneDistribution = analyzeAttributeDistribution(
-      'Timezone',
+      "Timezone",
       timezones
     );
     const languageDistribution = analyzeAttributeDistribution(
-      'Language',
+      "Language",
       languages
     );
 
@@ -145,9 +150,9 @@ export async function GET(req: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Stats retrieval error:', error);
+    console.error("Stats retrieval error:", error);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }

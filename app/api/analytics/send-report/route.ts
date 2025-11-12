@@ -3,6 +3,7 @@ import { Resend } from 'resend';
 import { getDatabase } from '@/lib/mongodb';
 import { validateApiKey } from '@/lib/auth';
 import { generateEmailTemplate } from '@/lib/email-template';
+import type { UserProfile } from '@/lib/user-profile-types';
 
 export async function POST(request: NextRequest) {
   // Validate API key
@@ -107,6 +108,106 @@ export async function POST(request: NextRequest) {
         .map((view: any) => view.ipAddress)
     );
 
+    // ===== USER PROFILE DATA =====
+    const profilesCollection = db.collection<UserProfile>('user_profiles');
+
+    // Get time windows for profile filtering
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let profileDateFilter = {};
+    if (reportType === 'daily') {
+      profileDateFilter = { lastSeen: { $gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) } };
+    } else if (reportType === 'weekly') {
+      profileDateFilter = { lastSeen: { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) } };
+    } else if (reportType === 'monthly') {
+      profileDateFilter = { lastSeen: { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) } };
+    }
+
+    // Total and active users
+    const totalUsers = await profilesCollection.countDocuments();
+    const activeUsersInPeriod = await profilesCollection.countDocuments(profileDateFilter);
+    const activeToday = await profilesCollection.countDocuments({ lastSeen: { $gte: today } });
+
+    // New users in period
+    let newUsersFilter = {};
+    if (reportType === 'daily') {
+      newUsersFilter = { createdAt: { $gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) } };
+    } else if (reportType === 'weekly') {
+      newUsersFilter = { createdAt: { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) } };
+    } else {
+      newUsersFilter = { createdAt: { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) } };
+    }
+    const newUsers = await profilesCollection.countDocuments(newUsersFilter);
+
+    // Aggregations for period
+    const profileAggregates = await profilesCollection
+      .aggregate([
+        { $match: profileDateFilter },
+        {
+          $group: {
+            _id: null,
+            totalPageViews: { $sum: '$totalPageViews' },
+            totalInteractions: { $sum: '$totalInteractions' },
+            totalSessions: { $sum: '$totalVisits' },
+            avgSessionDuration: { $avg: '$averageSessionDuration' },
+          },
+        },
+      ])
+      .toArray();
+
+    const profileTotals = profileAggregates.length > 0
+      ? profileAggregates[0]
+      : { totalPageViews: 0, totalInteractions: 0, totalSessions: 0, avgSessionDuration: 0 };
+
+    // Top locations from profiles
+    const locationAgg = await profilesCollection
+      .aggregate([
+        { $match: profileDateFilter },
+        { $unwind: '$locations' },
+        { $match: { 'locations.country': { $ne: 'Unknown' }, 'locations.city': { $ne: 'Local' } } },
+        {
+          $group: {
+            _id: {
+              city: '$locations.city',
+              country: '$locations.country',
+            },
+            count: { $sum: 1 },
+            countryCode: { $first: '$locations.countryCode' },
+          },
+        },
+        { $sort: { count: -1 } },
+        { $limit: 5 },
+      ])
+      .toArray();
+
+    const topProfileLocations = locationAgg
+      .filter(item => item._id && item._id.city && item._id.city !== 'Local' && item._id.country !== 'Unknown')
+      .map((item) => ({
+        city: item._id.city,
+        country: item._id.country,
+        countryCode: item.countryCode || '',
+        count: item.count,
+      }));
+
+    // Device breakdown
+    const deviceAgg = await profilesCollection
+      .aggregate([
+        { $match: profileDateFilter },
+        { $unwind: '$deviceHistory' },
+        {
+          $group: {
+            _id: '$deviceHistory.type',
+            count: { $sum: '$deviceHistory.count' },
+          },
+        },
+        { $sort: { count: -1 } },
+      ])
+      .toArray();
+
+    const deviceBreakdown = deviceAgg.map((item) => ({
+      device: item._id || 'Unknown',
+      count: item.count,
+    }));
+
     // Generate styled HTML email
     const emailHtml = generateEmailTemplate({
       period: reportType === 'daily' ? 'Last 24 Hours' : reportType === 'weekly' ? 'Last 7 Days' : 'Last 30 Days',
@@ -123,6 +224,19 @@ export async function POST(request: NextRequest) {
       topLocations,
       uniqueVisitors: uniqueIPs.size,
       generatedAt: now,
+      // User Profile Data
+      userProfiles: {
+        total: totalUsers,
+        activeInPeriod: activeUsersInPeriod,
+        activeToday,
+        newInPeriod: newUsers,
+        totalSessions: profileTotals.totalSessions,
+        avgSessionDuration: Math.round(profileTotals.avgSessionDuration),
+        totalPageViews: profileTotals.totalPageViews,
+        totalInteractions: profileTotals.totalInteractions,
+        topLocations: topProfileLocations,
+        devices: deviceBreakdown,
+      },
     });
 
     // Send email via Resend

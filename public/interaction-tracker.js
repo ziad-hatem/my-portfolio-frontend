@@ -21,12 +21,27 @@
       this.maxScrollDepth = 0;
       this.trackingQueue = [];
       this.isTracking = false;
+      this.excludedPaths = ['/admin', '/admin/profiles'];
+    }
+
+    /**
+     * Check if current page should be tracked
+     */
+    shouldTrackPage() {
+      const pathname = window.location.pathname;
+      return !this.excludedPaths.some(excluded => pathname.startsWith(excluded));
     }
 
     /**
      * Initialize tracking
      */
     async init() {
+      // Check if we should track this page
+      if (!this.shouldTrackPage()) {
+        console.log('[Tracker] Admin page detected, tracking disabled');
+        return;
+      }
+
       // Wait for fingerprint to be collected
       await this.waitForUserId();
 
@@ -280,6 +295,13 @@
         if (window.location.pathname !== lastPath) {
           lastPath = window.location.pathname;
           console.log('[Tracker] SPA navigation detected');
+
+          // Check if new page should be tracked
+          if (!this.shouldTrackPage()) {
+            console.log('[Tracker] Navigated to excluded page, stopping tracking');
+            this.isTracking = false;
+            return;
+          }
 
           // Track duration on previous page
           const duration = Math.floor((Date.now() - this.pageViewStart) / 1000);
