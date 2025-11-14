@@ -69,7 +69,7 @@ function extractNetworkInfo(req: NextRequest): NetworkInfo {
 
 /**
  * POST /api/fingerprint
- * Main endpoint for receiving and processing browser fingerprints
+ * Simplified endpoint for fingerprint tracking with location
  */
 export async function POST(req: NextRequest) {
   try {
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Parse and validate request body
-    const body: FingerprintRequest = await req.json();
+    const body = await req.json();
 
     if (!body.fingerprint || !body.hash) {
       return NextResponse.json(
@@ -101,52 +101,31 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { fingerprint, hash: clientHash } = body;
+    const { fingerprint, hash: fingerprintHash, existingUserId } = body;
 
-    // Extract network information
+    // Extract network information (IP address)
     const networkInfo = extractNetworkInfo(req);
-
-    // Create composite fingerprint (browser + network)
-    const compositeFingerprint: CompositeFingerprintData = {
-      ...fingerprint,
-      network: networkInfo,
-    };
-
-    // Generate server-side hash
-    const compositeHash = generateFingerprintHash(compositeFingerprint);
-
-    // Detect suspicious patterns
-    const inconsistencies = detectInconsistencies(fingerprint);
-    const botScore = calculateBotScore(fingerprint);
-    const isSuspicious = inconsistencies.length > 2 || botScore > 70;
-
-    // Block obvious bots
-    if (botScore > 85) {
-      return NextResponse.json(
-        { success: false, error: "Automated access detected" },
-        { status: 403 }
-      );
-    }
+    console.log("[Fingerprint] Processing request from IP:", networkInfo.ip);
 
     // Get database connection
     const db = await getDatabase();
-    const fingerprintsCollection =
-      db.collection<FingerprintRecord>("fingerprints");
+    const fingerprintsCollection = db.collection("fingerprints");
     const usersCollection = db.collection("users");
-
-    // Check for exact match
-    let fingerprintRecord = await fingerprintsCollection.findOne({
-      hash: compositeHash,
-    });
 
     let userId: string;
     let isNewUser = false;
-    let confidence = 1.0;
+
+    // Check if fingerprint already exists
+    let fingerprintRecord = await fingerprintsCollection.findOne({
+      hash: fingerprintHash,
+    });
 
     if (fingerprintRecord) {
-      // Exact match found - update last seen
+      // Fingerprint exists - use existing user ID
       userId = fingerprintRecord.userId;
+      console.log("[Fingerprint] Existing fingerprint found for user:", userId);
 
+      // Update last seen
       await fingerprintsCollection.updateOne(
         { _id: fingerprintRecord._id },
         {
@@ -155,38 +134,34 @@ export async function POST(req: NextRequest) {
         }
       );
     } else {
-      // No exact match - try identity resolution (fuzzy matching)
-      const identityResult = await identifyUser(
-        compositeHash,
-        fingerprint,
-        networkInfo.ip
-      );
-
-      userId = identityResult.userId;
-      confidence = identityResult.confidence;
-      isNewUser = identityResult.method === "new_user";
+      // New fingerprint - create new user or use provided user ID
+      if (existingUserId) {
+        // User has an existing ID in localStorage
+        userId = existingUserId;
+        console.log("[Fingerprint] Using existing user ID:", userId);
+      } else {
+        // Generate new user ID
+        userId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        isNewUser = true;
+        console.log("[Fingerprint] Created new user ID:", userId);
+      }
 
       // Create new fingerprint record
-      const newFingerprintRecord: FingerprintRecord = {
-        hash: compositeHash,
-        data: compositeFingerprint,
+      const newFingerprintRecord = {
+        hash: fingerprintHash,
+        data: {
+          ...fingerprint,
+          network: networkInfo,
+        },
         userId,
         createdAt: new Date(),
         lastSeen: new Date(),
         seenCount: 1,
-        confidence,
-        suspicious: isSuspicious,
-        suspiciousReasons: inconsistencies,
+        confidence: 1.0,
       };
 
-      const insertResult = await fingerprintsCollection.insertOne(
-        newFingerprintRecord as any
-      );
-
-      fingerprintRecord = {
-        ...newFingerprintRecord,
-        _id: insertResult.insertedId.toString(),
-      };
+      await fingerprintsCollection.insertOne(newFingerprintRecord);
+      console.log("[Fingerprint] Created new fingerprint record");
     }
 
     // Update user's last seen timestamp
@@ -203,38 +178,36 @@ export async function POST(req: NextRequest) {
     console.log("[Fingerprint] Creating/updating profile for user:", userId);
     await getOrCreateUserProfile(userId);
 
-    // Get and store location data
+    // Fetch location from IP-API
+    console.log("[Fingerprint] Fetching location from IP-API...");
     const location = await getLocationFromIP(networkInfo.ip);
-    console.log("[Fingerprint] Location result:", location);
 
     if (location && location.country !== "Unknown") {
       console.log(
-        "[Fingerprint] Adding location to profile:",
+        "[Fingerprint] Location found:",
         location.city,
         location.country
       );
+      // Add location to user profile
       await addLocationToProfile(userId, location);
     } else {
-      console.log("[Fingerprint] Skipping Unknown location");
+      console.log("[Fingerprint] No valid location found");
     }
 
     console.log(
-      "[Fingerprint] Fingerprint processed successfully for user:",
+      "[Fingerprint] Processing complete for user:",
       userId,
-      "isNewUser:",
+      "| New User:",
       isNewUser
     );
 
-    // Return response
-    const response: FingerprintResponse = {
+    // Return response with location data
+    return NextResponse.json({
       success: true,
       userId,
-      fingerprintId: fingerprintRecord._id?.toString() || "",
       isNewUser,
-      confidence,
-    };
-
-    return NextResponse.json(response);
+      location: location && location.country !== "Unknown" ? location : null,
+    });
   } catch (error) {
     console.error("[Fingerprint] Processing error:", error);
     return NextResponse.json(

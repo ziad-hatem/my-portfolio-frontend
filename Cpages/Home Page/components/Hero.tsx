@@ -4,18 +4,8 @@ import { BackgroundBeams } from "@/components/ui/background-beams";
 import { ArrowRight, GithubIcon, LinkedinIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
-import AOS from "aos";
-import "aos/dist/aos.css";
 
 const Hero = () => {
-  useEffect(() => {
-    AOS.init({
-      duration: 1000,
-      once: true,
-      easing: "ease-out-cubic",
-    });
-  }, []);
-
   return (
     <div className="relative">
       <div className="w-full h-full absolute">
