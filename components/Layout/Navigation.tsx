@@ -10,9 +10,9 @@ const menuItems = [
 ];
 
 const socialItems = [
-  { label: "Twitter", link: "https://twitter.com" },
-  { label: "GitHub", link: "https://github.com" },
-  { label: "LinkedIn", link: "https://linkedin.com" },
+  // { label: "Twitter", link: "https://twitter.com" },
+  { label: "GitHub", link: "https://github.com/ziad-hatem" },
+  { label: "LinkedIn", link: "https://www.linkedin.com/in/ziadhatem2026" },
 ];
 
 export function Navigation() {

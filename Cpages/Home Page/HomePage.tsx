@@ -36,7 +36,7 @@ export function HomePage({ data }: any) {
   };
 
   const projectsData = {
-    title: checkIfExist(homeData?.title, ""),
+    title: checkIfExist(homeData?.featured_projects_section_1title, ""),
     description: checkIfExist(
       homeData?.featured_projects_section_1project_description
     ),
@@ -44,6 +44,7 @@ export function HomePage({ data }: any) {
       homeData?.featured_projects_section_1project_slider?.map(
         (project: any) => ({
           title: checkIfExist(project?.title, ""),
+          id: checkIfExist(project?.id, ""),
           project_image: checkIfExist(project?.project_image?.permalink, ""),
           project_name: checkIfExist(project?.project_name, ""),
           company_name: checkIfExist(project?.company_name, ""),
@@ -99,9 +100,10 @@ export function HomePage({ data }: any) {
     posts: checkIfExist(
       homeData?.post_sectionposts?.map((post: any) => ({
         permalink: checkIfExist(post?.permalink, ""),
+        id: checkIfExist(post?.id, ""),
         title: checkIfExist(post?.title, ""),
         author: checkIfExist(post?.author, ""),
-        date: checkIfExist(post?.date, ""),
+        date: checkIfExist(post?.publish_date, ""),
         post_text: checkIfExist(post?.post_text, ""),
         post_image: checkIfExist(post?.post_image?.permalink, ""),
       })),

@@ -17,6 +17,7 @@ interface ProjectsSectionProps {
     title: string;
     description: string;
     featured_projects: Array<{
+      id: string;
       title: string;
       project_image: string;
       project_name: string;
@@ -116,7 +117,7 @@ const ProjectsSection = ({ data }: ProjectsSectionProps) => {
             >
               {featuredProjects.map((project, index) => (
                 <SwiperSlide key={index}>
-                  <Link href={project.project_link}>
+                  <Link href={`/projects/${project.id}`}>
                     <div
                       className="bg-background rounded-lg overflow-hidden h-full"
                       data-aos="fade-up"
@@ -141,7 +142,10 @@ const ProjectsSection = ({ data }: ProjectsSectionProps) => {
                         <p
                           className="text-base text-muted-foreground mb-4"
                           dangerouslySetInnerHTML={{
-                            __html: project.project_description,
+                            __html: project.project_description
+                              ? project.project_description.slice(0, 300) +
+                                "..."
+                              : "",
                           }}
                         ></p>
                         <div className="flex flex-wrap gap-2 mt-auto">

@@ -287,8 +287,8 @@ export function SingleProjectPage({
       {/* Hero Banner */}
       <div className="relative w-full h-[400px] md:h-[500px] bg-muted">
         <ImageWithFallback
-          width={600}
-          height={600}
+          width={1920}
+          height={1080}
           src={project.image}
           alt={project.title}
           className="w-full h-full object-cover"
@@ -310,7 +310,10 @@ export function SingleProjectPage({
                 <span>{project.workContext}</span>
               </div>
             )}
-            <p className="text-muted-foreground mb-6">{project.description}</p>
+            <p
+              className="text-muted-foreground mb-6"
+              dangerouslySetInnerHTML={{ __html: project.description }}
+            ></p>
             <div className="flex flex-wrap items-center gap-4 mb-6">
               {project.details?.liveUrl && (
                 <a

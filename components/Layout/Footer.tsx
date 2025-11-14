@@ -42,7 +42,7 @@ export function Footer() {
             {/* Social Links */}
             <div className="flex max-md:flex-col max-md:items-start items-center gap-4 md:gap-6 flex-wrap justify-center md:justify-start">
               <Link
-                href="https://linkedin.com/in/ziadhatem"
+                href="https://www.linkedin.com/in/ziadhatem2026"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center gap-2 text-muted-foreground hover:text-[#00F3BE] transition-all duration-300 relative"
@@ -59,7 +59,7 @@ export function Footer() {
                 </span>
               </Link>
               <Link
-                href="https://github.com/ziadhatem"
+                href="https://github.com/ziad-hatem"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center gap-2 text-muted-foreground hover:text-[#00F3BE] transition-all duration-300 relative"

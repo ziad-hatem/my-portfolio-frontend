@@ -18,6 +18,7 @@ interface PostsSectionProps {
     description: string;
     posts: Array<{
       permalink: string;
+      id: string;
       title: string;
       author: string;
       date: string;
@@ -111,7 +112,7 @@ const PostsSection = ({ data }: PostsSectionProps) => {
               {data.posts.map((post, index) => (
                 <SwiperSlide key={index}>
                   <PostCard
-                    postId={post.permalink}
+                    postId={post.id}
                     title={post.title}
                     excerpt={post.post_text}
                     image={post.post_image}

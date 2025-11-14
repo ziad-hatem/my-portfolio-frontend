@@ -119,7 +119,7 @@ export function ContactPage() {
               </a>
 
               <a
-                href="https://linkedin.com/in/ziadhatem"
+                href="hhttps://www.linkedin.com/in/ziadhatem2026/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-4 text-muted-foreground hover:text-accent transition-colors group"
@@ -129,12 +129,14 @@ export function ContactPage() {
                 </div>
                 <div>
                   <div className="text-foreground">LinkedIn</div>
-                  <div className="text-sm">linkedin.com/in/ziadhatem</div>
+                  <div className="text-sm">
+                    https://www.linkedin.com/in/ziadhatem2026
+                  </div>
                 </div>
               </a>
 
               <a
-                href="https://github.com/ziadhatem"
+                href="https://github.com/ziad-hatem"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-4 text-muted-foreground hover:text-accent transition-colors group"
@@ -144,7 +146,7 @@ export function ContactPage() {
                 </div>
                 <div>
                   <div className="text-foreground">Github</div>
-                  <div className="text-sm">github.com/ziadhatem</div>
+                  <div className="text-sm">https://github.com/ziad-hatem</div>
                 </div>
               </a>
 

@@ -1,15 +1,18 @@
 import { ContactPage } from "@/Cpages/ContactPage/ContactPage";
+import { checkIfExist } from "@/lib/checkIfExist";
+import getHomeData from "@/lib/get-data/getHomeData";
 import getStaticMetaData from "@/utils/seo/getStaticMetaData";
+
 export async function generateMetadata() {
   const followIndex = process.env.NEXT_PUBLIC_FOLLOW_INDEX || false;
-
+  const homeData: any = await getHomeData();
   try {
+    const seoSettings = checkIfExist(homeData?.home?.seo_settings, {});
+
     const metadata = getStaticMetaData({
-      title: "Contact Me | Ziad Hatem - Frontend Developer",
-      description:
-        "Get in touch with me for web development opportunities, collaborations, or project inquiries. Front-end developer skilled in React, Next.js, TypeScript, Tailwind CSS, and Redux.",
-      keywords:
-        "contact, hire frontend developer, web development, React developer, Next.js developer, freelance, collaboration",
+      title: checkIfExist(seoSettings?.seo_title),
+      description: checkIfExist(seoSettings?.seo_description),
+      keywords: checkIfExist(seoSettings?.seo_keywords),
       isRobotFollow: followIndex as boolean,
     });
 
@@ -22,8 +25,8 @@ export async function generateMetadata() {
   } catch (error) {
     console.error("Error generating metadata:", error);
     return {
-      title: "Contact | Frontend Developer",
-      description: "Get in touch for web development opportunities.",
+      title: "Page Not Found",
+      description: "The requested page could not be found.",
       metadataBase: new URL(
         process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000"
       ),

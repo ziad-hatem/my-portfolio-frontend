@@ -48,10 +48,11 @@ export const homeQuery = () => {
     }
 
     fragment ProjectsSection on Entry_Pages_Page {
-      title
+      featured_projects_section_1title
       featured_projects_section_1project_description
       featured_projects_section_1project_slider {
         ... on Entry_Projects_Project {
+          id
           title
           project_image {
             permalink
@@ -79,8 +80,8 @@ export const homeQuery = () => {
           company_name
           job_title
           job_description
-          from(format: "Y")
-          to(format: "Y")
+          from(format: "d M Y")
+          to(format: "d M Y")
           present
         }
       }
@@ -106,10 +107,11 @@ export const homeQuery = () => {
       post_sectiondescription
       post_sectionposts {
         ... on Entry_Posts_Post {
+          id
           permalink
           title
           author
-          date(format: "Y")
+          publish_date(format: "d M Y")
           post_text
           post_image {
             permalink
