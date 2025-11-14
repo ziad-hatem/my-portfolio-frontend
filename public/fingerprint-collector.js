@@ -4,10 +4,10 @@
  */
 
 (function (window) {
-  'use strict';
+  "use strict";
 
-  const STORAGE_KEY = 'fpUserId';
-  const ENDPOINT = '/api/fingerprint';
+  const STORAGE_KEY = "fpUserId";
+  const ENDPOINT = "/api/fingerprint";
 
   /**
    * Simple hash function using SHA-256
@@ -16,9 +16,9 @@
     try {
       const encoder = new TextEncoder();
       const data = encoder.encode(str);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
     } catch (e) {
       // Fallback to simple hash if crypto.subtle is not available
       let hash = 0;
@@ -61,7 +61,7 @@
    * Check if fingerprint exists, create if not, and get location
    */
   async function initializeFingerprint() {
-    console.log('[Fingerprint] Initializing...');
+    ("[Fingerprint] Initializing...");
 
     try {
       // Check if we already have a user ID stored
@@ -71,11 +71,11 @@
       const fingerprintHash = await generateFingerprint();
 
       // Always send to server to check/update location
-      console.log('[Fingerprint] Sending to server...');
+      ("[Fingerprint] Sending to server...");
       const response = await fetch(ENDPOINT, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           fingerprint: collectBasicInfo(),
@@ -85,7 +85,7 @@
       });
 
       if (!response.ok) {
-        console.error('[Fingerprint] Server error:', response.statusText);
+        console.error("[Fingerprint] Server error:", response.statusText);
         return null;
       }
 
@@ -95,11 +95,13 @@
         // Store the user ID
         localStorage.setItem(STORAGE_KEY, result.userId);
 
-        console.log('[Fingerprint] Initialized successfully');
-        console.log('[Fingerprint] User ID:', result.userId);
-        console.log('[Fingerprint] Is New User:', result.isNewUser);
+        ("[Fingerprint] Initialized successfully");
+        "[Fingerprint] User ID:", result.userId;
+        "[Fingerprint] Is New User:", result.isNewUser;
         if (result.location) {
-          console.log('[Fingerprint] Location:', result.location.city, result.location.country);
+          "[Fingerprint] Location:",
+            result.location.city,
+            result.location.country;
         }
 
         return result;
@@ -107,7 +109,7 @@
 
       return null;
     } catch (error) {
-      console.error('[Fingerprint] Initialization failed:', error);
+      console.error("[Fingerprint] Initialization failed:", error);
       return null;
     }
   }
@@ -135,8 +137,8 @@
   };
 
   // Auto-initialize on page load
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
       window.BrowserFingerprint.init();
     });
   } else {

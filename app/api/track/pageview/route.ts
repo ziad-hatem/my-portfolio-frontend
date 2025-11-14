@@ -22,13 +22,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { userId, url, title, referrer, duration, scrollDepth } = body;
 
-    console.log(
-      "[Track PageView] Tracking page view for user:",
-      userId,
-      "url:",
-      url
-    );
-
     if (!userId || !url) {
       return NextResponse.json(
         { success: false, error: "userId and url are required" },
@@ -56,8 +49,6 @@ export async function POST(req: NextRequest) {
     };
 
     await trackPageView(userId, pageView);
-
-    console.log("[Track PageView] Page view tracked:", pathname);
 
     return NextResponse.json({ success: true });
   } catch (error) {

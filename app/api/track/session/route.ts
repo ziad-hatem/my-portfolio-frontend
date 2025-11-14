@@ -27,8 +27,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { userId, device } = body;
 
-    console.log("[Track Session] Starting session for user:", userId);
-
     if (!userId || !device) {
       return NextResponse.json(
         { success: false, error: "userId and device are required" },
@@ -56,16 +54,7 @@ export async function POST(req: NextRequest) {
       ip = req.ip;
     }
 
-    console.log("[Track Session] Extracted IP:", ip, "from headers:", {
-      forwardedFor,
-      realIp,
-      // @ts-ignore
-      reqIp: req.ip,
-    });
-
     const location = await getLocationFromIP(ip);
-
-    console.log("[Track Session] Location result:", location);
 
     const session: Session = {
       sessionId,
@@ -80,23 +69,11 @@ export async function POST(req: NextRequest) {
 
     // Also add location to profile if we got a valid location
     if (location && location.country !== "Unknown") {
-      console.log(
-        "[Track Session] Adding location to profile:",
-        location.city,
-        location.country
-      );
       const { addLocationToProfile } = await import(
         "@/lib/user-profile-manager"
       );
       await addLocationToProfile(userId, location);
     }
-
-    console.log(
-      "[Track Session] Session created:",
-      sessionId,
-      "for user:",
-      userId
-    );
 
     return NextResponse.json({ success: true, sessionId });
   } catch (error) {

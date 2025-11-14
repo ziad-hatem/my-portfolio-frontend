@@ -20,7 +20,7 @@ export async function getMongoClient() {
     throw new Error("MONGODB_URI environment variable is not set");
   }
 
-  console.log("🔌 Attempting MongoDB connection...");
+  ("🔌 Attempting MongoDB connection...");
 
   // Create a new MongoClient with minimal, compatible options
   const client = new MongoClient(mongoUri, {
@@ -33,7 +33,7 @@ export async function getMongoClient() {
   clientPromise = client
     .connect()
     .then((connectedClient) => {
-      console.log("✅ Connected to MongoDB");
+      ("✅ Connected to MongoDB");
       mongoClient = connectedClient;
       clientPromise = null; // Reset after successful connection
       return connectedClient;
@@ -58,7 +58,7 @@ if (typeof process !== "undefined") {
   process.on("SIGINT", async () => {
     if (mongoClient) {
       await mongoClient.close();
-      console.log("MongoDB connection closed");
+      ("MongoDB connection closed");
       process.exit(0);
     }
   });

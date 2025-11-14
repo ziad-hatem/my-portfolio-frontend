@@ -30,8 +30,8 @@ export function Navigation() {
       logoUrl="/logo.png"
       accentColor="#ff6b6b"
       isFixed={true}
-      // onMenuOpen={() => console.log("Menu opened")}
-      // onMenuClose={() => console.log("Menu closed")}
+      // onMenuOpen={() => ("Menu opened")}
+      // onMenuClose={() => ("Menu closed")}
     />
   );
 }

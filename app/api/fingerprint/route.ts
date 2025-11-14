@@ -52,13 +52,6 @@ function extractNetworkInfo(req: NextRequest): NetworkInfo {
     ip = req?.ip;
   }
 
-  console.log("[Fingerprint] Extracted IP:", ip, "from headers:", {
-    forwardedFor,
-    realIp,
-    // @ts-ignore
-    reqIp: req.ip,
-  });
-
   return {
     ip,
     userAgent: req.headers.get("user-agent") || "unknown",
@@ -105,7 +98,6 @@ export async function POST(req: NextRequest) {
 
     // Extract network information (IP address)
     const networkInfo = extractNetworkInfo(req);
-    console.log("[Fingerprint] Processing request from IP:", networkInfo.ip);
 
     // Get database connection
     const db = await getDatabase();
@@ -123,7 +115,6 @@ export async function POST(req: NextRequest) {
     if (fingerprintRecord) {
       // Fingerprint exists - use existing user ID
       userId = fingerprintRecord.userId;
-      console.log("[Fingerprint] Existing fingerprint found for user:", userId);
 
       // Update last seen
       await fingerprintsCollection.updateOne(
@@ -138,12 +129,12 @@ export async function POST(req: NextRequest) {
       if (existingUserId) {
         // User has an existing ID in localStorage
         userId = existingUserId;
-        console.log("[Fingerprint] Using existing user ID:", userId);
       } else {
         // Generate new user ID
-        userId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        userId = `user_${Date.now()}_${Math.random()
+          .toString(36)
+          .substring(2, 9)}`;
         isNewUser = true;
-        console.log("[Fingerprint] Created new user ID:", userId);
       }
 
       // Create new fingerprint record
@@ -161,7 +152,7 @@ export async function POST(req: NextRequest) {
       };
 
       await fingerprintsCollection.insertOne(newFingerprintRecord);
-      console.log("[Fingerprint] Created new fingerprint record");
+      ("[Fingerprint] Created new fingerprint record");
     }
 
     // Update user's last seen timestamp
@@ -175,31 +166,16 @@ export async function POST(req: NextRequest) {
     );
 
     // Create or update user profile
-    console.log("[Fingerprint] Creating/updating profile for user:", userId);
     await getOrCreateUserProfile(userId);
 
     // Fetch location from IP-API
-    console.log("[Fingerprint] Fetching location from IP-API...");
     const location = await getLocationFromIP(networkInfo.ip);
 
     if (location && location.country !== "Unknown") {
-      console.log(
-        "[Fingerprint] Location found:",
-        location.city,
-        location.country
-      );
       // Add location to user profile
       await addLocationToProfile(userId, location);
     } else {
-      console.log("[Fingerprint] No valid location found");
     }
-
-    console.log(
-      "[Fingerprint] Processing complete for user:",
-      userId,
-      "| New User:",
-      isNewUser
-    );
 
     // Return response with location data
     return NextResponse.json({

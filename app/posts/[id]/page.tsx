@@ -1,13 +1,40 @@
 import { SinglePostPage } from "@/Cpages/Posts Page/Single Post/SinglePostPage";
 import getStaticMetaData from "@/utils/seo/getStaticMetaData";
-export async function generateMetadata() {
+import getPostById from "@/lib/get-data/getPostById";
+import { checkIfExist } from "@/lib/checkIfExist";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const followIndex = process.env.NEXT_PUBLIC_FOLLOW_INDEX || false;
+  const { id } = await params;
+
+  const postData: any = await getPostById(id);
+
+  const post = checkIfExist(postData?.entry, null);
+  post;
+
+  const image = post?.post_image?.permalink;
+  const keywords = [post?.title, post.post_text].join(", ");
+
+  // Generate OG image URL with post details
+  const baseUrl =
+    process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+  const ogImageUrl = `${baseUrl}/api/og/post?title=${encodeURIComponent(
+    post?.title || ""
+  )}&image=${encodeURIComponent(image || "")}&author=${encodeURIComponent(
+    post?.author || ""
+  )}`;
+  ogImageUrl;
 
   try {
     const metadata = getStaticMetaData({
-      title: "Ziad Hatem - Frontend Developer",
-      description:
-        "Front-end developer skilled in React, Next.js, TypeScript, Tailwind CSS and Redux, turning complex requirements into fast, user-centric web apps. I thrive in collaborative environments and stay ahead of industry trends to deliver cutting-edge solutions.",
+      title: `${post?.title} | Ziad Hatem`,
+      description: post?.post_text?.substring(0, 160) || "",
+      keywords,
+      image: ogImageUrl,
       isRobotFollow: followIndex as boolean,
     });
 
@@ -35,5 +62,10 @@ export default async function PostPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <SinglePostPage postId={id} />;
+
+  const postData: any = await getPostById(id);
+
+  const post = checkIfExist(postData?.entry, null);
+
+  return <SinglePostPage postId={id} post={post} />;
 }

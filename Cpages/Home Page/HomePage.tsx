@@ -35,14 +35,83 @@ export function HomePage({ data }: any) {
     ),
   };
 
-  console.log(heroData);
+  const projectsData = {
+    title: checkIfExist(homeData?.title, ""),
+    featured_projects: checkIfExist(
+      homeData?.featured_projects_section_1project_slider?.map(
+        (project: any) => ({
+          title: checkIfExist(project?.title, ""),
+          project_image: checkIfExist(project?.project_image?.permalink, ""),
+          project_name: checkIfExist(project?.project_name, ""),
+          company_name: checkIfExist(project?.company_name, ""),
+          project_link: checkIfExist(project?.project_link, ""),
+          project_overview: checkIfExist(project?.project_overview, ""),
+          skills: checkIfExist(
+            project?.skills?.map((skill: any) => ({
+              skill_name: checkIfExist(skill?.skill_name, ""),
+            })),
+            []
+          ),
+        })
+      ),
+      []
+    ),
+  };
+
+  const experienceData = {
+    title: checkIfExist(homeData?.experience_section_1title, ""),
+    description: checkIfExist(homeData?.experience_section_1description, ""),
+    experiences: checkIfExist(
+      homeData?.experience_section_1replicator_field?.map((exp: any) => ({
+        id: checkIfExist(exp?.id, ""),
+        company_name: checkIfExist(exp?.company_name, ""),
+        job_title: checkIfExist(exp?.job_title, ""),
+        job_description: checkIfExist(exp?.job_description, ""),
+        from: checkIfExist(exp?.from, ""),
+        to: checkIfExist(exp?.to, ""),
+        present: checkIfExist(exp?.present, false),
+      })),
+      []
+    ),
+  };
+
+  const skillsData = {
+    title: checkIfExist(homeData?.technology_section_1section_title, ""),
+    description: checkIfExist(homeData?.technology_section_1description, ""),
+    skills: checkIfExist(
+      homeData?.technology_section_1skills?.map((skill: any) => ({
+        id: checkIfExist(skill?.id, ""),
+        skill_name: checkIfExist(skill?.skill_name, ""),
+        skill_link: checkIfExist(skill?.skill_link, ""),
+        skill_image: checkIfExist(skill?.skill_image?.permalink, ""),
+      })),
+      []
+    ),
+  };
+
+  const postsData = {
+    title: checkIfExist(homeData?.post_sectiontitle, ""),
+    description: checkIfExist(homeData?.post_sectiondescription, ""),
+    posts: checkIfExist(
+      homeData?.post_sectionposts?.map((post: any) => ({
+        permalink: checkIfExist(post?.permalink, ""),
+        title: checkIfExist(post?.title, ""),
+        author: checkIfExist(post?.author, ""),
+        date: checkIfExist(post?.date, ""),
+        post_text: checkIfExist(post?.post_text, ""),
+        post_image: checkIfExist(post?.post_image?.permalink, ""),
+      })),
+      []
+    ),
+  };
+
   return (
     <div className="min-h-screen relative z-10">
       <Hero data={heroData} />
-      <ProjectsSection />
-      <ExperienceSection />
-      <SkillsSection />
-      <PostsSection />
+      <ProjectsSection data={projectsData} />
+      <ExperienceSection data={experienceData} />
+      <SkillsSection data={skillsData} />
+      <PostsSection data={postsData} />
     </div>
   );
 }

@@ -1,13 +1,41 @@
 import { SingleProjectPage } from "@/Cpages/Projects Page/Single Project Page/SingleProjectPage";
 import getStaticMetaData from "@/utils/seo/getStaticMetaData";
-export async function generateMetadata() {
+import getProjectById from "@/lib/get-data/getProjectById";
+import { checkIfExist } from "@/lib/checkIfExist";
+import getHomeData from "@/lib/get-data/getHomeData";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const followIndex = process.env.NEXT_PUBLIC_FOLLOW_INDEX || false;
+  const { id } = await params;
+
+  const projectData: any = await getProjectById(id);
+
+  const project = checkIfExist(projectData?.entry, null);
+  const image = project.project_image.permalink;
+  const keywords = [
+    project.project_description.split(" "),
+    project.project_overview.join(" "),
+  ].join(", ");
+
+  // Generate OG image URL with project details
+  const baseUrl =
+    process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+  const ogImageUrl = `${baseUrl}/api/og/project?title=${encodeURIComponent(
+    project.title
+  )}&image=${encodeURIComponent(image)}&company=${encodeURIComponent(
+    project.company_name || ""
+  )}`;
 
   try {
     const metadata = getStaticMetaData({
-      title: "Ziad Hatem - Frontend Developer",
-      description:
-        "Front-end developer skilled in React, Next.js, TypeScript, Tailwind CSS and Redux, turning complex requirements into fast, user-centric web apps. I thrive in collaborative environments and stay ahead of industry trends to deliver cutting-edge solutions.",
+      title: `${project.title} | Ziad Hatem`,
+      description: project.project_description,
+      keywords,
+      image: ogImageUrl,
       isRobotFollow: followIndex as boolean,
     });
 
@@ -35,5 +63,10 @@ export default async function ProjectPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <SingleProjectPage projectId={id} />;
+
+  const projectData: any = await getProjectById(id);
+
+  const project = checkIfExist(projectData?.entry, null);
+
+  return <SingleProjectPage projectId={id} project={project} />;
 }

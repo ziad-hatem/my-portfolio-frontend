@@ -4,9 +4,32 @@ import React, { useState, useEffect } from "react";
 import { ProjectGridSkeleton } from "../Home Page/components/ProjectSkeleton";
 import { ProjectCard } from "../Home Page/components/ProjectCard";
 
-export function ProjectsPage() {
+interface Skill {
+  id: string;
+  skill_name: string;
+}
+
+interface Project {
+  id: string;
+  title: string;
+  company_name: string;
+  project_description: string;
+  project_image: {
+    permalink: string;
+  };
+  project_overview: string;
+  project_name: string;
+  project_link: string;
+  skills: Skill[];
+}
+
+interface ProjectsPageProps {
+  projects: Project[];
+}
+
+export function ProjectsPage({ projects: fetchedProjects }: ProjectsPageProps) {
   const [loading, setLoading] = useState(true);
-  const projects = [
+  const fallbackProjects = [
     {
       id: "jic",
       title: "Jeddah International College (JIC)",
@@ -181,6 +204,11 @@ export function ProjectsPage() {
     },
   ];
 
+  // Use fetched projects if available, otherwise use fallback
+  const projects = fetchedProjects && fetchedProjects.length > 0
+    ? fetchedProjects
+    : fallbackProjects;
+
   useEffect(() => {
     // Simulate loading delay
     const timer = setTimeout(() => {
@@ -209,17 +237,22 @@ export function ProjectsPage() {
           <ProjectGridSkeleton count={6} />
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => (
-              <ProjectCard
-                key={project.id}
-                projectId={project.id}
-                title={project.title}
-                description={project.description}
-                image={project.image}
-                tags={project.tags}
-                workContext={project.workContext}
-              />
-            ))}
+            {projects.map((project) => {
+              // Map fetched project data to component props
+              const isFetchedProject = 'project_description' in project;
+
+              return (
+                <ProjectCard
+                  key={project.id}
+                  projectId={project.id}
+                  title={isFetchedProject ? project.title : (project as any).title}
+                  description={isFetchedProject ? project.project_description : (project as any).description}
+                  image={isFetchedProject ? project.project_image.permalink : (project as any).image}
+                  tags={isFetchedProject ? project.skills.map(s => s.skill_name) : (project as any).tags}
+                  workContext={isFetchedProject ? project.company_name : (project as any).workContext}
+                />
+              );
+            })}
           </div>
         )}
       </div>

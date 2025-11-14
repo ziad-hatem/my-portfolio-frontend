@@ -8,7 +8,7 @@ const getHomeData = async () => {
     });
     return data;
   } catch (error) {
-    console.log("errrror:: " + error);
+    "errrror:: " + error;
   }
 };
 

@@ -1,16 +1,25 @@
 const getStaticMetaData = ({
   title,
   description,
+  image,
+  keywords,
   isRobotFollow = true,
 }: {
   title?: string;
   description?: string;
+  image?: string;
+  keywords?: string;
   isRobotFollow?: boolean;
 }) => {
+  // Convert comma-separated keywords string to array
+  const keywordsArray = keywords
+    ? keywords.split(",").map((keyword) => keyword.trim())
+    : undefined;
+
   return {
     title,
     description,
-
+    keywords: keywordsArray,
     icons: {
       icon: [
         {
@@ -39,7 +48,7 @@ const getStaticMetaData = ({
       description,
       images: [
         {
-          url: "/cover.jpg",
+          url: image ? image : "/cover.jpg",
           width: 1200,
           height: 628,
           alt: `${title} Cover Image`,
@@ -53,7 +62,7 @@ const getStaticMetaData = ({
       description,
       images: [
         {
-          url: "/cover.jpg",
+          url: image ? image : "/cover.jpg",
           width: 1200,
           height: 628,
           alt: `${title} Cover Image`,

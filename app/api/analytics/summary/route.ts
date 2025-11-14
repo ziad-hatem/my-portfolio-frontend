@@ -187,8 +187,6 @@ export async function GET(request: NextRequest) {
       ])
       .toArray();
 
-    console.log("[Analytics] Country aggregation result:", countryAgg);
-
     const topProfileCountries = countryAgg
       .filter(
         (item) => item._id && item._id !== "Unknown" && item._id !== "null"
@@ -222,8 +220,6 @@ export async function GET(request: NextRequest) {
         { $limit: 10 },
       ])
       .toArray();
-
-    console.log("[Analytics] City aggregation result:", cityAgg);
 
     const topProfileCities = cityAgg
       .filter(

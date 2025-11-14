@@ -1,14 +1,19 @@
 import { ProjectsPage } from "@/Cpages/Projects Page/ProjectsPage";
-
+import { checkIfExist } from "@/lib/checkIfExist";
+import getHomeData from "@/lib/get-data/getHomeData";
+import getProjectsData from "@/lib/get-data/getProjectsData";
 import getStaticMetaData from "@/utils/seo/getStaticMetaData";
+
 export async function generateMetadata() {
   const followIndex = process.env.NEXT_PUBLIC_FOLLOW_INDEX || false;
-
+  const homeData: any = await getHomeData();
   try {
+    const seoSettings = checkIfExist(homeData?.home?.seo_settings, {});
+
     const metadata = getStaticMetaData({
-      title: "Ziad Hatem - Frontend Developer",
-      description:
-        "Front-end developer skilled in React, Next.js, TypeScript, Tailwind CSS and Redux, turning complex requirements into fast, user-centric web apps. I thrive in collaborative environments and stay ahead of industry trends to deliver cutting-edge solutions.",
+      title: checkIfExist(seoSettings?.seo_title),
+      description: checkIfExist(seoSettings?.seo_description),
+      keywords: checkIfExist(seoSettings?.seo_keywords),
       isRobotFollow: followIndex as boolean,
     });
 
@@ -30,6 +35,9 @@ export async function generateMetadata() {
   }
 }
 
-export default function Projects() {
-  return <ProjectsPage />;
+export default async function Projects() {
+  const projectsData: any = await getProjectsData();
+  const projects = checkIfExist(projectsData?.entries?.data, []);
+
+  return <ProjectsPage projects={projects} />;
 }

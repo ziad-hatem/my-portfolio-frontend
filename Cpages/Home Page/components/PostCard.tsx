@@ -45,6 +45,8 @@ export function PostCard({
       {/* Image */}
       <div className="relative aspect-video overflow-hidden bg-muted">
         <ImageWithFallback
+          width={600}
+          height={600}
           src={image}
           alt={title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

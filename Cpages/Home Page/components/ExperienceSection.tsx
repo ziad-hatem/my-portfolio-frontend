@@ -5,34 +5,23 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const experiences = [
-  {
-    id: 1,
-    title: "Frontend Developer",
-    company: "Brackets Technology",
-    period: "Nov 2024 - Present",
-    description:
-      "Developing high-quality web applications using modern frontend technologies. Collaborating with cross-functional teams to deliver exceptional user experiences and maintain code quality standards.",
-  },
-  {
-    id: 2,
-    title: "Junior Developer",
-    company: "Tech Startup Inc",
-    period: "Jan 2024 - Oct 2024",
-    description:
-      "Built responsive web interfaces and contributed to the development of scalable frontend architecture. Worked with React, TypeScript, and modern CSS frameworks.",
-  },
-  {
-    id: 3,
-    title: "Intern Developer",
-    company: "Code Academy",
-    period: "Jun 2023 - Dec 2023",
-    description:
-      "Learned industry best practices and assisted in developing client projects. Gained hands-on experience with version control, agile methodologies, and team collaboration.",
-  },
-];
+interface ExperienceSectionProps {
+  data: {
+    title: string;
+    description: string;
+    experiences: Array<{
+      id: string;
+      company_name: string;
+      job_title: string;
+      job_description: string;
+      from: string;
+      to: string;
+      present: boolean;
+    }>;
+  };
+}
 
-export default function ExperienceSection() {
+export default function ExperienceSection({ data }: ExperienceSectionProps) {
   const timelineRef = useRef(null);
 
   useEffect(() => {
@@ -57,7 +46,7 @@ export default function ExperienceSection() {
   return (
     <section className="py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="min-h-screen flex items-center justify-center py-20 px-4">
+        <div className="flex items-center justify-center py-20 px-4">
           <div className="max-w-5xl w-full">
             {/* Header */}
             <div className="text-center mb-20">
@@ -65,14 +54,15 @@ export default function ExperienceSection() {
                 className="text-4xl md:text-6xl font-bold text-foreground mb-4"
                 data-aos="fade-up"
               >
-                Experience
+                {data.title || "Experience"}
               </h2>
               <p
                 className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto"
                 data-aos="fade-up"
                 data-aos-delay="100"
               >
-                My professional journey in software development
+                {data.description ||
+                  "My professional journey in software development"}
               </p>
             </div>
 
@@ -86,7 +76,7 @@ export default function ExperienceSection() {
 
               {/* Experience items */}
               <div className="space-y-12 md:space-y-24">
-                {experiences.map((exp, index) => (
+                {data.experiences.map((exp, index) => (
                   <div
                     key={exp.id}
                     className={`relative flex items-center ${
@@ -112,19 +102,19 @@ export default function ExperienceSection() {
                             />
                             <div className="flex-1 md:flex-none">
                               <h3 className="text-foreground font-bold text-lg md:text-2xl">
-                                {exp.title}
+                                {exp.job_title}
                               </h3>
                               <p className="text-accent font-semibold text-base md:text-lg">
-                                {exp.company}
+                                {exp.company_name}
                               </p>
                             </div>
                           </div>
                         </div>
                         <p className="text-muted-foreground text-xs md:text-base mb-3 md:mb-4">
-                          {exp.period}
+                          {exp.from} - {exp.present ? "Present" : exp.to}
                         </p>
                         <p className="text-muted-foreground leading-relaxed text-sm md:text-base">
-                          {exp.description}
+                          {exp.job_description}
                         </p>
                       </div>
                     </div>

@@ -7,7 +7,7 @@ import { Resend } from "resend";
 const app = new Hono();
 
 // Enable logger
-app.use('*', logger(console.log));
+app.use("*", logger());
 
 // Enable CORS for all routes and methods
 app.use(
@@ -18,7 +18,7 @@ app.use(
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     exposeHeaders: ["Content-Length"],
     maxAge: 600,
-  }),
+  })
 );
 
 // MongoDB connection
@@ -29,18 +29,18 @@ async function getMongoClient() {
 
   const mongoUri = process.env.MONGODB_URI;
   if (!mongoUri) {
-    throw new Error('MONGODB_URI environment variable is not set');
+    throw new Error("MONGODB_URI environment variable is not set");
   }
 
   mongoClient = new MongoClient(mongoUri);
   await mongoClient.connect();
-  console.log('✅ Connected to MongoDB');
+  ("✅ Connected to MongoDB");
   return mongoClient;
 }
 
 async function getDatabase() {
   const client = await getMongoClient();
-  return client.db('portfolio_analytics');
+  return client.db("portfolio_analytics");
 }
 
 // Resend client
@@ -48,18 +48,21 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Auth middleware for protected routes
 async function requireApiKey(c: any, next: any) {
-  const authHeader = c.req.header('Authorization');
-  const apiKey = authHeader?.replace('Bearer ', '');
+  const authHeader = c.req.header("Authorization");
+  const apiKey = authHeader?.replace("Bearer ", "");
   const expectedApiKey = process.env.ANALYTICS_API_KEY;
 
   if (!expectedApiKey) {
-    console.error('❌ ANALYTICS_API_KEY environment variable is not set');
-    return c.json({ error: 'Server configuration error: API key not configured' }, 500);
+    console.error("❌ ANALYTICS_API_KEY environment variable is not set");
+    return c.json(
+      { error: "Server configuration error: API key not configured" },
+      500
+    );
   }
 
   if (!apiKey || apiKey !== expectedApiKey) {
-    console.warn('⚠️ Unauthorized API access attempt');
-    return c.json({ error: 'Unauthorized: Invalid or missing API key' }, 401);
+    console.warn("⚠️ Unauthorized API access attempt");
+    return c.json({ error: "Unauthorized: Invalid or missing API key" }, 401);
   }
 
   await next();
@@ -75,14 +78,17 @@ app.post("/make-server-d242963b/analytics/track", async (c) => {
   try {
     const body = await c.req.json();
     const { type, itemId, itemTitle, metadata } = body;
-    
+
     if (!type || !itemId || !itemTitle) {
-      return c.json({ error: 'Missing required fields: type, itemId, itemTitle' }, 400);
+      return c.json(
+        { error: "Missing required fields: type, itemId, itemTitle" },
+        400
+      );
     }
-    
+
     const db = await getDatabase();
-    const eventsCollection = db.collection('events');
-    
+    const eventsCollection = db.collection("events");
+
     const event = {
       type,
       itemId,
@@ -91,18 +97,19 @@ app.post("/make-server-d242963b/analytics/track", async (c) => {
       timestamp: new Date(),
       createdAt: new Date(),
     };
-    
+
     const result = await eventsCollection.insertOne(event);
-    console.log(`📊 Tracked ${type} event for ${itemTitle} (${itemId})`);
-    
+    `📊 Tracked ${type} event for ${itemTitle} (${itemId})`;
+
     return c.json({
       success: true,
       eventId: result.insertedId,
-      message: 'Event tracked successfully'
+      message: "Event tracked successfully",
     });
   } catch (error) {
-    console.error('Error tracking analytics event:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error("Error tracking analytics event:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return c.json({ error: `Failed to track event: ${errorMessage}` }, 500);
   }
 });
@@ -112,49 +119,58 @@ app.post("/make-server-d242963b/analytics/views", async (c) => {
   try {
     const body = await c.req.json();
     const { type, itemId, itemTitle } = body;
-    
+
     if (!type || !itemId || !itemTitle) {
-      return c.json({ error: 'Missing required fields: type, itemId, itemTitle' }, 400);
+      return c.json(
+        { error: "Missing required fields: type, itemId, itemTitle" },
+        400
+      );
     }
-    
-    if (type !== 'project' && type !== 'post') {
+
+    if (type !== "project" && type !== "post") {
       return c.json({ error: 'Type must be "project" or "post"' }, 400);
     }
-    
+
     const db = await getDatabase();
-    const viewsCollection = db.collection('views');
+    const viewsCollection = db.collection("views");
 
     // Upsert view count
     await viewsCollection.updateOne(
       { type, itemId },
-      { 
+      {
         $inc: { count: 1 },
-        $set: { 
+        $set: {
           itemTitle,
           lastViewedAt: new Date(),
           updatedAt: new Date(),
         },
         $setOnInsert: {
           createdAt: new Date(),
-        }
+        },
       },
       { upsert: true }
     );
-    
+
     // Get updated count
     const viewDoc = await viewsCollection.findOne({ type, itemId });
-    
-    console.log(`👁️ Incremented ${type} view for ${itemTitle} (${itemId}) - Total: ${viewDoc?.count || 1}`);
-    
+
+    `👁️ Incremented ${type} view for ${itemTitle} (${itemId}) - Total: ${
+      viewDoc?.count || 1
+    }`;
+
     return c.json({
       success: true,
       count: viewDoc?.count || 1,
-      message: 'View counted successfully'
+      message: "View counted successfully",
     });
   } catch (error) {
-    console.error('Error incrementing view count:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return c.json({ error: `Failed to increment view count: ${errorMessage}` }, 500);
+    console.error("Error incrementing view count:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return c.json(
+      { error: `Failed to increment view count: ${errorMessage}` },
+      500
+    );
   }
 });
 
@@ -162,58 +178,62 @@ app.post("/make-server-d242963b/analytics/views", async (c) => {
 app.get("/make-server-d242963b/analytics/summary", requireApiKey, async (c) => {
   try {
     const db = await getDatabase();
-    const eventsCollection = db.collection('events');
-    const viewsCollection = db.collection('views');
-    
+    const eventsCollection = db.collection("events");
+    const viewsCollection = db.collection("views");
+
     // Get event counts by type
-    const eventStats = await eventsCollection.aggregate([
-      {
-        $group: {
-          _id: '$type',
-          count: { $sum: 1 }
-        }
-      }
-    ]).toArray();
-    
+    const eventStats = await eventsCollection
+      .aggregate([
+        {
+          $group: {
+            _id: "$type",
+            count: { $sum: 1 },
+          },
+        },
+      ])
+      .toArray();
+
     // Get view counts
-    const projectViews = await viewsCollection.find({ type: 'project' }).toArray();
-    const postViews = await viewsCollection.find({ type: 'post' }).toArray();
-    
+    const projectViews = await viewsCollection
+      .find({ type: "project" })
+      .toArray();
+    const postViews = await viewsCollection.find({ type: "post" }).toArray();
+
     // Get top viewed projects
     const topProjects = projectViews
       .sort((a, b) => (b.count || 0) - (a.count || 0))
       .slice(0, 5)
-      .map(p => ({
+      .map((p) => ({
         itemId: p.itemId,
         itemTitle: p.itemTitle,
         views: p.count,
         lastViewedAt: p.lastViewedAt,
       }));
-    
+
     // Get top viewed posts
     const topPosts = postViews
       .sort((a, b) => (b.count || 0) - (a.count || 0))
       .slice(0, 5)
-      .map(p => ({
+      .map((p) => ({
         itemId: p.itemId,
         itemTitle: p.itemTitle,
         views: p.count,
         lastViewedAt: p.lastViewedAt,
       }));
-    
+
     // Build summary
     const stats: Record<string, number> = {};
-    eventStats.forEach(stat => {
+    eventStats.forEach((stat) => {
       stats[stat._id] = stat.count;
     });
-    
+
     const summary = {
       totalEvents: eventStats.reduce((sum, stat) => sum + stat.count, 0),
       projectViews: projectViews.reduce((sum, p) => sum + (p.count || 0), 0),
       postViews: postViews.reduce((sum, p) => sum + (p.count || 0), 0),
-      projectClicks: stats['project_click'] || 0,
-      postClicks: stats['post_click'] || 0,
-      shareClicks: stats['share_click'] || 0,
+      projectClicks: stats["project_click"] || 0,
+      postClicks: stats["post_click"] || 0,
+      shareClicks: stats["share_click"] || 0,
       topProjects,
       topPosts,
       generatedAt: new Date(),
@@ -221,104 +241,130 @@ app.get("/make-server-d242963b/analytics/summary", requireApiKey, async (c) => {
 
     return c.json({ success: true, summary });
   } catch (error) {
-    console.error('Error getting analytics summary:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return c.json({ error: `Failed to get analytics summary: ${errorMessage}` }, 500);
+    console.error("Error getting analytics summary:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return c.json(
+      { error: `Failed to get analytics summary: ${errorMessage}` },
+      500
+    );
   }
 });
 
 // Send analytics email report (protected)
-app.post("/make-server-d242963b/analytics/send-report", requireApiKey, async (c) => {
-  try {
-    const body = await c.req.json();
-    const { toEmail } = body;
-    const reportType = body.reportType || 'daily';
-    
-    if (!toEmail) {
-      return c.json({ error: 'Missing required field: toEmail' }, 400);
-    }
-    
-    // Get analytics summary
-    const db = await getDatabase();
-    const eventsCollection = db.collection('events');
-    const viewsCollection = db.collection('views');
-    
-    // Calculate date range based on report type
-    let dateFilter = {};
-    const now = new Date();
-    if (reportType === 'daily') {
-      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      dateFilter = { timestamp: { $gte: yesterday } };
-    } else if (reportType === 'weekly') {
-      const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      dateFilter = { timestamp: { $gte: lastWeek } };
-    } else if (reportType === 'monthly') {
-      const lastMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      dateFilter = { timestamp: { $gte: lastMonth } };
-    }
-    
-    // Get events for period
-    const events = await eventsCollection.find(dateFilter).toArray();
-    
-    // Get view counts
-    const projectViews = await viewsCollection.find({ type: 'project' }).toArray();
-    const postViews = await viewsCollection.find({ type: 'post' }).toArray();
-    
-    // Calculate stats
-    const projectViewEvents = events.filter(e => e.type === 'project_view');
-    const postViewEvents = events.filter(e => e.type === 'post_view');
-    const projectClickEvents = events.filter(e => e.type === 'project_click');
-    const postClickEvents = events.filter(e => e.type === 'post_click');
-    const shareClickEvents = events.filter(e => e.type === 'share_click');
-    
-    // Top projects
-    const topProjects = projectViews
-      .sort((a, b) => (b.count || 0) - (a.count || 0))
-      .slice(0, 5);
-    
-    // Top posts
-    const topPosts = postViews
-      .sort((a, b) => (b.count || 0) - (a.count || 0))
-      .slice(0, 5);
-    
-    // Generate styled HTML email
-    const emailHtml = generateEmailTemplate({
-      reportType,
-      period: reportType === 'daily' ? 'Last 24 Hours' : reportType === 'weekly' ? 'Last 7 Days' : 'Last 30 Days',
-      totalEvents: events.length,
-      projectViews: projectViewEvents.length,
-      postViews: postViewEvents.length,
-      projectClicks: projectClickEvents.length,
-      postClicks: postClickEvents.length,
-      shareClicks: shareClickEvents.length,
-      totalProjectViews: projectViews.reduce((sum, p) => sum + (p.count || 0), 0),
-      totalPostViews: postViews.reduce((sum, p) => sum + (p.count || 0), 0),
-      topProjects,
-      topPosts,
-      generatedAt: now,
-    });
-    
-    // Send email via Resend
-    const result = await resend.emails.send({
-      from: 'Portfolio Analytics <onboarding@resend.dev>',
-      to: toEmail,
-      subject: `📊 Portfolio Analytics Report - ${reportType.charAt(0).toUpperCase() + reportType.slice(1)}`,
-      html: emailHtml,
-    });
+app.post(
+  "/make-server-d242963b/analytics/send-report",
+  requireApiKey,
+  async (c) => {
+    try {
+      const body = await c.req.json();
+      const { toEmail } = body;
+      const reportType = body.reportType || "daily";
 
-    console.log(`📧 Analytics report sent to ${toEmail} - Email ID: ${result.data?.id}`);
+      if (!toEmail) {
+        return c.json({ error: "Missing required field: toEmail" }, 400);
+      }
 
-    return c.json({
-      success: true,
-      emailId: result.data?.id,
-      message: `Analytics report sent successfully to ${toEmail}`
-    });
-  } catch (error) {
-    console.error('Error sending analytics email report:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return c.json({ error: `Failed to send email report: ${errorMessage}` }, 500);
+      // Get analytics summary
+      const db = await getDatabase();
+      const eventsCollection = db.collection("events");
+      const viewsCollection = db.collection("views");
+
+      // Calculate date range based on report type
+      let dateFilter = {};
+      const now = new Date();
+      if (reportType === "daily") {
+        const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        dateFilter = { timestamp: { $gte: yesterday } };
+      } else if (reportType === "weekly") {
+        const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        dateFilter = { timestamp: { $gte: lastWeek } };
+      } else if (reportType === "monthly") {
+        const lastMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        dateFilter = { timestamp: { $gte: lastMonth } };
+      }
+
+      // Get events for period
+      const events = await eventsCollection.find(dateFilter).toArray();
+
+      // Get view counts
+      const projectViews = await viewsCollection
+        .find({ type: "project" })
+        .toArray();
+      const postViews = await viewsCollection.find({ type: "post" }).toArray();
+
+      // Calculate stats
+      const projectViewEvents = events.filter((e) => e.type === "project_view");
+      const postViewEvents = events.filter((e) => e.type === "post_view");
+      const projectClickEvents = events.filter(
+        (e) => e.type === "project_click"
+      );
+      const postClickEvents = events.filter((e) => e.type === "post_click");
+      const shareClickEvents = events.filter((e) => e.type === "share_click");
+
+      // Top projects
+      const topProjects = projectViews
+        .sort((a, b) => (b.count || 0) - (a.count || 0))
+        .slice(0, 5);
+
+      // Top posts
+      const topPosts = postViews
+        .sort((a, b) => (b.count || 0) - (a.count || 0))
+        .slice(0, 5);
+
+      // Generate styled HTML email
+      const emailHtml = generateEmailTemplate({
+        reportType,
+        period:
+          reportType === "daily"
+            ? "Last 24 Hours"
+            : reportType === "weekly"
+            ? "Last 7 Days"
+            : "Last 30 Days",
+        totalEvents: events.length,
+        projectViews: projectViewEvents.length,
+        postViews: postViewEvents.length,
+        projectClicks: projectClickEvents.length,
+        postClicks: postClickEvents.length,
+        shareClicks: shareClickEvents.length,
+        totalProjectViews: projectViews.reduce(
+          (sum, p) => sum + (p.count || 0),
+          0
+        ),
+        totalPostViews: postViews.reduce((sum, p) => sum + (p.count || 0), 0),
+        topProjects,
+        topPosts,
+        generatedAt: now,
+      });
+
+      // Send email via Resend
+      const result = await resend.emails.send({
+        from: "Portfolio Analytics <onboarding@resend.dev>",
+        to: toEmail,
+        subject: `📊 Portfolio Analytics Report - ${
+          reportType.charAt(0).toUpperCase() + reportType.slice(1)
+        }`,
+        html: emailHtml,
+      });
+
+      `📧 Analytics report sent to ${toEmail} - Email ID: ${result.data?.id}`;
+
+      return c.json({
+        success: true,
+        emailId: result.data?.id,
+        message: `Analytics report sent successfully to ${toEmail}`,
+      });
+    } catch (error) {
+      console.error("Error sending analytics email report:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      return c.json(
+        { error: `Failed to send email report: ${errorMessage}` },
+        500
+      );
+    }
   }
-});
+);
 
 // Email template generator
 function generateEmailTemplate(data: any): string {
@@ -336,7 +382,7 @@ function generateEmailTemplate(data: any): string {
     topPosts,
     generatedAt,
   } = data;
-  
+
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -426,7 +472,9 @@ function generateEmailTemplate(data: any): string {
           </tr>
           
           <!-- Top Projects -->
-          ${topProjects.length > 0 ? `
+          ${
+            topProjects.length > 0
+              ? `
           <tr>
             <td style="padding: 0 40px 30px;">
               <h2 style="margin: 0 0 15px; color: #1A1A2E; font-size: 18px; font-weight: 600;">🏆 Top Projects</h2>
@@ -435,19 +483,35 @@ function generateEmailTemplate(data: any): string {
                   <th style="padding: 12px; text-align: left; color: #64748B; font-size: 12px; font-weight: 600; text-transform: uppercase;">Project</th>
                   <th style="padding: 12px; text-align: right; color: #64748B; font-size: 12px; font-weight: 600; text-transform: uppercase;">Views</th>
                 </tr>
-                ${topProjects.map((project: any, index: number) => `
-                <tr style="border-top: 1px solid #E2E8F0; ${index % 2 === 0 ? 'background-color: #FFFFFF;' : 'background-color: #F8FAFC;'}">
-                  <td style="padding: 12px; color: #1A1A2E; font-size: 14px;">${project.itemTitle}</td>
-                  <td style="padding: 12px; text-align: right; color: #00F5D4; font-weight: 600; font-size: 14px;">${project.count}</td>
+                ${topProjects
+                  .map(
+                    (project: any, index: number) => `
+                <tr style="border-top: 1px solid #E2E8F0; ${
+                  index % 2 === 0
+                    ? "background-color: #FFFFFF;"
+                    : "background-color: #F8FAFC;"
+                }">
+                  <td style="padding: 12px; color: #1A1A2E; font-size: 14px;">${
+                    project.itemTitle
+                  }</td>
+                  <td style="padding: 12px; text-align: right; color: #00F5D4; font-weight: 600; font-size: 14px;">${
+                    project.count
+                  }</td>
                 </tr>
-                `).join('')}
+                `
+                  )
+                  .join("")}
               </table>
             </td>
           </tr>
-          ` : ''}
+          `
+              : ""
+          }
           
           <!-- Top Posts -->
-          ${topPosts.length > 0 ? `
+          ${
+            topPosts.length > 0
+              ? `
           <tr>
             <td style="padding: 0 40px 40px;">
               <h2 style="margin: 0 0 15px; color: #1A1A2E; font-size: 18px; font-weight: 600;">📝 Top Posts</h2>
@@ -456,16 +520,30 @@ function generateEmailTemplate(data: any): string {
                   <th style="padding: 12px; text-align: left; color: #64748B; font-size: 12px; font-weight: 600; text-transform: uppercase;">Post</th>
                   <th style="padding: 12px; text-align: right; color: #64748B; font-size: 12px; font-weight: 600; text-transform: uppercase;">Views</th>
                 </tr>
-                ${topPosts.map((post: any, index: number) => `
-                <tr style="border-top: 1px solid #E2E8F0; ${index % 2 === 0 ? 'background-color: #FFFFFF;' : 'background-color: #F8FAFC;'}">
-                  <td style="padding: 12px; color: #1A1A2E; font-size: 14px;">${post.itemTitle}</td>
-                  <td style="padding: 12px; text-align: right; color: #00F5D4; font-weight: 600; font-size: 14px;">${post.count}</td>
+                ${topPosts
+                  .map(
+                    (post: any, index: number) => `
+                <tr style="border-top: 1px solid #E2E8F0; ${
+                  index % 2 === 0
+                    ? "background-color: #FFFFFF;"
+                    : "background-color: #F8FAFC;"
+                }">
+                  <td style="padding: 12px; color: #1A1A2E; font-size: 14px;">${
+                    post.itemTitle
+                  }</td>
+                  <td style="padding: 12px; text-align: right; color: #00F5D4; font-weight: 600; font-size: 14px;">${
+                    post.count
+                  }</td>
                 </tr>
-                `).join('')}
+                `
+                  )
+                  .join("")}
               </table>
             </td>
           </tr>
-          ` : ''}
+          `
+              : ""
+          }
           
           <!-- Footer -->
           <tr>

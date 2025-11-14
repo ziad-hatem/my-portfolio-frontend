@@ -13,30 +13,25 @@ import { useRef, useState } from "react";
 import "swiper/css";
 import "swiper/css/navigation";
 
-const PostsSection = () => {
+interface PostsSectionProps {
+  data: {
+    title: string;
+    description: string;
+    posts: Array<{
+      permalink: string;
+      title: string;
+      author: string;
+      date: string;
+      post_text: string;
+      post_image: string;
+    }>;
+  };
+}
+
+const PostsSection = ({ data }: PostsSectionProps) => {
   const swiperRef = useRef<SwiperType | null>(null);
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
-  const recentPosts = [
-    {
-      id: 1,
-      title: "Understanding React Server Components",
-      excerpt:
-        "A deep dive into the new React Server Components architecture and how it can improve your application performance.",
-      image:
-        "https://images.unsplash.com/photo-1593720213681-e9a8778330a7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWIlMjBkZXZlbG9wbWVudCUyMGNvZGV8ZW58MXx8fHwxNzYyMTk0NzA0fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      date: "Oct 15, 2024",
-    },
-    {
-      id: 2,
-      title: "My Top 5 VS Code Extensions",
-      excerpt:
-        "Discover the essential VS Code extensions that have transformed my development workflow and boosted productivity.",
-      image:
-        "https://images.unsplash.com/photo-1658806283210-6d7330062704?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjB0ZWNobm9sb2d5JTIwYWJzdHJhY3R8ZW58MXx8fHwxNzYyMjE5NTMyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      date: "Sep 28, 2024",
-    },
-  ];
 
   return (
     <section className="py-20 bg-muted/30 px-4 sm:px-6 lg:px-8">
@@ -48,15 +43,14 @@ const PostsSection = () => {
               className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4"
               data-aos="fade-up"
             >
-              Latest Blog Posts
+              {data.title || "Latest Blog Posts"}
             </h2>
             <p
               className="text-lg text-muted-foreground mb-8"
               data-aos="fade-up"
               data-aos-delay="100"
             >
-              Insights, tutorials, and thoughts on web development, modern
-              technologies, and best practices in software engineering.
+              {data.description || "Insights, tutorials, and thoughts on web development, modern technologies, and best practices in software engineering."}
             </p>
 
             {/* Navigation Arrows */}
@@ -116,13 +110,13 @@ const PostsSection = () => {
               slidesPerView={1}
               className="pb-4!"
             >
-              {recentPosts.map((post) => (
-                <SwiperSlide key={post.id}>
+              {data.posts.map((post, index) => (
+                <SwiperSlide key={index}>
                   <PostCard
-                    postId={post.id}
+                    postId={post.permalink}
                     title={post.title}
-                    excerpt={post.excerpt}
-                    image={post.image}
+                    excerpt={post.post_text}
+                    image={post.post_image}
                     date={post.date}
                     data-aos="fade-up"
                   />

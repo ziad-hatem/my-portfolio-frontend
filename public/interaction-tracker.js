@@ -8,7 +8,7 @@
  */
 
 (function (window) {
-  'use strict';
+  "use strict";
 
   class InteractionTracker {
     constructor() {
@@ -21,7 +21,7 @@
       this.maxScrollDepth = 0;
       this.trackingQueue = [];
       this.isTracking = false;
-      this.excludedPaths = ['/admin', '/admin/profiles'];
+      this.excludedPaths = ["/admin", "/admin/profiles"];
     }
 
     /**
@@ -29,7 +29,9 @@
      */
     shouldTrackPage() {
       const pathname = window.location.pathname;
-      return !this.excludedPaths.some(excluded => pathname.startsWith(excluded));
+      return !this.excludedPaths.some((excluded) =>
+        pathname.startsWith(excluded)
+      );
     }
 
     /**
@@ -38,7 +40,7 @@
     async init() {
       // Check if we should track this page
       if (!this.shouldTrackPage()) {
-        console.log('[Tracker] Admin page detected, tracking disabled');
+        ("[Tracker] Admin page detected, tracking disabled");
         return;
       }
 
@@ -46,11 +48,11 @@
       await this.waitForUserId();
 
       if (!this.userId) {
-        console.log('[Tracker] No user ID available, tracking disabled');
+        ("[Tracker] No user ID available, tracking disabled");
         return;
       }
 
-      console.log('[Tracker] Initialized for user:', this.userId);
+      "[Tracker] Initialized for user:", this.userId;
 
       // Start session
       await this.startSession();
@@ -75,7 +77,7 @@
       const startTime = Date.now();
 
       while (!this.userId && Date.now() - startTime < maxWait) {
-        this.userId = localStorage.getItem('fpUserId');
+        this.userId = localStorage.getItem("fpUserId");
         if (this.userId) break;
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
@@ -97,22 +99,22 @@
           },
         };
 
-        const response = await fetch('/api/track/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/track/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId: this.userId, device }),
         });
 
         if (response.ok) {
           const data = await response.json();
           this.sessionId = data.sessionId;
-          console.log('[Tracker] Session started:', this.sessionId);
+          "[Tracker] Session started:", this.sessionId;
 
           // End session on page unload
-          window.addEventListener('beforeunload', () => this.endSession());
+          window.addEventListener("beforeunload", () => this.endSession());
         }
       } catch (error) {
-        console.error('[Tracker] Session start failed:', error);
+        console.error("[Tracker] Session start failed:", error);
       }
     }
 
@@ -135,11 +137,11 @@
         });
 
         navigator.sendBeacon(
-          '/api/track/session',
-          new Blob([data], { type: 'application/json' })
+          "/api/track/session",
+          new Blob([data], { type: "application/json" })
         );
       } catch (error) {
-        console.error('[Tracker] Session end failed:', error);
+        console.error("[Tracker] Session end failed:", error);
       }
     }
 
@@ -159,11 +161,11 @@
       };
 
       this.trackingQueue.push({
-        type: 'pageview',
+        type: "pageview",
         data: pageView,
       });
 
-      console.log('[Tracker] Page view tracked:', document.title);
+      "[Tracker] Page view tracked:", document.title;
     }
 
     /**
@@ -185,7 +187,7 @@
       };
 
       this.trackingQueue.push({
-        type: 'interaction',
+        type: "interaction",
         data: interaction,
       });
     }
@@ -201,21 +203,21 @@
 
       for (const item of batch) {
         try {
-          if (item.type === 'pageview') {
-            await fetch('/api/track/pageview', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+          if (item.type === "pageview") {
+            await fetch("/api/track/pageview", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify(item.data),
             });
-          } else if (item.type === 'interaction') {
-            await fetch('/api/track/interaction', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+          } else if (item.type === "interaction") {
+            await fetch("/api/track/interaction", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify(item.data),
             });
           }
         } catch (error) {
-          console.error('[Tracker] Flush failed:', error);
+          console.error("[Tracker] Flush failed:", error);
         }
       }
     }
@@ -225,21 +227,21 @@
      */
     setupEventListeners() {
       // Track clicks
-      document.addEventListener('click', (e) => {
+      document.addEventListener("click", (e) => {
         const target = e.target;
-        const element = target.closest('a, button, [data-track]');
+        const element = target.closest("a, button, [data-track]");
 
         if (element) {
-          const type = element.tagName === 'A' ? 'link_click' : 'button_click';
+          const type = element.tagName === "A" ? "link_click" : "button_click";
           const elementText =
-            element.getAttribute('data-track') ||
+            element.getAttribute("data-track") ||
             element.textContent?.trim() ||
-            element.getAttribute('href') ||
-            'Unknown';
+            element.getAttribute("href") ||
+            "Unknown";
 
           this.trackInteraction(type, element, {
             text: elementText.substring(0, 100),
-            href: element.getAttribute('href'),
+            href: element.getAttribute("href"),
           });
         }
       });
@@ -248,9 +250,10 @@
       let scrollTimeout;
       let maxScroll = 0;
 
-      window.addEventListener('scroll', () => {
+      window.addEventListener("scroll", () => {
         const scrollPercent =
-          (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) *
+          (window.scrollY /
+            (document.documentElement.scrollHeight - window.innerHeight)) *
           100;
 
         if (scrollPercent > maxScroll) {
@@ -261,28 +264,28 @@
         clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(() => {
           if (scrollPercent > 25 && scrollPercent < 30) {
-            this.trackInteraction('scroll', null, { depth: '25%' });
+            this.trackInteraction("scroll", null, { depth: "25%" });
           } else if (scrollPercent > 50 && scrollPercent < 55) {
-            this.trackInteraction('scroll', null, { depth: '50%' });
+            this.trackInteraction("scroll", null, { depth: "50%" });
           } else if (scrollPercent > 75 && scrollPercent < 80) {
-            this.trackInteraction('scroll', null, { depth: '75%' });
+            this.trackInteraction("scroll", null, { depth: "75%" });
           } else if (scrollPercent > 95) {
-            this.trackInteraction('scroll', null, { depth: '100%' });
+            this.trackInteraction("scroll", null, { depth: "100%" });
           }
         }, 500);
       });
 
       // Track form submissions
-      document.addEventListener('submit', (e) => {
+      document.addEventListener("submit", (e) => {
         const form = e.target;
-        this.trackInteraction('form_submit', form, {
-          action: form.getAttribute('action'),
-          method: form.getAttribute('method'),
+        this.trackInteraction("form_submit", form, {
+          action: form.getAttribute("action"),
+          method: form.getAttribute("method"),
         });
       });
 
       // Track page visibility
-      document.addEventListener('visibilitychange', () => {
+      document.addEventListener("visibilitychange", () => {
         if (document.hidden) {
           this.flushQueue();
         }
@@ -294,11 +297,11 @@
       setInterval(() => {
         if (window.location.pathname !== lastPath) {
           lastPath = window.location.pathname;
-          console.log('[Tracker] SPA navigation detected');
+          ("[Tracker] SPA navigation detected");
 
           // Check if new page should be tracked
           if (!this.shouldTrackPage()) {
-            console.log('[Tracker] Navigated to excluded page, stopping tracking');
+            ("[Tracker] Navigated to excluded page, stopping tracking");
             this.isTracking = false;
             return;
           }
@@ -316,12 +319,16 @@
     getDeviceType() {
       const ua = navigator.userAgent;
       if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
-        return 'tablet';
+        return "tablet";
       }
-      if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
-        return 'mobile';
+      if (
+        /Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(
+          ua
+        )
+      ) {
+        return "mobile";
       }
-      return 'desktop';
+      return "desktop";
     }
 
     /**
@@ -329,12 +336,12 @@
      */
     getBrowserName() {
       const ua = navigator.userAgent;
-      if (ua.includes('Firefox/')) return 'Firefox';
-      if (ua.includes('Edg/')) return 'Edge';
-      if (ua.includes('Chrome/')) return 'Chrome';
-      if (ua.includes('Safari/') && !ua.includes('Chrome/')) return 'Safari';
-      if (ua.includes('Opera/') || ua.includes('OPR/')) return 'Opera';
-      return 'Unknown';
+      if (ua.includes("Firefox/")) return "Firefox";
+      if (ua.includes("Edg/")) return "Edge";
+      if (ua.includes("Chrome/")) return "Chrome";
+      if (ua.includes("Safari/") && !ua.includes("Chrome/")) return "Safari";
+      if (ua.includes("Opera/") || ua.includes("OPR/")) return "Opera";
+      return "Unknown";
     }
 
     /**
@@ -342,12 +349,13 @@
      */
     getOSName() {
       const ua = navigator.userAgent;
-      if (ua.includes('Windows')) return 'Windows';
-      if (ua.includes('Mac OS X')) return 'macOS';
-      if (ua.includes('Linux')) return 'Linux';
-      if (ua.includes('Android')) return 'Android';
-      if (ua.includes('iOS') || ua.includes('iPhone') || ua.includes('iPad')) return 'iOS';
-      return 'Unknown';
+      if (ua.includes("Windows")) return "Windows";
+      if (ua.includes("Mac OS X")) return "macOS";
+      if (ua.includes("Linux")) return "Linux";
+      if (ua.includes("Android")) return "Android";
+      if (ua.includes("iOS") || ua.includes("iPhone") || ua.includes("iPad"))
+        return "iOS";
+      return "Unknown";
     }
   }
 
@@ -355,8 +363,8 @@
   window.InteractionTracker = new InteractionTracker();
 
   // Auto-initialize when fingerprint is collected
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
       setTimeout(() => window.InteractionTracker.init(), 1000);
     });
   } else {

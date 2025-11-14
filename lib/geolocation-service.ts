@@ -1,7 +1,7 @@
 // IP Geolocation Service
 // Uses ip-api.com (free, no API key required, 45 requests/minute)
 
-import type { GeoLocation } from './user-profile-types';
+import type { GeoLocation } from "./user-profile-types";
 
 // Cache to avoid repeated lookups for same IP
 const geoCache = new Map<string, { data: GeoLocation; timestamp: number }>();
@@ -11,52 +11,54 @@ const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
  * Get geolocation data from IP address
  * Uses ip-api.com free service (45 requests/minute limit)
  */
-export async function getLocationFromIP(ip: string): Promise<GeoLocation | null> {
-  console.log('[Geolocation] Looking up IP:', ip);
-
+export async function getLocationFromIP(
+  ip: string
+): Promise<GeoLocation | null> {
   // Skip local/private IPs
   if (
     !ip ||
-    ip === 'unknown' ||
-    ip === '::1' ||
-    ip === '127.0.0.1' ||
-    ip.startsWith('192.168.') ||
-    ip.startsWith('10.') ||
-    ip.startsWith('172.')
+    ip === "unknown" ||
+    ip === "::1" ||
+    ip === "127.0.0.1" ||
+    ip.startsWith("192.168.") ||
+    ip.startsWith("10.") ||
+    ip.startsWith("172.")
   ) {
-    console.log('[Geolocation] Local/private IP detected, returning Unknown');
+    ("[Geolocation] Local/private IP detected, returning Unknown");
     return {
-      country: 'Unknown',
-      countryCode: 'XX',
-      city: 'Local',
+      country: "Unknown",
+      countryCode: "XX",
+      city: "Local",
     };
   }
 
   // Check cache
   const cached = geoCache.get(ip);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    console.log('[Geolocation] Returning cached location:', cached.data.city, cached.data.country);
     return cached.data;
   }
 
   try {
     // Use ip-api.com free service
-    console.log('[Geolocation] Fetching from ip-api.com...');
-    const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as`, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 Portfolio Analytics',
-      },
-    });
+    ("[Geolocation] Fetching from ip-api.com...");
+    const response = await fetch(
+      `http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as`,
+      {
+        headers: {
+          "User-Agent": "Mozilla/5.0 Portfolio Analytics",
+        },
+      }
+    );
 
     if (!response.ok) {
-      console.error('[Geolocation] API error:', response.statusText);
+      console.error("[Geolocation] API error:", response.statusText);
       return null;
     }
 
     const data = await response.json();
 
-    if (data.status === 'fail') {
-      console.error('[Geolocation] Failed:', data.message);
+    if (data.status === "fail") {
+      console.error("[Geolocation] Failed:", data.message);
       return null;
     }
 
@@ -75,14 +77,12 @@ export async function getLocationFromIP(ip: string): Promise<GeoLocation | null>
       as: data.as,
     };
 
-    console.log('[Geolocation] Success:', location.city, location.country);
-
     // Cache the result
     geoCache.set(ip, { data: location, timestamp: Date.now() });
 
     return location;
   } catch (error) {
-    console.error('[Geolocation] Error:', error);
+    console.error("[Geolocation] Error:", error);
     return null;
   }
 }
@@ -90,8 +90,10 @@ export async function getLocationFromIP(ip: string): Promise<GeoLocation | null>
 /**
  * Alternative: Get location using ipapi.co (100 requests/day free)
  */
-export async function getLocationFromIPAlternative(ip: string): Promise<GeoLocation | null> {
-  if (!ip || ip === 'unknown') return null;
+export async function getLocationFromIPAlternative(
+  ip: string
+): Promise<GeoLocation | null> {
+  if (!ip || ip === "unknown") return null;
 
   // Check cache
   const cached = geoCache.get(ip);
@@ -132,7 +134,7 @@ export async function getLocationFromIPAlternative(ip: string): Promise<GeoLocat
 
     return location;
   } catch (error) {
-    console.error('Geolocation error:', error);
+    console.error("Geolocation error:", error);
     return null;
   }
 }

@@ -2,16 +2,19 @@ import Loading from "@/components/Loading";
 import { HomePage } from "@/Cpages/Home Page/HomePage";
 import getHomeData from "@/lib/get-data/getHomeData";
 import getStaticMetaData from "@/utils/seo/getStaticMetaData";
+import { checkIfExist } from "@/lib/checkIfExist";
 import { Suspense } from "react";
 
 export async function generateMetadata() {
   const followIndex = process.env.NEXT_PUBLIC_FOLLOW_INDEX || false;
-
+  const homeData: any = await getHomeData();
   try {
+    const seoSettings = checkIfExist(homeData?.home?.seo_settings, {});
+
     const metadata = getStaticMetaData({
-      title: "Ziad Hatem - Frontend Developer",
-      description:
-        "Front-end developer skilled in React, Next.js, TypeScript, Tailwind CSS and Redux, turning complex requirements into fast, user-centric web apps. I thrive in collaborative environments and stay ahead of industry trends to deliver cutting-edge solutions.",
+      title: checkIfExist(seoSettings?.seo_title),
+      description: checkIfExist(seoSettings?.seo_description),
+      keywords: checkIfExist(seoSettings?.seo_keywords),
       isRobotFollow: followIndex as boolean,
     });
 

@@ -6,7 +6,7 @@ export async function GET(request) {
     return NextResponse.json({ message: "Invalid token" }, { status: 401 });
   }
   // const path = request.nextUrl.searchParams.get("path");
-  // console.log(revalidatePath);
+  // (revalidatePath);
 
   revalidatePath("/", "layout");
   return NextResponse.json({ revalidated: true, now: Date.now() });

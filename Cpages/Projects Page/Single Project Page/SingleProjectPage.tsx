@@ -7,15 +7,58 @@ import { Analytics } from "@/utils/analytics";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import { ShareButtons } from "@/components/ShareButtons";
 
-interface SingleProjectPageProps {
-  projectId: string | number;
+interface Skill {
+  id: string;
+  skill_name: string;
 }
 
-export function SingleProjectPage({ projectId }: SingleProjectPageProps) {
+interface FetchedProject {
+  id: string;
+  title: string;
+  company_name: string;
+  project_description: string;
+  project_image: {
+    permalink: string;
+  };
+  project_overview: string[];
+  project_name: string;
+  project_link: string;
+  skills: Skill[];
+}
+
+interface SingleProjectPageProps {
+  projectId: string | number;
+  project?: FetchedProject | null;
+}
+
+export function SingleProjectPage({
+  projectId,
+  project: fetchedProject,
+}: SingleProjectPageProps) {
   const [project, setProject] = useState<any>(null);
 
   useEffect(() => {
-    // Project data (in a real app, this would come from an API or database)
+    // If we have fetched project data, use it
+    if (fetchedProject) {
+      // Transform fetched project to match the component's expected format
+      const transformedProject = {
+        id: fetchedProject.id,
+        title: fetchedProject.title,
+        description: fetchedProject.project_description,
+        image: fetchedProject.project_image?.permalink,
+        tags: fetchedProject.skills?.map((s) => s.skill_name) || [],
+        workContext: fetchedProject.company_name,
+        details: {
+          overview: fetchedProject.project_overview || [],
+          technologies: fetchedProject.skills?.map((s) => s.skill_name) || [],
+          liveUrl: fetchedProject.project_link,
+        },
+      };
+      setProject(transformedProject);
+      return;
+    }
+
+    // Fallback project data
     const projects = [
       {
         id: "jic",
@@ -207,7 +250,7 @@ export function SingleProjectPage({ projectId }: SingleProjectPageProps) {
       (p) => p.id === projectId || p.id === String(projectId)
     );
     setProject(foundProject);
-  }, [projectId]);
+  }, [projectId, fetchedProject]);
   useEffect(() => {
     // Track project view
     if (project) {
@@ -244,6 +287,8 @@ export function SingleProjectPage({ projectId }: SingleProjectPageProps) {
       {/* Hero Banner */}
       <div className="relative w-full h-[400px] md:h-[500px] bg-muted">
         <ImageWithFallback
+          width={600}
+          height={600}
           src={project.image}
           alt={project.title}
           className="w-full h-full object-cover"
