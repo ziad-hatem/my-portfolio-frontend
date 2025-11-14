@@ -1,3 +1,26 @@
+// Helper function to strip HTML tags and decode entities
+const stripHtml = (html: string): string => {
+  // Remove HTML tags
+  let text = html.replace(/<[^>]*>/g, '');
+
+  // Decode common HTML entities
+  const entities: Record<string, string> = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#39;': "'",
+    '&nbsp;': ' ',
+  };
+
+  text = text.replace(/&[#\w]+;/g, (entity) => entities[entity] || entity);
+
+  // Remove extra whitespace
+  text = text.replace(/\s+/g, ' ').trim();
+
+  return text;
+};
+
 const getStaticMetaData = ({
   title,
   description,
@@ -16,9 +39,12 @@ const getStaticMetaData = ({
     ? keywords.split(",").map((keyword) => keyword.trim())
     : undefined;
 
+  // Strip HTML from description for SEO
+  const cleanDescription = description ? stripHtml(description) : undefined;
+
   return {
     title,
-    description,
+    description: cleanDescription,
     keywords: keywordsArray,
     icons: {
       icon: [
@@ -45,7 +71,7 @@ const getStaticMetaData = ({
     openGraph: {
       title,
       siteName: title,
-      description,
+      description: cleanDescription,
       images: [
         {
           url: image ? image : "/cover.jpg",
@@ -59,7 +85,7 @@ const getStaticMetaData = ({
     twitter: {
       card: "summary_large_image",
       title,
-      description,
+      description: cleanDescription,
       images: [
         {
           url: image ? image : "/cover.jpg",
