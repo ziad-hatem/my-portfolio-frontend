@@ -1,0 +1,188 @@
+import { ImageResponse } from "next/og";
+import { NextRequest } from "next/server";
+import { getDatabase } from "@/lib/mongodb";
+import type { CongratulationEntry } from "@/types/congratulation";
+
+// Use Node.js runtime for MongoDB compatibility
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+/**
+ * GET /api/og/congratulation?id=xxx
+ * Generate Open Graph image for congratulation page
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams;
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return new Response("Missing id parameter", { status: 400 });
+    }
+
+    // Fetch congratulation data
+    const db = await getDatabase();
+    const collection = db.collection<CongratulationEntry>("congratulations");
+    const data = await collection.findOne({ id });
+
+    if (!data) {
+      return new Response("Congratulation not found", { status: 404 });
+    }
+
+    // Shorten message for OG image
+    const message = data.message
+      ? data.message.length > 150
+        ? data.message.substring(0, 147) + "..."
+        : data.message
+      : "🎉 Celebrating this amazing achievement!";
+
+    // Generate OG Image
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            height: "100%",
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "linear-gradient(135deg, #1a1f3a 0%, #2d1f3a 50%, #1a2f3a 100%)",
+            fontFamily: "system-ui, sans-serif",
+            position: "relative",
+          }}
+        >
+          {/* Background Pattern */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "radial-gradient(circle at 25% 25%, rgba(0, 245, 192, 0.1) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(0, 245, 192, 0.05) 0%, transparent 50%)",
+            }}
+          />
+
+          {/* Content */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "80px",
+              position: "relative",
+              zIndex: 1,
+            }}
+          >
+            {/* Sparkle Icon */}
+            <div
+              style={{
+                width: 80,
+                height: 80,
+                background: "rgba(0, 245, 192, 0.1)",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 40,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 48,
+                  display: "flex",
+                }}
+              >
+                ✨
+              </div>
+            </div>
+
+            {/* Title */}
+            <div
+              style={{
+                fontSize: 72,
+                fontWeight: 700,
+                color: "#ffffff",
+                marginBottom: 20,
+                textAlign: "center",
+              }}
+            >
+              Congratulations!
+            </div>
+
+            {/* Name */}
+            <div
+              style={{
+                fontSize: 60,
+                fontWeight: 600,
+                color: "#00F5C0",
+                marginBottom: 40,
+                textAlign: "center",
+                maxWidth: "900px",
+              }}
+            >
+              {data.name}
+            </div>
+
+            {/* Profile Picture */}
+            {data.imageUrl && !data.imageUrl.startsWith("data:") && (
+              <div
+                style={{
+                  width: 180,
+                  height: 180,
+                  borderRadius: "50%",
+                  overflow: "hidden",
+                  border: "4px solid rgba(0, 245, 192, 0.3)",
+                  marginBottom: 40,
+                  display: "flex",
+                }}
+              >
+                <img
+                  src={data.imageUrl}
+                  alt={data.name}
+                  width={180}
+                  height={180}
+                  style={{
+                    objectFit: "cover",
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Message */}
+            <div
+              style={{
+                fontSize: 28,
+                color: "rgba(255, 255, 255, 0.8)",
+                textAlign: "center",
+                maxWidth: "900px",
+                lineHeight: 1.4,
+                marginBottom: 60,
+              }}
+            >
+              {message}
+            </div>
+
+            {/* Footer */}
+            <div
+              style={{
+                fontSize: 20,
+                color: "rgba(255, 255, 255, 0.5)",
+                textAlign: "center",
+              }}
+            >
+              Generated by Ziad Hatem — Frontend Developer
+            </div>
+          </div>
+        </div>
+      ),
+      {
+        width: 1200,
+        height: 630,
+      }
+    );
+  } catch (error) {
+    console.error("Error generating OG image:", error);
+    return new Response("Error generating image", { status: 500 });
+  }
+}
