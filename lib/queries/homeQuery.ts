@@ -11,6 +11,42 @@ export const homeQuery = () => {
         ...PostsSection
         ...SEOSETTINGS
       }
+      projects: entries(site: "default", collection: "projects", limit: 5) {
+        data {
+          ... on Entry_Projects_Project {
+            id
+            title
+            project_image {
+              permalink
+            }
+            project_name
+            company_name
+            project_link
+            project_overview
+            project_description
+            skills {
+              ... on Entry_Skills_Skill {
+                skill_name
+              }
+            }
+          }
+        }
+      }
+      posts: entries(site: "default", collection: "posts", limit: 5) {
+        data {
+          ... on Entry_Posts_Post {
+            id
+            permalink
+            title
+            author
+            publish_date(format: "d M Y")
+            post_text
+            post_image {
+              permalink
+            }
+          }
+        }
+      }
     }
 
     fragment SEOSETTINGS on Entry_Pages_Page {

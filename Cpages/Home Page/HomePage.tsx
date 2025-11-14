@@ -9,6 +9,8 @@ import SkillsSection from "./components/SkillsSection";
 
 export function HomePage({ data }: any) {
   const homeData = data.home;
+  const allProjects = data.projects?.data || [];
+  const allPosts = data.posts?.data || [];
 
   const heroData = {
     name: checkIfExist(homeData?.name, ""),
@@ -41,24 +43,22 @@ export function HomePage({ data }: any) {
       homeData?.featured_projects_section_1project_description
     ),
     featured_projects: checkIfExist(
-      homeData?.featured_projects_section_1project_slider?.map(
-        (project: any) => ({
-          title: checkIfExist(project?.title, ""),
-          id: checkIfExist(project?.id, ""),
-          project_image: checkIfExist(project?.project_image?.permalink, ""),
-          project_name: checkIfExist(project?.project_name, ""),
-          company_name: checkIfExist(project?.company_name, ""),
-          project_link: checkIfExist(project?.project_link, ""),
-          project_overview: checkIfExist(project?.project_overview, ""),
-          project_description: checkIfExist(project?.project_description, ""),
-          skills: checkIfExist(
-            project?.skills?.map((skill: any) => ({
-              skill_name: checkIfExist(skill?.skill_name, ""),
-            })),
-            []
-          ),
-        })
-      ),
+      allProjects.map((project: any) => ({
+        title: checkIfExist(project?.title, ""),
+        id: checkIfExist(project?.id, ""),
+        project_image: checkIfExist(project?.project_image?.permalink, ""),
+        project_name: checkIfExist(project?.project_name, ""),
+        company_name: checkIfExist(project?.company_name, ""),
+        project_link: checkIfExist(project?.project_link, ""),
+        project_overview: checkIfExist(project?.project_overview, ""),
+        project_description: checkIfExist(project?.project_description, ""),
+        skills: checkIfExist(
+          project?.skills?.map((skill: any) => ({
+            skill_name: checkIfExist(skill?.skill_name, ""),
+          })),
+          []
+        ),
+      })),
       []
     ),
   };
@@ -98,7 +98,7 @@ export function HomePage({ data }: any) {
     title: checkIfExist(homeData?.post_sectiontitle, ""),
     description: checkIfExist(homeData?.post_sectiondescription, ""),
     posts: checkIfExist(
-      homeData?.post_sectionposts?.map((post: any) => ({
+      allPosts.map((post: any) => ({
         permalink: checkIfExist(post?.permalink, ""),
         id: checkIfExist(post?.id, ""),
         title: checkIfExist(post?.title, ""),
