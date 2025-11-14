@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useId } from "react";
+import { detectPerformance, type PerformanceLevel } from "@/utils/performance/detectPerformance";
 
 export interface GlassSurfaceProps {
   children?: React.ReactNode;
@@ -39,6 +40,7 @@ export interface GlassSurfaceProps {
     | "plus-lighter";
   className?: string;
   style?: React.CSSProperties;
+  performanceMode?: "auto" | PerformanceLevel; // 'auto' will detect, or manually set 'high', 'medium', 'low'
 }
 
 const useDarkMode = () => {
@@ -79,6 +81,7 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   mixBlendMode = "difference",
   className = "",
   style = {},
+  performanceMode = "auto",
 }) => {
   const uniqueId = useId().replace(/:/g, "-");
   const filterId = `glass-filter-${uniqueId}`;
@@ -94,11 +97,25 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
 
   const isDarkMode = useDarkMode();
   const [isMounted, setIsMounted] = useState(false);
+  const [performanceLevel, setPerformanceLevel] = useState<PerformanceLevel>("medium");
 
   // Only enable feature detection after hydration to avoid hydration mismatch
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+
+    // Detect performance level
+    if (performanceMode === "auto") {
+      const metrics = detectPerformance();
+      setPerformanceLevel(metrics.level);
+
+      // Log performance metrics in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[GlassSurface] Performance detected:', metrics);
+      }
+    } else {
+      setPerformanceLevel(performanceMode);
+    }
+  }, [performanceMode]);
 
   const generateDisplacementMap = () => {
     const rect = containerRef.current?.getBoundingClientRect();
@@ -137,6 +154,11 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   };
 
   useEffect(() => {
+    // Skip expensive operations for low/medium performance
+    if (performanceLevel === 'low' || performanceLevel === 'medium') {
+      return;
+    }
+
     updateDisplacementMap();
     [
       { ref: redChannelRef, offset: redOffset },
@@ -170,9 +192,15 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
     xChannel,
     yChannel,
     mixBlendMode,
+    performanceLevel,
   ]);
 
   useEffect(() => {
+    // Skip expensive operations for low/medium performance
+    if (performanceLevel === 'low' || performanceLevel === 'medium') {
+      return;
+    }
+
     if (!containerRef.current) return;
 
     const resizeObserver = new ResizeObserver(() => {
@@ -184,25 +212,16 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
     return () => {
       resizeObserver.disconnect();
     };
-  }, []);
+  }, [performanceLevel]);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    // Skip expensive operations for low/medium performance
+    if (performanceLevel === 'low' || performanceLevel === 'medium') {
+      return;
+    }
 
-    const resizeObserver = new ResizeObserver(() => {
-      setTimeout(updateDisplacementMap, 0);
-    });
-
-    resizeObserver.observe(containerRef.current);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
-
-  useEffect(() => {
     setTimeout(updateDisplacementMap, 0);
-  }, [width, height]);
+  }, [width, height, performanceLevel]);
 
   const supportsSVGFilters = () => {
     if (typeof window === "undefined") return false;
@@ -239,7 +258,10 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
     const svgSupported = isMounted && supportsSVGFilters();
     const backdropFilterSupported = isMounted && supportsBackdropFilter();
 
-    if (svgSupported) {
+    // For low/medium performance, always use lightweight CSS glass effect
+    const shouldUseLightweight = performanceLevel === 'low' || performanceLevel === 'medium';
+
+    if (svgSupported && !shouldUseLightweight) {
       return {
         ...baseStyles,
         background: isDarkMode

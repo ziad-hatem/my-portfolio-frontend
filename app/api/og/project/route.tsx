@@ -1,7 +1,8 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
+export const maxDuration = 10; // Allow up to 10 seconds for image fetching and processing
 
 // Enable static generation and caching for this route
 // Revalidate cache every 7 days (604800 seconds)
@@ -32,6 +33,12 @@ export async function GET(request: NextRequest) {
     // Fetch the logo
     const logoUrl = new URL("/logo.png", request.url).toString();
 
+    // For external images, use Next.js image optimizer as proxy
+    // This converts S3 URLs to work with ImageResponse
+    const processedImageUrl = image
+      ? new URL(`/_next/image?url=${encodeURIComponent(image)}&w=1200&q=75`, request.url).toString()
+      : null;
+
     return new ImageResponse(
       (
         <div
@@ -45,7 +52,7 @@ export async function GET(request: NextRequest) {
           }}
         >
           {/* Project Image Background */}
-          {image && (
+          {processedImageUrl && (
             <div
               style={{
                 position: "absolute",
@@ -57,7 +64,7 @@ export async function GET(request: NextRequest) {
               }}
             >
               <img
-                src={image}
+                src={processedImageUrl}
                 alt="Project"
                 style={{
                   width: "100%",

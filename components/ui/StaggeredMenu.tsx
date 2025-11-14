@@ -498,6 +498,7 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
             greenOffset={15}
             blueOffset={25}
             brightness={60}
+            performanceMode="auto"
             className="!w-full !max-w-7xl !px-4 sm:!px-6 lg:!px-8 py-10 mx-auto"
           >
             <div className="w-full max-w-7xl flex justify-between items-center mx-auto">

@@ -34,6 +34,7 @@ export async function generateMetadata({
   )}&image=${encodeURIComponent(image)}&company=${encodeURIComponent(
     project.company_name || ""
   )}`;
+  console.log(ogImageUrl);
 
   try {
     const metadata = getStaticMetaData({
