@@ -3,6 +3,11 @@ import getStaticMetaData from "@/utils/seo/getStaticMetaData";
 import getProjectById from "@/lib/get-data/getProjectById";
 import { checkIfExist } from "@/lib/checkIfExist";
 import getHomeData from "@/lib/get-data/getHomeData";
+import {
+  generateProjectSchema,
+  generateBreadcrumbSchema,
+  StructuredData,
+} from "@/utils/seo/structuredData";
 
 export async function generateMetadata({
   params,
@@ -68,5 +73,35 @@ export default async function ProjectPage({
 
   const project = checkIfExist(projectData?.entry, null);
 
-  return <SingleProjectPage projectId={id} project={project} />;
+  const baseUrl =
+    process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+
+  // Get author name from home data
+  const homeData: any = await getHomeData();
+  const authorName = checkIfExist(homeData?.home?.name, "Frontend Developer");
+
+  // Generate structured data
+  const projectSchema = generateProjectSchema({
+    name: project.title,
+    description: project.project_description,
+    image: project.project_image?.permalink,
+    url: `${baseUrl}/projects/${id}`,
+    author: authorName,
+    keywords: project.skills?.map((skill: any) => skill.skill_name) || [],
+  });
+
+  // Generate breadcrumb schema
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: "Home", url: baseUrl },
+    { name: "Projects", url: `${baseUrl}/projects` },
+    { name: project.title, url: `${baseUrl}/projects/${id}` },
+  ]);
+
+  return (
+    <>
+      <StructuredData data={projectSchema} />
+      <StructuredData data={breadcrumbSchema} />
+      <SingleProjectPage projectId={id} project={project} />
+    </>
+  );
 }

@@ -8,7 +8,8 @@ const getPostsData = async () => {
     });
     return data;
   } catch (error) {
-    "Error fetching posts: " + error;
+    console.error("Error fetching posts:", error);
+    return null;
   }
 };
 

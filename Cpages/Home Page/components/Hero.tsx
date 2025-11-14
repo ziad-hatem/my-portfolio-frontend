@@ -34,9 +34,7 @@ const Hero = ({ data }: any) => {
               data-aos="fade-up"
               data-aos-delay="200"
               dangerouslySetInnerHTML={{
-                __html:
-                  data?.description ||
-                  "<p>Front-end developer skilled in React, Next.js, TypeScript, Tailwind CSS and Redux, turning complex requirements into fast, user-centric web apps. I thrive in collaborative environments and stay ahead of industry trends to deliver cutting-edge solutions.</p>",
+                __html: data?.description,
               }}
             />
 

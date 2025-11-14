@@ -49,6 +49,7 @@ export const homeQuery = () => {
 
     fragment ProjectsSection on Entry_Pages_Page {
       title
+      featured_projects_section_1project_description
       featured_projects_section_1project_slider {
         ... on Entry_Projects_Project {
           title
@@ -59,6 +60,7 @@ export const homeQuery = () => {
           company_name
           project_link
           project_overview
+          project_description
           skills {
             ... on Entry_Skills_Skill {
               skill_name

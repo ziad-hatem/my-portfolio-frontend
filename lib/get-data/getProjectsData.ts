@@ -8,7 +8,8 @@ const getProjectsData = async () => {
     });
     return data;
   } catch (error) {
-    "Error fetching projects: " + error;
+    console.error("Error fetching projects:", error);
+    return null;
   }
 };
 

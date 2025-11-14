@@ -64,7 +64,10 @@ export function PostCard({
           {title}
         </h3>
 
-        <p className="text-muted-foreground mb-4 line-clamp-3">{excerpt}</p>
+        <p
+          className="text-muted-foreground mb-4 line-clamp-3"
+          dangerouslySetInnerHTML={{ __html: excerpt }}
+        ></p>
 
         <div className="flex items-center gap-2 text-accent group-hover:gap-3 transition-all">
           <span>Read More</span>

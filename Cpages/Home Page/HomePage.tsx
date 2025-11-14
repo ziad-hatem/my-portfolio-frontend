@@ -37,6 +37,9 @@ export function HomePage({ data }: any) {
 
   const projectsData = {
     title: checkIfExist(homeData?.title, ""),
+    description: checkIfExist(
+      homeData?.featured_projects_section_1project_description
+    ),
     featured_projects: checkIfExist(
       homeData?.featured_projects_section_1project_slider?.map(
         (project: any) => ({
@@ -46,6 +49,7 @@ export function HomePage({ data }: any) {
           company_name: checkIfExist(project?.company_name, ""),
           project_link: checkIfExist(project?.project_link, ""),
           project_overview: checkIfExist(project?.project_overview, ""),
+          project_description: checkIfExist(project?.project_description, ""),
           skills: checkIfExist(
             project?.skills?.map((skill: any) => ({
               skill_name: checkIfExist(skill?.skill_name, ""),

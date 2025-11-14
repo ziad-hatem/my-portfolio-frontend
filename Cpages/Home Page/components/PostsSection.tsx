@@ -1,13 +1,12 @@
 "use client";
 
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { ArrowRight, ArrowLeft } from "lucide-react";
-import Image from "next/image";
-import { PostCard } from "./PostCard";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from "swiper/modules";
-import type { Swiper as SwiperType } from "swiper";
 import { useRef, useState } from "react";
+import type { Swiper as SwiperType } from "swiper";
+import { Navigation } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { PostCard } from "./PostCard";
 
 // Import Swiper styles
 import "swiper/css";
@@ -49,9 +48,8 @@ const PostsSection = ({ data }: PostsSectionProps) => {
               className="text-lg text-muted-foreground mb-8"
               data-aos="fade-up"
               data-aos-delay="100"
-            >
-              {data.description || "Insights, tutorials, and thoughts on web development, modern technologies, and best practices in software engineering."}
-            </p>
+              dangerouslySetInnerHTML={{ __html: data.description }}
+            ></p>
 
             {/* Navigation Arrows */}
             <div

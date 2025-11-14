@@ -43,9 +43,8 @@ export default function SkillsSection({ data }: SkillsSectionProps) {
             className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto"
             data-aos="fade-up"
             data-aos-delay="100"
-          >
-            {data.description || "My professional journey in software development"}
-          </p>
+            dangerouslySetInnerHTML={{ __html: data.description }}
+          ></p>
         </div>
         <div className="flex flex-wrap h-[100px]">
           <LogoLoop

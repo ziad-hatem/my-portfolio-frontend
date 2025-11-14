@@ -60,10 +60,8 @@ export default function ExperienceSection({ data }: ExperienceSectionProps) {
                 className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto"
                 data-aos="fade-up"
                 data-aos-delay="100"
-              >
-                {data.description ||
-                  "My professional journey in software development"}
-              </p>
+                dangerouslySetInnerHTML={{ __html: data.description }}
+              ></p>
             </div>
 
             {/* Timeline */}
@@ -113,9 +111,12 @@ export default function ExperienceSection({ data }: ExperienceSectionProps) {
                         <p className="text-muted-foreground text-xs md:text-base mb-3 md:mb-4">
                           {exp.from} - {exp.present ? "Present" : exp.to}
                         </p>
-                        <p className="text-muted-foreground leading-relaxed text-sm md:text-base">
-                          {exp.job_description}
-                        </p>
+                        <p
+                          className="text-muted-foreground leading-relaxed text-sm md:text-base"
+                          dangerouslySetInnerHTML={{
+                            __html: exp.job_description,
+                          }}
+                        ></p>
                       </div>
                     </div>
 

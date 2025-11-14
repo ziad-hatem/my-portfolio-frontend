@@ -15,10 +15,12 @@ import "swiper/css/navigation";
 interface ProjectsSectionProps {
   data: {
     title: string;
+    description: string;
     featured_projects: Array<{
       title: string;
       project_image: string;
       project_name: string;
+      project_description: string;
       company_name: string;
       project_link: string;
       project_overview: string;
@@ -46,17 +48,14 @@ const ProjectsSection = ({ data }: ProjectsSectionProps) => {
               className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4"
               data-aos="fade-up"
             >
-              {data.title || "Featured Projects"}
+              {data.title || ""}
             </h2>
             <p
               className="text-lg text-muted-foreground mb-8"
               data-aos="fade-up"
               data-aos-delay="100"
-            >
-              Explore some of my recent work spanning web development, banking
-              platforms, and entertainment venues. Each project showcases modern
-              technologies and best practices in software development.
-            </p>
+              dangerouslySetInnerHTML={{ __html: data.description }}
+            ></p>
 
             {/* Navigation Arrows */}
             <div
@@ -139,9 +138,12 @@ const ProjectsSection = ({ data }: ProjectsSectionProps) => {
                         <h3 className="text-2xl font-bold text-foreground mb-3">
                           {project.project_name}
                         </h3>
-                        <p className="text-base text-muted-foreground mb-4">
-                          {project.project_overview}
-                        </p>
+                        <p
+                          className="text-base text-muted-foreground mb-4"
+                          dangerouslySetInnerHTML={{
+                            __html: project.project_description,
+                          }}
+                        ></p>
                         <div className="flex flex-wrap gap-2 mt-auto">
                           {project.skills.map((skill, skillIndex) => (
                             <span

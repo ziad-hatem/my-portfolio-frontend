@@ -5,9 +5,11 @@ export async function generateMetadata() {
 
   try {
     const metadata = getStaticMetaData({
-      title: "Ziad Hatem - Frontend Developer",
+      title: "Contact Me | Ziad Hatem - Frontend Developer",
       description:
-        "Front-end developer skilled in React, Next.js, TypeScript, Tailwind CSS and Redux, turning complex requirements into fast, user-centric web apps. I thrive in collaborative environments and stay ahead of industry trends to deliver cutting-edge solutions.",
+        "Get in touch with me for web development opportunities, collaborations, or project inquiries. Front-end developer skilled in React, Next.js, TypeScript, Tailwind CSS, and Redux.",
+      keywords:
+        "contact, hire frontend developer, web development, React developer, Next.js developer, freelance, collaboration",
       isRobotFollow: followIndex as boolean,
     });
 
@@ -20,8 +22,8 @@ export async function generateMetadata() {
   } catch (error) {
     console.error("Error generating metadata:", error);
     return {
-      title: "Page Not Found",
-      description: "The requested page could not be found.",
+      title: "Contact | Frontend Developer",
+      description: "Get in touch for web development opportunities.",
       metadataBase: new URL(
         process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000"
       ),
