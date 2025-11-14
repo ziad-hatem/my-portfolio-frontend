@@ -205,9 +205,10 @@ export function ProjectsPage({ projects: fetchedProjects }: ProjectsPageProps) {
   ];
 
   // Use fetched projects if available, otherwise use fallback
-  const projects = fetchedProjects && fetchedProjects.length > 0
-    ? fetchedProjects
-    : fallbackProjects;
+  const projects =
+    fetchedProjects && fetchedProjects.length > 0
+      ? fetchedProjects
+      : fallbackProjects;
 
   useEffect(() => {
     // Simulate loading delay
@@ -239,17 +240,35 @@ export function ProjectsPage({ projects: fetchedProjects }: ProjectsPageProps) {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project) => {
               // Map fetched project data to component props
-              const isFetchedProject = 'project_description' in project;
+              const isFetchedProject = "project_description" in project;
 
               return (
                 <ProjectCard
                   key={project.id}
                   projectId={project.id}
-                  title={isFetchedProject ? project.title : (project as any).title}
-                  description={isFetchedProject ? project.project_description : (project as any).description}
-                  image={isFetchedProject ? project.project_image.permalink : (project as any).image}
-                  tags={isFetchedProject ? project.skills.map(s => s.skill_name) : (project as any).tags}
-                  workContext={isFetchedProject ? project.company_name : (project as any).workContext}
+                  title={
+                    isFetchedProject ? project.title : (project as any).title
+                  }
+                  description={
+                    isFetchedProject
+                      ? project.project_description
+                      : (project as any).description
+                  }
+                  image={
+                    isFetchedProject
+                      ? project.project_image.permalink
+                      : (project as any).image
+                  }
+                  tags={
+                    isFetchedProject
+                      ? project.skills.map((s) => s.skill_name)
+                      : (project as any).tags
+                  }
+                  workContext={
+                    isFetchedProject
+                      ? project.company_name
+                      : (project as any).workContext
+                  }
                 />
               );
             })}

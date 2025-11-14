@@ -73,7 +73,10 @@ export function ProjectCard({
           />
         </div>
 
-        <p className="text-muted-foreground mb-4 line-clamp-2">{description}</p>
+        <p
+          className="text-muted-foreground mb-4 line-clamp-2"
+          dangerouslySetInnerHTML={{ __html: description }}
+        ></p>
 
         {/* Tags */}
         <div className="flex flex-wrap gap-2">
