@@ -1,5 +1,6 @@
 import Loading from "@/components/Loading";
 import { HomePage } from "@/Cpages/Home Page/HomePage";
+import getHomeData from "@/lib/get-data/getHomeData";
 import getStaticMetaData from "@/utils/seo/getStaticMetaData";
 import { Suspense } from "react";
 
@@ -32,10 +33,11 @@ export async function generateMetadata() {
   }
 }
 
-export default function Home() {
+export default async function Home() {
+  const homeData = await getHomeData();
   return (
     <Suspense fallback={<Loading />}>
-      <HomePage />
+      <HomePage data={homeData} />
     </Suspense>
   );
 }

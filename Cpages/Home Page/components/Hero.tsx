@@ -1,11 +1,10 @@
 "use client";
 
 import { BackgroundBeams } from "@/components/ui/background-beams";
-import { ArrowRight, GithubIcon, LinkedinIcon } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useEffect } from "react";
 
-const Hero = () => {
+const Hero = ({ data }: any) => {
   return (
     <div className="relative">
       <div className="w-full h-full absolute">
@@ -19,72 +18,72 @@ const Hero = () => {
                 className="text-5xl md:text-7xl lg:text-8xl text-foreground mb-6 font-bold tracking-tight"
                 data-aos="fade-up"
               >
-                Ziad Hatem
+                {data?.name || "Ziad Hatem"}
               </h1>
               <div
                 className="text-2xl md:text-4xl lg:text-5xl text-accent mb-8 font-light"
                 data-aos="fade-up"
                 data-aos-delay="100"
               >
-                Frontend Developer
+                {data?.role || "Frontend Developer"}
               </div>
             </div>
 
-            <p
+            <div
               className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed"
               data-aos="fade-up"
               data-aos-delay="200"
-            >
-              Front-end developer skilled in React, Next.js, TypeScript,
-              Tailwind CSS and Redux, turning complex requirements into fast,
-              user-centric web apps. I thrive in collaborative environments and
-              stay ahead of industry trends to deliver cutting-edge solutions.
-            </p>
+              dangerouslySetInnerHTML={{
+                __html:
+                  data?.description ||
+                  "<p>Front-end developer skilled in React, Next.js, TypeScript, Tailwind CSS and Redux, turning complex requirements into fast, user-centric web apps. I thrive in collaborative environments and stay ahead of industry trends to deliver cutting-edge solutions.</p>",
+              }}
+            />
 
-            <div
-              className="flex flex-wrap justify-center gap-6 pt-4"
-              data-aos="fade-up"
-              data-aos-delay="300"
-            >
-              <Link
-                href="/projects"
-                className="inline-flex items-center gap-2 text-accent hover:gap-3 transition-all text-lg font-medium"
+            {data?.buttons && data.buttons.length > 0 && (
+              <div
+                className="flex flex-wrap justify-center gap-6 pt-4"
+                data-aos="fade-up"
+                data-aos-delay="300"
               >
-                View My Projects
-                <ArrowRight size={20} />
-              </Link>
+                {data.buttons.map((button: any) => (
+                  <Link
+                    key={button.id}
+                    href={button.link || "#"}
+                    className="inline-flex items-center gap-2 text-accent hover:gap-3 transition-all text-lg font-medium"
+                  >
+                    {button.text}
+                    <ArrowRight size={20} />
+                  </Link>
+                ))}
+              </div>
+            )}
 
-              <Link
-                href="/contact"
-                className="inline-flex items-center gap-2 text-accent hover:gap-3 transition-all text-lg font-medium"
+            {data?.social_links && data.social_links.length > 0 && (
+              <div
+                className="flex items-center justify-center gap-8 pt-4"
+                data-aos="fade-up"
+                data-aos-delay="400"
               >
-                Contact Me
-                <ArrowRight size={20} />
-              </Link>
-            </div>
-
-            <div
-              className="flex items-center justify-center gap-8 pt-4"
-              data-aos="fade-up"
-              data-aos-delay="400"
-            >
-              <a
-                href="https://linkedin.com/in/ziadhatem"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-accent transition-colors hover:scale-110 transform duration-200"
-              >
-                <LinkedinIcon size={28} />
-              </a>
-              <a
-                href="https://github.com/ziadhatem"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-accent transition-colors hover:scale-110 transform duration-200"
-              >
-                <GithubIcon size={28} />
-              </a>
-            </div>
+                {data.social_links.map((social: any) => (
+                  <a
+                    key={social.id}
+                    href={social.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-accent transition-colors hover:scale-110 transform duration-200"
+                  >
+                    {social.icon && (
+                      <img
+                        src={social.icon}
+                        alt="Social Icon"
+                        className="w-7 h-7"
+                      />
+                    )}
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>
