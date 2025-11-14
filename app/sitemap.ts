@@ -5,7 +5,6 @@ export const revalidate = 3600;
 
 async function fetchGraphQL(query: string) {
   const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/graphql`;
-  console.log("🔍 Fetching from:", url);
 
   try {
     const response = await fetch(url, {
@@ -17,25 +16,20 @@ async function fetchGraphQL(query: string) {
       next: { revalidate: 3600 },
     });
 
-    console.log("📡 Response status:", response.status, response.statusText);
-
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("GraphQL fetch failed:", response.statusText, errorText);
+      console.error("GraphQL fetch failed:", response.statusText);
       return null;
     }
 
     const result = await response.json();
-    console.log("📦 GraphQL result:", JSON.stringify(result).substring(0, 200));
     return result.data;
   } catch (error) {
-    console.error("❌ Error fetching from GraphQL:", error);
+    console.error("Error fetching from GraphQL:", error);
     return null;
   }
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  console.log("🗺️  Sitemap generation started...");
   const baseUrl =
     process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
 
@@ -69,8 +63,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const projects = projectsData?.entries?.data || [];
   const posts = postsData?.entries?.data || [];
-
-  console.log(`📊 Sitemap data: ${projects.length} projects, ${posts.length} posts`);
 
   // Static routes with high priority
   const staticRoutes: MetadataRoute.Sitemap = [
