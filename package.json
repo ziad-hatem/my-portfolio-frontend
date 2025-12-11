@@ -28,11 +28,11 @@
     "mongodb": "^6.20.0",
     "motion": "^12.23.24",
     "nanoid": "^5.1.6",
-    "next": "16.0.1",
+    "next": "^16.0.8",
     "ogl": "^1.0.11",
     "pdfjs-dist": "^5.4.449",
-    "react": "19.2.0",
-    "react-dom": "19.2.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
     "react-icons": "^5.5.0",
     "resend": "^6.4.2",
     "schema-dts": "^1.1.5",
@@ -50,7 +50,7 @@
     "@types/react-dom": "^19",
     "baseline-browser-mapping": "^2.9.6",
     "eslint": "^9",
-    "eslint-config-next": "16.0.1",
+    "eslint-config-next": "^16.0.8",
     "typescript": "^5"
   }
 }
