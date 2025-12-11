@@ -6,6 +6,7 @@ const menuItems = [
   { label: "Home", ariaLabel: "Go to home page", link: "/" },
   { label: "Projects", ariaLabel: "View my projects", link: "/projects" },
   { label: "Posts", ariaLabel: "Read my blog posts", link: "/posts" },
+  
   { label: "Contact", ariaLabel: "Get in touch", link: "/contact" },
 ];
 
@@ -15,7 +16,15 @@ const socialItems = [
   { label: "LinkedIn", link: "https://www.linkedin.com/in/ziadhatem2026" },
 ];
 
+import { usePathname } from "next/navigation";
+
 export function Navigation() {
+  const pathname = usePathname();
+
+  // Hide navigation on /tools and subpages if requested
+  // "remove navbar from tools slug" implies /tools/*
+  if (pathname?.startsWith("/tools")) return null;
+
   return (
     <StaggeredMenu
       position="right"

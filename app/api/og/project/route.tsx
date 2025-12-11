@@ -1,12 +1,8 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 
-export const runtime = "nodejs";
-export const maxDuration = 10; // Allow up to 10 seconds for image fetching and processing
-
-// Enable static generation and caching for this route
-// Revalidate cache every 7 days (604800 seconds)
-export const revalidate = 604800;
+export const runtime = "edge";
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
