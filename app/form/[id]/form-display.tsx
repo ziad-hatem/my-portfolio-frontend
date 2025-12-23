@@ -27,6 +27,9 @@ type SerializedForm = Omit<Form, "_id" | "createdAt"> & {
 };
 
 export function FormDisplay({ form }: { form: SerializedForm | Form }) {
+  const searchParams = useSearchParams();
+  const lang = searchParams?.get("lang");
+
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -272,9 +275,6 @@ export function FormDisplay({ form }: { form: SerializedForm | Form }) {
       </div>
     );
   }
-
-  const searchParams = useSearchParams();
-  const lang = searchParams?.get("lang");
 
   const isRtl =
     lang === "ar" ||
