@@ -35,10 +35,37 @@ export interface Form {
   status: "active" | "inactive";
 }
 
+export interface SubmissionMetadata {
+  userAgent: string;
+  language: string;
+  screen: {
+    width: number;
+    height: number;
+  };
+  location?: {
+    lat: number;
+    lng: number;
+    accuracy: number;
+    error?: string;
+  };
+  ip?: string;
+  ipInfo?: {
+    country?: string;
+    city?: string;
+    region?: string;
+    regionName?: string;
+    isp?: string;
+    lat?: number;
+    lon?: number;
+    timezone?: string;
+  };
+}
+
 export interface Submission {
   _id?: ObjectId;
   formId: string;
   submissionId: string; // Unique ID for public verification
   data: Record<string, any>; // Keys match FormField.id
+  metadata?: SubmissionMetadata;
   submittedAt: Date;
 }
