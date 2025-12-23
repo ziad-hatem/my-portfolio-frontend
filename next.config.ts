@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["motion", "gsap"],
   },
+  
 };
 
 export default nextConfig;

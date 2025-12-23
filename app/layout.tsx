@@ -2,8 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-import { Navigation } from "@/components/Layout/Navigation";
-import { Footer } from "@/components/Layout/Footer";
 import { CookieConsent } from "@/components/cookies/CookieConsent";
 import { Toaster } from "sonner";
 import ClientEffects from "@/components/ClientEffects";
@@ -44,10 +42,8 @@ export default function RootLayout({
         />
 
         <div className="min-h-screen bg-background text-foreground dark">
-          <Navigation />
           <ClientEffects />
-          <main className="z-50 relative">{children}</main>
-          <Footer />
+          {children}
           <Toaster position="bottom-right" theme="dark" />
           <CookieConsent />
         </div>
