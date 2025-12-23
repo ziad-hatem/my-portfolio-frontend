@@ -180,38 +180,6 @@ export function FormDisplay({ form }: { form: SerializedForm | Form }) {
     };
   };
 
-  const getGeolocation = (): Promise<{
-    lat: number;
-    lng: number;
-    accuracy: number;
-    error?: string;
-  }> => {
-    return new Promise((resolve) => {
-      if (!navigator.geolocation) {
-        resolve({ lat: 0, lng: 0, accuracy: 0, error: "Not supported" });
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          resolve({
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-            accuracy: pos.coords.accuracy,
-          });
-        },
-        (err) => {
-          resolve({
-            lat: 0,
-            lng: 0,
-            accuracy: 0,
-            error: err.message || "Denied/Error",
-          });
-        },
-        { timeout: 3000 } // Don't wait too long
-      );
-    });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -232,14 +200,7 @@ export function FormDisplay({ form }: { form: SerializedForm | Form }) {
     try {
       // Collect Metadata
       const deviceInfo = collectDeviceInfo();
-      let location = { lat: 0, lng: 0, accuracy: 0 };
-      try {
-        location = await getGeolocation();
-      } catch (e) {
-        console.error("Loc error", e);
-      }
-
-      const clientMetadata = { ...deviceInfo, location };
+      const clientMetadata = { ...deviceInfo };
 
       const result = await submitForm(form.formId, formData, clientMetadata);
       if (result.success && result.submissionId) {

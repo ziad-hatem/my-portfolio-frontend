@@ -254,36 +254,6 @@ export function SubmissionDetailModal({
                           : "-"}
                       </div>
                     </div>
-                    <div className="bg-zinc-900/30 p-4 rounded-xl border border-zinc-800">
-                      <div className="text-xs text-zinc-500 mb-1">
-                        Approx. Location
-                      </div>
-                      <div className="text-sm text-zinc-300">
-                        {submission.metadata.location &&
-                        submission.metadata.location.lat !== 0 ? (
-                          <a
-                            href={`https://www.google.com/maps/search/?api=1&query=${submission.metadata.location.lat},${submission.metadata.location.lng}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-400 hover:text-blue-300 hover:underline flex items-center gap-1"
-                          >
-                            View on Maps
-                            <span className="text-xs text-zinc-500 no-underline">
-                              (±
-                              {Math.round(
-                                submission.metadata.location.accuracy
-                              )}
-                              m)
-                            </span>
-                          </a>
-                        ) : (
-                          <span className="text-zinc-500 italic">
-                            {submission.metadata.location?.error ||
-                              "Not available"}
-                          </span>
-                        )}
-                      </div>
-                    </div>
                   </div>
                 </div>
               )}
