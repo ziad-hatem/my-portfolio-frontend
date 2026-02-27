@@ -2,6 +2,7 @@ import Loading from "@/components/Loading";
 import { HomePage } from "@/Cpages/Home Page/HomePage";
 import getHomeData from "@/lib/get-data/getHomeData";
 import getStaticMetaData from "@/utils/seo/getStaticMetaData";
+import getFollowIndex from "@/utils/seo/getFollowIndex";
 import { checkIfExist } from "@/lib/checkIfExist";
 import { Suspense } from "react";
 import {
@@ -11,7 +12,7 @@ import {
 } from "@/utils/seo/structuredData";
 
 export async function generateMetadata() {
-  const followIndex = process.env.NEXT_PUBLIC_FOLLOW_INDEX || false;
+  const followIndex = getFollowIndex();
   const homeData: any = await getHomeData();
   try {
     const seoSettings = checkIfExist(homeData?.home?.seo_settings, {});
@@ -20,7 +21,8 @@ export async function generateMetadata() {
       title: checkIfExist(seoSettings?.seo_title),
       description: checkIfExist(seoSettings?.seo_description),
       keywords: checkIfExist(seoSettings?.seo_keywords),
-      isRobotFollow: followIndex as boolean,
+      image: checkIfExist(seoSettings?.seo_image?.permalink, "/cover.jpg"),
+      isRobotFollow: followIndex,
     });
 
     return {

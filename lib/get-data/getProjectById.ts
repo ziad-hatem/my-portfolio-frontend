@@ -1,15 +1,11 @@
-import { getClient } from "../clients";
-import { projectByIdQuery } from "../queries/projectByIdQuery";
+import { getProjectEntryData } from "../content-service";
 
 const getProjectById = async (id: string) => {
   try {
-    const { data } = await getClient().query({
-      query: projectByIdQuery(),
-      variables: { id },
-    });
-    return data;
+    return await getProjectEntryData(id);
   } catch (error) {
-    "Error fetching project by id: " + error;
+    console.error("[Content] Failed to load project by id:", error);
+    return { entry: null };
   }
 };
 

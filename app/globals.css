@@ -139,6 +139,62 @@ html {
   font-size: var(--font-size);
 }
 
+.route-loader-segment {
+  animation: route-loader-slide 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.route-pulse-core {
+  animation: route-pulse-core 1.1s ease-in-out infinite;
+}
+
+.route-pulse-dot {
+  animation: route-pulse-dot 1.1s ease-in-out infinite;
+}
+
+.route-dot-2 {
+  animation-delay: 120ms;
+}
+
+.route-dot-3 {
+  animation-delay: 240ms;
+}
+
+@keyframes route-loader-slide {
+  0% {
+    transform: translateX(-120%);
+  }
+  50% {
+    transform: translateX(85%);
+  }
+  100% {
+    transform: translateX(260%);
+  }
+}
+
+@keyframes route-pulse-core {
+  0%,
+  100% {
+    transform: scale(0.92);
+    opacity: 0.65;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+@keyframes route-pulse-dot {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
 .loader {
   width: 8.3333333333vw;
   height: 8.3333333333vw;
@@ -150,7 +206,16 @@ html {
   animation: rotation 1s linear infinite;
 }
 
-@media (max-width: 768) {
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
   .loader {
     width: 32vw;
     height: 32vw;

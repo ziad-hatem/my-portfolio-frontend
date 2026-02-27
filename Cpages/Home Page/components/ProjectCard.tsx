@@ -1,9 +1,7 @@
 "use client";
 
-import React from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { Analytics } from "@/utils/analytics";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 
 interface ProjectCardProps {
@@ -15,6 +13,13 @@ interface ProjectCardProps {
   projectId: string | number;
 }
 
+function stripHtml(value: string): string {
+  return String(value || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function ProjectCard({
   title,
   description,
@@ -23,67 +28,47 @@ export function ProjectCard({
   workContext,
   projectId,
 }: ProjectCardProps) {
-  const handleClick = () => {
-    // Track project card click
-    Analytics.track({
-      type: "project_click",
-      itemId: projectId,
-      itemTitle: title,
-      metadata: {
-        tags,
-        workContext,
-      },
-    });
-  };
-
   return (
     <Link
       href={`/projects/${projectId}`}
-      onClick={handleClick}
-      className="group relative bg-card rounded-xl overflow-hidden border border-border hover:border-accent transition-all duration-300 cursor-pointer block"
+      className="group relative bg-card rounded-2xl overflow-hidden border border-border/80 hover:border-accent/60 transition-all duration-300 cursor-pointer block"
     >
-      {/* Image */}
       <div className="relative aspect-video overflow-hidden bg-muted">
         <ImageWithFallback
           width={600}
           height={600}
-          src={image}
+          src={image || "/cover.jpg"}
           alt={title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/85 via-background/20 to-transparent opacity-85" />
       </div>
 
-      {/* Content */}
       <div className="p-6">
-        <div className="flex items-start justify-between mb-3">
+        <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex-1">
-            <h3 className="text-foreground group-hover:text-accent transition-colors">
+            <h3 className="text-foreground group-hover:text-accent transition-colors text-xl line-clamp-2">
               {title}
             </h3>
-            {workContext && (
-              <div className="text-xs text-muted-foreground mt-1">
-                {workContext}
-              </div>
-            )}
+            {workContext ? (
+              <div className="text-xs text-muted-foreground mt-1">{workContext}</div>
+            ) : null}
           </div>
           <ArrowUpRight
-            className="text-muted-foreground group-hover:text-accent transition-colors flex-shrink-0 ml-2"
+            className="text-muted-foreground group-hover:text-accent transition-colors flex-shrink-0"
             size={20}
           />
         </div>
 
-        <p
-          className="text-muted-foreground mb-4 line-clamp-2"
-          dangerouslySetInnerHTML={{ __html: description }}
-        ></p>
+        <p className="text-muted-foreground mb-5 line-clamp-3 leading-relaxed">
+          {stripHtml(description)}
+        </p>
 
-        {/* Tags */}
         <div className="flex flex-wrap gap-2">
-          {tags.map((tag, index) => (
+          {(tags || []).slice(0, 4).map((tag, index) => (
             <span
-              key={index}
-              className="px-3 py-1 bg-accent/10 text-accent rounded-full text-sm"
+              key={`${projectId}-${index}-${tag}`}
+              className="px-3 py-1 bg-accent/10 border border-accent/20 text-accent rounded-full text-xs"
             >
               {tag}
             </span>

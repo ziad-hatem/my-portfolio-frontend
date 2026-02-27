@@ -1,101 +1,278 @@
 import Link from "next/link";
-import { FileStack, FileIcon, ArrowRight, Sparkles, ShieldCheck } from "lucide-react";
-import * as motion from "framer-motion/client";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  FileArchive,
+  FileStack,
+  ShieldCheck,
+  Sparkles,
+  Wrench,
+  type LucideIcon,
+} from "lucide-react";
+import type { Metadata } from "next";
+import { getToolsContent } from "@/lib/content-repository";
+import getFollowIndex from "@/utils/seo/getFollowIndex";
 
-import { Metadata } from "next";
+interface ToolItem {
+  id: string;
+  title: string;
+  description: string;
+  href: string;
+  status: "Live" | "Beta";
+  features: string[];
+  Icon: LucideIcon;
+}
 
-export const metadata: Metadata = {
-  title: "Creative Tools | Free Online Utilities",
-  description: "A collection of free, privacy-focused developer tools. Convert images to PDF, compress files, and more - all running locally in your browser.",
-  keywords: ["developer tools", "image to pdf", "compress pdf", "privacy tools", "free online utilities", "client side tools"],
-  openGraph: {
-    title: "Creative Tools | Free Online Utilities",
-    description: "Free, privacy-focused tools for developers and creators. No file uploads - 100% local processing.",
-    type: "website",
-    url: "/tools",
-    siteName: "Frontend Developer Portfolio",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Creative Tools | Free Online Utilities",
-    description: "Free, privacy-focused tools for developers and creators. Process files securely in your browser.",
-  },
-  alternates: {
-    canonical: "/tools",
-  },
-};
-
-const tools = [
+const tools: ToolItem[] = [
   {
     id: "image-to-pdf",
     title: "Image to PDF",
-    description: "Convert multiple images (JPG, PNG, GIF) into a single PDF document instantly. All processing happens in your browser.",
-    icon: <FileStack className="w-8 h-8 text-accent" />,
-    link: "/tools/image-to-pdf",
+    description:
+      "Convert JPG, PNG, GIF, HEIC, and HEIF files into one PDF with drag-and-drop ordering.",
+    href: "/tools/image-to-pdf",
+    status: "Live",
+    features: ["Local Processing", "Reorder Pages", "HEIC Support"],
+    Icon: FileStack,
   },
   {
     id: "compress-pdf",
     title: "Compress PDF",
-    description: "Reduce PDF file size securely in your browser. Perfect for optimizing scanned documents or large files for email.",
-    icon: <FileIcon className="w-8 h-8 text-accent" />,
-    link: "/tools/compress-pdf",
+    description:
+      "Shrink PDF size in your browser with adjustable compression levels and instant download.",
+    href: "/tools/compress-pdf",
+    status: "Live",
+    features: ["Local Processing", "Compression Profiles", "No Uploads"],
+    Icon: FileArchive,
   },
-  // Future tools can be added here
 ];
+
+const FALLBACK_TOOLS_TITLE = "Developer Tools | Free Browser Utilities";
+const FALLBACK_TOOLS_DESCRIPTION =
+  "A practical suite of browser-based tools: Image to PDF and PDF compression. Privacy-first with local processing.";
+const FALLBACK_TOOLS_KEYWORDS = [
+  "developer tools",
+  "image to pdf",
+  "compress pdf",
+  "privacy first tools",
+  "browser utilities",
+];
+
+function parseKeywords(
+  keywords: string | undefined,
+  fallback: string[]
+): string[] {
+  const parsed =
+    keywords
+      ?.split(",")
+      .map((item) => item.trim())
+      .filter(Boolean) || [];
+
+  return parsed.length > 0 ? parsed : fallback;
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const followIndex = getFollowIndex();
+
+  try {
+    const tools = await getToolsContent();
+    const seo = tools?.tools_index_seo;
+    const title = seo?.seo_title?.trim() || FALLBACK_TOOLS_TITLE;
+    const description = seo?.seo_description?.trim() || FALLBACK_TOOLS_DESCRIPTION;
+    const image = seo?.seo_image?.permalink?.trim() || "/tools/opengraph-image";
+    const keywords = parseKeywords(seo?.seo_keywords, FALLBACK_TOOLS_KEYWORDS);
+
+    return {
+      title,
+      description,
+      keywords,
+      alternates: {
+        canonical: "/tools",
+      },
+      openGraph: {
+        title,
+        description,
+        type: "website",
+        url: "/tools",
+        images: [
+          {
+            url: image,
+            width: 1200,
+            height: 630,
+            alt: "Developer tools collection",
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: [image],
+      },
+      robots: {
+        index: followIndex,
+        follow: followIndex,
+      },
+    };
+  } catch (error) {
+    console.error("[Tools] Failed to generate metadata:", error);
+    return {
+      title: FALLBACK_TOOLS_TITLE,
+      description: FALLBACK_TOOLS_DESCRIPTION,
+      keywords: FALLBACK_TOOLS_KEYWORDS,
+      alternates: {
+        canonical: "/tools",
+      },
+      openGraph: {
+        title: FALLBACK_TOOLS_TITLE,
+        description: FALLBACK_TOOLS_DESCRIPTION,
+        type: "website",
+        url: "/tools",
+        images: [
+          {
+            url: "/tools/opengraph-image",
+            width: 1200,
+            height: 630,
+            alt: "Developer tools collection",
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: FALLBACK_TOOLS_TITLE,
+        description: FALLBACK_TOOLS_DESCRIPTION,
+        images: ["/tools/opengraph-image"],
+      },
+      robots: {
+        index: followIndex,
+        follow: followIndex,
+      },
+    };
+  }
+}
 
 export default function ToolsPage() {
   return (
-    <div className="min-h-screen pt-12 pb-20 px-4 sm:px-6 lg:px-8 bg-background">
-      <div className="max-w-7xl mx-auto">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="py-12 flex flex-col items-center text-center space-y-4"
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-sm font-medium mb-2">
-            <Sparkles size={14} />
-            <span>Privacy First & Local</span>
-          </div>
-          
-          <h1 className="text-4xl md:text-6xl font-black tracking-tight text-foreground">
-            Creative <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-blue-500">Utilities</span>
-          </h1>
-          
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl">
-            A suite of powerful tools running entirely in your browser. 
-            <span className="flex justify-center items-center gap-2 mt-2 text-foreground/80">
-              <ShieldCheck size={18} className="text-green-500" /> 
-              No file uploads. No data collection.
-            </span>
-          </p>
-        </motion.div>
+    <div className="relative min-h-screen overflow-hidden bg-background px-4 pb-20 pt-14 sm:px-6 lg:px-8">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-20 left-1/2 h-72 w-[52rem] -translate-x-1/2 rounded-full bg-accent/10 blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" />
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="relative mx-auto max-w-7xl">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-accent"
+          >
+            <ArrowRight size={14} className="rotate-180" aria-hidden="true" />
+            Back to Portfolio
+          </Link>
+
+          <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-4 py-2 text-xs uppercase tracking-[0.2em] text-accent">
+            <ShieldCheck size={14} aria-hidden="true" />
+            Privacy First
+          </div>
+        </div>
+
+        <section className="mb-10 grid gap-6 rounded-3xl border border-border/70 bg-card/70 p-6 backdrop-blur-xl md:grid-cols-12 md:p-8">
+          <div className="md:col-span-8">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-accent">
+              <Sparkles size={12} aria-hidden="true" />
+              Fast Utilities
+            </div>
+
+            <h1 className="text-4xl font-bold tracking-tight text-foreground md:text-5xl">
+              Build faster with practical tools
+            </h1>
+
+            <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground md:text-lg">
+              Use browser-native tools built for real daily workflows. No uploads, no tracking,
+              and no unnecessary complexity.
+            </p>
+
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Link
+                href="#tool-grid"
+                className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
+              >
+                Explore Tools
+                <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+
+              <span className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground">
+                <Wrench size={15} aria-hidden="true" />
+                New tools can be added quickly
+              </span>
+            </div>
+          </div>
+
+          <div className="grid gap-3 md:col-span-4 sm:grid-cols-3 md:grid-cols-1">
+            <article className="rounded-2xl border border-border/70 bg-background/65 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Tools</p>
+              <p className="mt-2 text-2xl font-semibold text-foreground">{tools.length}</p>
+            </article>
+            <article className="rounded-2xl border border-border/70 bg-background/65 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Processing</p>
+              <p className="mt-2 text-2xl font-semibold text-foreground">Local</p>
+            </article>
+            <article className="rounded-2xl border border-border/70 bg-background/65 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Data Retention</p>
+              <p className="mt-2 text-2xl font-semibold text-foreground">None</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="tool-grid" className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
           {tools.map((tool) => (
-            <Link 
-              key={tool.id} 
-              href={tool.link}
-              className="group relative bg-muted/30 border border-border/50 rounded-xl p-6 hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+            <Link
+              key={tool.id}
+              href={tool.href}
+              className="group rounded-2xl border border-border/70 bg-card/80 p-5 transition-all duration-300 hover:border-accent/50 hover:translate-y-[-2px]"
             >
-              <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity text-accent">
-                <ArrowRight size={20} />
+              <div className="mb-4 flex items-center justify-between">
+                <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-accent/30 bg-accent/10 text-accent">
+                  <tool.Icon size={20} aria-hidden="true" />
+                </div>
+                <span className="rounded-full border border-accent/35 bg-accent/10 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-accent">
+                  {tool.status}
+                </span>
               </div>
-              
-              <div className="mb-4 p-3 bg-accent/10 w-fit rounded-lg group-hover:bg-accent/20 transition-colors">
-                {tool.icon}
-              </div>
-              
-              <h2 className="text-xl font-bold mb-3 text-foreground group-hover:text-accent transition-colors">
+
+              <h2 className="text-xl font-semibold text-foreground transition-colors group-hover:text-accent">
                 {tool.title}
               </h2>
-              
-              <p className="text-muted-foreground text-sm leading-relaxed">
+
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 {tool.description}
               </p>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {tool.features.map((feature) => (
+                  <span
+                    key={`${tool.id}-${feature}`}
+                    className="rounded-full border border-border/70 bg-background/70 px-2.5 py-1 text-[11px] text-muted-foreground"
+                  >
+                    {feature}
+                  </span>
+                ))}
+              </div>
+
+              <span className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-accent">
+                Open Tool
+                <ArrowUpRight size={15} aria-hidden="true" />
+              </span>
             </Link>
           ))}
-        </div>
+        </section>
+
+        <section className="mt-10 rounded-2xl border border-border/70 bg-card/60 p-5 md:p-6">
+          <p className="mb-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">Roadmap</p>
+          <p className="text-sm text-muted-foreground md:text-base">
+            Upcoming utilities will be added here as standalone modules under
+            <span className="mx-1 rounded bg-background px-2 py-0.5 font-mono text-foreground">/tools/*</span>
+            so each tool stays focused, maintainable, and SEO-friendly.
+          </p>
+        </section>
       </div>
     </div>
   );

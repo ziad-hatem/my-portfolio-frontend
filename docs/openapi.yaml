@@ -1,0 +1,1034 @@
+openapi: 3.0.3
+info:
+  title: Portfolio Next API Backend
+  version: 1.0.0
+  description: Rebuilt backend APIs (MongoDB Atlas + Next.js route handlers)
+servers:
+  - url: /
+security: []
+tags:
+  - name: Content
+  - name: Admin Content
+  - name: Contact
+  - name: Revalidate
+  - name: OG
+  - name: Tools
+
+paths:
+  /api/contact:
+    post:
+      tags: [Contact]
+      summary: Send contact notification and user confirmation email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactRequest'
+      responses:
+        '200':
+          description: Email workflow succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactSuccess'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+        '502':
+          $ref: '#/components/responses/Error502'
+
+  /api/revalidate:
+    get:
+      tags: [Revalidate]
+      summary: Revalidate an ISR path
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: secret
+          required: true
+          schema: { type: string }
+        - in: query
+          name: path
+          required: false
+          schema: { type: string, default: / }
+        - in: query
+          name: type
+          required: false
+          schema: { type: string, enum: [page, layout], default: page }
+      responses:
+        '200':
+          description: Revalidation accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevalidateSuccess'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/og/post:
+    get:
+      tags: [OG]
+      summary: Return cached/generated post OG image
+      parameters:
+        - in: query
+          name: assetKey
+          required: false
+          schema: { type: string }
+        - in: query
+          name: title
+          required: false
+          schema: { type: string }
+        - in: query
+          name: image
+          required: false
+          schema: { type: string }
+        - in: query
+          name: author
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: PNG response (immutable cache + ETag)
+          headers:
+            Cache-Control: { schema: { type: string } }
+            CDN-Cache-Control: { schema: { type: string } }
+            Vercel-CDN-Cache-Control: { schema: { type: string } }
+            ETag: { schema: { type: string } }
+          content:
+            image/png:
+              schema: { type: string, format: binary }
+        '304':
+          description: Not Modified (ETag match)
+        '404':
+          description: Post not found for parsed asset key
+          content:
+            text/plain:
+              schema: { type: string }
+        '500':
+          description: Generation/storage failure
+          content:
+            text/plain:
+              schema: { type: string }
+
+  /api/og/project:
+    get:
+      tags: [OG]
+      summary: Return cached/generated project OG image
+      parameters:
+        - in: query
+          name: assetKey
+          required: false
+          schema: { type: string }
+        - in: query
+          name: title
+          required: false
+          schema: { type: string }
+        - in: query
+          name: image
+          required: false
+          schema: { type: string }
+        - in: query
+          name: company
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: PNG response (immutable cache + ETag)
+          headers:
+            Cache-Control: { schema: { type: string } }
+            CDN-Cache-Control: { schema: { type: string } }
+            Vercel-CDN-Cache-Control: { schema: { type: string } }
+            ETag: { schema: { type: string } }
+          content:
+            image/png:
+              schema: { type: string, format: binary }
+        '304':
+          description: Not Modified (ETag match)
+        '404':
+          description: Project not found for parsed asset key
+          content:
+            text/plain:
+              schema: { type: string }
+        '500':
+          description: Generation/storage failure
+          content:
+            text/plain:
+              schema: { type: string }
+
+  /api/content/home:
+    get:
+      tags: [Content]
+      summary: Read home content
+      responses:
+        '200':
+          description: Home content
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HomeResponse' }
+        '404':
+          $ref: '#/components/responses/Error404'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/content/projects:
+    get:
+      tags: [Content]
+      summary: List projects
+      responses:
+        '200':
+          description: Projects list
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProjectsResponse' }
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/content/projects/{id}:
+    get:
+      tags: [Content]
+      summary: Get project by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Project document
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProjectResponse' }
+        '404':
+          $ref: '#/components/responses/Error404'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/content/posts:
+    get:
+      tags: [Content]
+      summary: List posts
+      responses:
+        '200':
+          description: Posts list
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PostsResponse' }
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/content/posts/{id}:
+    get:
+      tags: [Content]
+      summary: Get post by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Post document
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PostResponse' }
+        '404':
+          $ref: '#/components/responses/Error404'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/admin/content/home:
+    get:
+      tags: [Admin Content]
+      summary: Admin get home content
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200':
+          description: Home content
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HomeResponse' }
+        '401':
+          $ref: '#/components/responses/Error401'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '500':
+          $ref: '#/components/responses/Error500'
+    put:
+      tags: [Admin Content]
+      summary: Admin patch home content
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HomeUpdateInput'
+      responses:
+        '200':
+          description: Updated home content
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HomeResponse' }
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/admin/content/projects:
+    get:
+      tags: [Admin Content]
+      summary: Admin list projects
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200':
+          description: Projects list
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProjectsResponse' }
+        '401':
+          $ref: '#/components/responses/Error401'
+        '500':
+          $ref: '#/components/responses/Error500'
+    post:
+      tags: [Admin Content]
+      summary: Admin create project
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProjectCreateInput' }
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProjectResponse' }
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/admin/content/projects/{id}:
+    get:
+      tags: [Admin Content]
+      summary: Admin get project
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Project document
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProjectResponse' }
+        '401':
+          $ref: '#/components/responses/Error401'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '500':
+          $ref: '#/components/responses/Error500'
+    put:
+      tags: [Admin Content]
+      summary: Admin patch project
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProjectPatchInput' }
+      responses:
+        '200':
+          description: Updated project
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProjectResponse' }
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '500':
+          $ref: '#/components/responses/Error500'
+    delete:
+      tags: [Admin Content]
+      summary: Admin delete project
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DeleteSuccess' }
+        '401':
+          $ref: '#/components/responses/Error401'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/admin/content/posts:
+    get:
+      tags: [Admin Content]
+      summary: Admin list posts
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200':
+          description: Posts list
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PostsResponse' }
+        '401':
+          $ref: '#/components/responses/Error401'
+        '500':
+          $ref: '#/components/responses/Error500'
+    post:
+      tags: [Admin Content]
+      summary: Admin create post
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PostCreateInput' }
+      responses:
+        '201':
+          description: Post created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PostResponse' }
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/admin/content/posts/{id}:
+    get:
+      tags: [Admin Content]
+      summary: Admin get post
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Post document
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PostResponse' }
+        '401':
+          $ref: '#/components/responses/Error401'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '500':
+          $ref: '#/components/responses/Error500'
+    put:
+      tags: [Admin Content]
+      summary: Admin patch post
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PostPatchInput' }
+      responses:
+        '200':
+          description: Updated post
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PostResponse' }
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '500':
+          $ref: '#/components/responses/Error500'
+    delete:
+      tags: [Admin Content]
+      summary: Admin delete post
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DeleteSuccess' }
+        '401':
+          $ref: '#/components/responses/Error401'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/tools/image-to-pdf/convert:
+    post:
+      tags: [Tools]
+      summary: Convert uploaded images into a PDF (server-first)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [files, options]
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                options:
+                  type: string
+                  description: JSON-encoded ImageToPdfOptions object
+                turnstileToken:
+                  type: string
+                  description: Required only when challenge flow is active
+      responses:
+        '200':
+          description: Conversion complete and share links issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageToPdfConvertSuccess'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '413':
+          $ref: '#/components/responses/Error413'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/tools/image-to-pdf/share/{token}:
+    get:
+      tags: [Tools]
+      summary: Resolve metadata for a temporary share token
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Share metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageToPdfShareMetadataSuccess'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '410':
+          $ref: '#/components/responses/Error410'
+        '500':
+          $ref: '#/components/responses/Error500'
+    delete:
+      tags: [Tools]
+      summary: Revoke and delete a temporary share token (owner fingerprint/IP)
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Token revoked and asset deleted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DeleteSuccess' }
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/tools/image-to-pdf/share/{token}/download:
+    get:
+      tags: [Tools]
+      summary: Download PDF for a temporary share token
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: PDF stream
+          headers:
+            Content-Type: { schema: { type: string } }
+            Content-Disposition: { schema: { type: string } }
+            Cache-Control: { schema: { type: string } }
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+        '404':
+          $ref: '#/components/responses/Error404'
+        '410':
+          $ref: '#/components/responses/Error410'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/tools/image-to-pdf/cleanup:
+    post:
+      tags: [Tools]
+      summary: Cleanup expired temporary PDF assets (cron/internal)
+      parameters:
+        - in: header
+          name: x-tools-cleanup-secret
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Cleanup sweep completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageToPdfCleanupSuccess'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+
+  responses:
+    Error400:
+      description: Bad request
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Error401:
+      description: Unauthorized
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Error404:
+      description: Not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Error403:
+      description: Forbidden
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Error410:
+      description: Gone (expired/revoked)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Error413:
+      description: Payload too large
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Error422:
+      description: Unprocessable entity
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Error429:
+      description: Too many requests
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Error500:
+      description: Internal error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Error502:
+      description: Upstream provider error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [success, error]
+      properties:
+        success: { type: boolean, enum: [false] }
+        error: { type: string }
+
+    DeleteSuccess:
+      type: object
+      required: [success]
+      properties:
+        success: { type: boolean, enum: [true] }
+
+    ContactRequest:
+      type: object
+      required: [name, email, subject, message]
+      properties:
+        name: { type: string }
+        email: { type: string, format: email }
+        subject: { type: string }
+        message: { type: string }
+
+    ContactSuccess:
+      type: object
+      required: [success, message]
+      properties:
+        success: { type: boolean, enum: [true] }
+        message: { type: string }
+        id: { type: string, nullable: true }
+
+    RevalidateSuccess:
+      type: object
+      required: [success, revalidated, path, type, timestamp]
+      properties:
+        success: { type: boolean, enum: [true] }
+        revalidated: { type: boolean, enum: [true] }
+        path: { type: string }
+        type: { type: string, enum: [page, layout] }
+        timestamp: { type: string, format: date-time }
+
+    ImageRef:
+      type: object
+      required: [permalink]
+      properties:
+        permalink: { type: string }
+
+    SkillEntry:
+      type: object
+      required: [id, skill_name]
+      properties:
+        id: { type: string }
+        skill_name: { type: string }
+
+    HomeContent:
+      type: object
+      required:
+        - key
+        - name
+        - role
+        - description
+        - social_links
+        - buttons
+        - featured_projects_section_1title
+        - featured_projects_section_1project_description
+        - experience_section_1title
+        - experience_section_1description
+        - experience_section_1replicator_field
+        - technology_section_1section_title
+        - technology_section_1description
+        - technology_section_1skills
+        - post_sectiontitle
+        - post_sectiondescription
+        - seo_settings
+        - createdAt
+        - updatedAt
+      properties:
+        key: { type: string, enum: [default] }
+        name: { type: string }
+        role: { type: string }
+        description: { type: string }
+        social_links:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              social_icon: { $ref: '#/components/schemas/ImageRef' }
+              social_link: { type: string }
+        buttons:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              buttton_text: { type: string }
+              button_link: { type: string }
+              fill_background: { type: boolean }
+        featured_projects_section_1title: { type: string }
+        featured_projects_section_1project_description: { type: string }
+        experience_section_1title: { type: string }
+        experience_section_1description: { type: string }
+        experience_section_1replicator_field:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              company_name: { type: string }
+              job_title: { type: string }
+              job_description: { type: string }
+              from: { type: string }
+              to: { type: string }
+              present: { type: boolean }
+        technology_section_1section_title: { type: string }
+        technology_section_1description: { type: string }
+        technology_section_1skills:
+          type: array
+          items: { $ref: '#/components/schemas/SkillEntry' }
+        post_sectiontitle: { type: string }
+        post_sectiondescription: { type: string }
+        seo_settings:
+          type: object
+          properties:
+            seo_image: { $ref: '#/components/schemas/ImageRef' }
+            seo_title: { type: string }
+            seo_description: { type: string }
+            seo_keywords: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    ProjectContent:
+      type: object
+      required: [id, title, company_name, project_description, project_image, project_overview, project_name, project_link, skills, ogAssetKey, ogImagePath, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        company_name: { type: string }
+        project_description: { type: string }
+        project_image: { $ref: '#/components/schemas/ImageRef' }
+        project_overview:
+          type: array
+          items: { type: string }
+        project_name: { type: string }
+        project_link: { type: string }
+        skills:
+          type: array
+          items: { $ref: '#/components/schemas/SkillEntry' }
+        ogAssetKey: { type: string }
+        ogImagePath: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    PostContent:
+      type: object
+      required: [id, title, author, post_text, post_image, publish_date, permalink, ogAssetKey, ogImagePath, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        author: { type: string }
+        post_text: { type: string }
+        post_image: { $ref: '#/components/schemas/ImageRef' }
+        publish_date: { type: string }
+        permalink: { type: string }
+        ogAssetKey: { type: string }
+        ogImagePath: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    HomeResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, enum: [true] }
+        data: { $ref: '#/components/schemas/HomeContent' }
+
+    ProjectsResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, enum: [true] }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/ProjectContent' }
+
+    ProjectResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, enum: [true] }
+        data: { $ref: '#/components/schemas/ProjectContent' }
+
+    PostsResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, enum: [true] }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/PostContent' }
+
+    PostResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, enum: [true] }
+        data: { $ref: '#/components/schemas/PostContent' }
+
+    HomeUpdateInput:
+      type: object
+      additionalProperties: true
+      description: Partial home document patch object.
+
+    ProjectCreateInput:
+      type: object
+      required: [title, project_description]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        company_name: { type: string }
+        project_description: { type: string }
+        project_image: { $ref: '#/components/schemas/ImageRef' }
+        project_overview:
+          type: array
+          items: { type: string }
+        project_name: { type: string }
+        project_link: { type: string }
+        skills:
+          type: array
+          items:
+            oneOf:
+              - type: string
+              - type: object
+                properties:
+                  id: { type: string }
+                  skill_name: { type: string }
+
+    ProjectPatchInput:
+      type: object
+      additionalProperties: true
+      description: Non-empty project patch payload.
+
+    PostCreateInput:
+      type: object
+      required: [title, post_text]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        author: { type: string }
+        post_text: { type: string }
+        post_image: { $ref: '#/components/schemas/ImageRef' }
+        publish_date: { type: string }
+        permalink: { type: string }
+
+    PostPatchInput:
+      type: object
+      additionalProperties: true
+      description: Non-empty post patch payload.
+
+    ImageToPdfOptions:
+      type: object
+      required:
+        - pageSize
+        - orientation
+        - marginMm
+        - imageFit
+        - jpegQuality
+        - ocrEnabled
+        - ocrLanguages
+        - filename
+        - optimizeFor
+      properties:
+        pageSize: { type: string, enum: [a4, letter, legal, fit-image] }
+        orientation: { type: string, enum: [auto, portrait, landscape] }
+        marginMm: { type: number, minimum: 0, maximum: 40 }
+        imageFit: { type: string, enum: [contain, cover] }
+        jpegQuality: { type: number, minimum: 0.5, maximum: 1.0 }
+        ocrEnabled: { type: boolean }
+        ocrLanguages: { type: string, enum: [eng+ara] }
+        filename: { type: string }
+        optimizeFor: { type: string, enum: [screen, print] }
+
+    ImageToPdfConvertSuccess:
+      type: object
+      required:
+        - success
+        - assetId
+        - shareUrl
+        - downloadUrl
+        - expiresAt
+        - pageCount
+        - fileSizeBytes
+        - ocrApplied
+        - warnings
+      properties:
+        success: { type: boolean, enum: [true] }
+        assetId: { type: string }
+        shareUrl: { type: string }
+        downloadUrl: { type: string }
+        expiresAt: { type: string, format: date-time }
+        pageCount: { type: integer, minimum: 1 }
+        fileSizeBytes: { type: integer, minimum: 1 }
+        ocrApplied: { type: boolean }
+        warnings:
+          type: array
+          items: { type: string }
+
+    ImageToPdfShareMetadataSuccess:
+      type: object
+      required:
+        - success
+        - assetId
+        - filename
+        - pageCount
+        - fileSizeBytes
+        - createdAt
+        - expiresAt
+      properties:
+        success: { type: boolean, enum: [true] }
+        assetId: { type: string }
+        filename: { type: string }
+        pageCount: { type: integer, minimum: 1 }
+        fileSizeBytes: { type: integer, minimum: 1 }
+        createdAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time }
+
+    ImageToPdfCleanupSuccess:
+      type: object
+      required: [success, now, removedAssets, removedChunks, removedTokens]
+      properties:
+        success: { type: boolean, enum: [true] }
+        now: { type: string, format: date-time }
+        removedAssets: { type: integer, minimum: 0 }
+        removedChunks: { type: integer, minimum: 0 }
+        removedTokens: { type: integer, minimum: 0 }

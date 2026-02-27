@@ -1,65 +1,52 @@
-import { MongoClient } from "mongodb";
+import { Db, MongoClient } from "mongodb";
 
-let mongoClient: MongoClient | null = null;
-let clientPromise: Promise<MongoClient> | null = null;
+const DEFAULT_DB_NAME = "portfolio_analytics";
 
-export async function getMongoClient() {
-  // Return existing client if we have one
-  if (mongoClient) {
-    return mongoClient;
+let cachedClient: MongoClient | null = null;
+let cachedClientPromise: Promise<MongoClient> | null = null;
+
+function getRequiredMongoUri(): string {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error("Missing required env var: MONGODB_URI");
+  }
+  return uri;
+}
+
+function getMongoDbName(): string {
+  return process.env.MONGODB_DB_NAME || DEFAULT_DB_NAME;
+}
+
+export async function getMongoClient(): Promise<MongoClient> {
+  if (cachedClient) {
+    return cachedClient;
   }
 
-  // If there's already a connection attempt in progress, return that promise
-  if (clientPromise) {
-    return clientPromise;
+  if (cachedClientPromise) {
+    return cachedClientPromise;
   }
 
-  const mongoUri =
-    "mongodb+srv://ziadhatem2022_db_user:QeRSnpqf3HHUahPt@cluster0.gflnrym.mongodb.net/?appName=Cluster0";
-  if (!mongoUri) {
-    throw new Error("MONGODB_URI environment variable is not set");
-  }
-
-  ("🔌 Attempting MongoDB connection...");
-
-  // Create a new MongoClient with minimal, compatible options
-  const client = new MongoClient(mongoUri, {
-    // Use minimal options for better compatibility
+  const client = new MongoClient(getRequiredMongoUri(), {
     retryWrites: true,
     w: "majority",
   });
 
-  // Store the promise so multiple concurrent calls don't create multiple connections
-  clientPromise = client
+  cachedClientPromise = client
     .connect()
     .then((connectedClient) => {
-      ("✅ Connected to MongoDB");
-      mongoClient = connectedClient;
-      clientPromise = null; // Reset after successful connection
+      cachedClient = connectedClient;
       return connectedClient;
     })
     .catch((error) => {
-      console.error("❌ MongoDB connection error:", error);
-      clientPromise = null; // Reset on error so next call can retry
-      mongoClient = null;
+      cachedClientPromise = null;
+      cachedClient = null;
       throw error;
     });
 
-  return clientPromise;
+  return cachedClientPromise;
 }
 
-export async function getDatabase() {
+export async function getDatabase(): Promise<Db> {
   const client = await getMongoClient();
-  return client.db("portfolio_analytics");
-}
-
-// Graceful cleanup on process termination
-if (typeof process !== "undefined") {
-  process.on("SIGINT", async () => {
-    if (mongoClient) {
-      await mongoClient.close();
-      ("MongoDB connection closed");
-      process.exit(0);
-    }
-  });
+  return client.db(getMongoDbName());
 }

@@ -3,7 +3,6 @@
 import React from 'react';
 import { Share2, Linkedin, Facebook, Link2, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { Analytics } from '../utils/analytics';
 
 interface ShareButtonsProps {
   title: string;
@@ -18,20 +17,6 @@ export function ShareButtons({ title, url, itemId, itemType }: ShareButtonsProps
   const encodedUrl = encodeURIComponent(shareUrl);
   const encodedTitle = encodeURIComponent(title);
 
-  const trackShare = (platform: string) => {
-    if (itemId && itemType) {
-      Analytics.track({
-        type: 'share_click',
-        itemId,
-        itemTitle: title,
-        metadata: {
-          platform,
-          itemType,
-        },
-      });
-    }
-  };
-
   const handleCopyLink = async () => {
     if (typeof navigator === 'undefined' || !navigator.clipboard) {
       toast.error('Clipboard not supported');
@@ -42,7 +27,6 @@ export function ShareButtons({ title, url, itemId, itemType }: ShareButtonsProps
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       toast.success('Link copied to clipboard!');
-      trackShare('copy_link');
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       toast.error('Failed to copy link');
@@ -80,7 +64,6 @@ export function ShareButtons({ title, url, itemId, itemType }: ShareButtonsProps
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => trackShare(link.name.toLowerCase())}
             className={`w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground transition-all hover:bg-accent/10 ${link.color}`}
             aria-label={`Share on ${link.name}`}
           >

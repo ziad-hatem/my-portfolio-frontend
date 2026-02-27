@@ -1,5 +1,6 @@
 import { SinglePostPage } from "@/Cpages/Posts Page/Single Post/SinglePostPage";
 import getStaticMetaData from "@/utils/seo/getStaticMetaData";
+import getFollowIndex from "@/utils/seo/getFollowIndex";
 import getPostById from "@/lib/get-data/getPostById";
 import { checkIfExist } from "@/lib/checkIfExist";
 import {
@@ -13,34 +14,53 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const followIndex = process.env.NEXT_PUBLIC_FOLLOW_INDEX || false;
+  const followIndex = getFollowIndex();
   const { id } = await params;
 
   const postData: any = await getPostById(id);
 
   const post = checkIfExist(postData?.entry, null);
-  post;
+  if (!post) {
+    return {
+      title: "Post Not Found",
+      description: "The requested post could not be found.",
+      metadataBase: new URL(
+        process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000"
+      ),
+    };
+  }
 
-  const image = post?.post_image?.permalink;
-  const keywords = [post?.title, post.post_text].join(", ");
+  const seoSettings = post.seo_settings || {};
+  const metadataTitle =
+    (seoSettings.seo_title || "").trim() || `${post?.title} | Ziad Hatem`;
+  const metadataDescription =
+    (seoSettings.seo_description || "").trim() ||
+    post?.post_text?.substring(0, 160) ||
+    "";
+  const image =
+    seoSettings.seo_image?.permalink || post?.post_image?.permalink || "/cover.jpg";
+  const keywords =
+    (seoSettings.seo_keywords || "").trim() ||
+    [post?.title, post?.author, post?.post_text].filter(Boolean).join(", ");
 
   // Generate OG image URL with post details
   const baseUrl =
     process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
-  const ogImageUrl = `${baseUrl}/api/og/post?title=${encodeURIComponent(
-    post?.title || ""
-  )}&image=${encodeURIComponent(image || "")}&author=${encodeURIComponent(
-    post?.author || ""
-  )}`;
-  ogImageUrl;
+  const ogImageUrl = post.ogImagePath
+    ? `${baseUrl}${post.ogImagePath}`
+    : `${baseUrl}/api/og/post?title=${encodeURIComponent(
+        post?.title || ""
+      )}&image=${encodeURIComponent(image || "")}&author=${encodeURIComponent(
+        post?.author || ""
+      )}`;
 
   try {
     const metadata = getStaticMetaData({
-      title: `${post?.title} | Ziad Hatem`,
-      description: post?.post_text?.substring(0, 160) || "",
+      title: metadataTitle,
+      description: metadataDescription,
       keywords,
       image: ogImageUrl,
-      isRobotFollow: followIndex as boolean,
+      isRobotFollow: followIndex,
     });
 
     return {
@@ -71,6 +91,9 @@ export default async function PostPage({
   const postData: any = await getPostById(id);
 
   const post = checkIfExist(postData?.entry, null);
+  if (!post) {
+    return <SinglePostPage postId={id} post={null} />;
+  }
 
   const baseUrl =
     process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
@@ -78,7 +101,10 @@ export default async function PostPage({
   // Generate structured data
   const blogPostSchema = generateBlogPostSchema({
     title: post?.title || "",
-    description: post?.post_text?.substring(0, 160) || "",
+    description:
+      post?.seo_settings?.seo_description ||
+      post?.post_text?.substring(0, 160) ||
+      "",
     author: post?.author || "Frontend Developer",
     datePublished: post?.publish_date || new Date().toISOString(),
     image: post?.post_image?.permalink,

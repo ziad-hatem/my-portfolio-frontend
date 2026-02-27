@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "smoke:api": "node scripts/api-smoke-test.mjs",
+    "db:drop-deprecated:dry": "node scripts/drop-deprecated-collections.mjs",
+    "db:drop-deprecated": "node scripts/drop-deprecated-collections.mjs --apply"
   },
   "dependencies": {
     "@apollo/client": "^4.0.9",
@@ -16,6 +19,7 @@
     "@supabase/supabase-js": "^2.80.0",
     "@tailwindcss/postcss": "^4",
     "@types/simple-peer": "^9.11.9",
+    "@upstash/redis": "^1.36.2",
     "aos": "^2.3.4",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
@@ -33,12 +37,14 @@
     "nanoid": "^5.1.6",
     "next": "^16.0.8",
     "ogl": "^1.0.11",
+    "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.4.449",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "react-icons": "^5.5.0",
     "resend": "^6.4.2",
     "schema-dts": "^1.1.5",
+    "sharp": "^0.34.5",
     "simple-peer": "^9.11.1",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
@@ -55,7 +61,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "baseline-browser-mapping": "^2.9.6",
+    "baseline-browser-mapping": "^2.10.0",
     "eslint": "^9",
     "eslint-config-next": "^16.0.8",
     "typescript": "^5"

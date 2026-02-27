@@ -1,9 +1,16 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
-import { ArrowLeft, ExternalLink, Check, Briefcase } from "lucide-react";
-import { Analytics } from "@/utils/analytics";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Briefcase,
+  CheckCircle2,
+  ExternalLink,
+  Hash,
+  Layers,
+} from "lucide-react";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import { ShareButtons } from "@/components/ShareButtons";
 
@@ -31,351 +38,251 @@ interface SingleProjectPageProps {
   project?: FetchedProject | null;
 }
 
-export function SingleProjectPage({
-  projectId,
-  project: fetchedProject,
-}: SingleProjectPageProps) {
-  const [project, setProject] = useState<any>(null);
+interface ProjectViewData {
+  id: string;
+  title: string;
+  companyName: string;
+  description: string;
+  image: string;
+  overview: string[];
+  technologies: string[];
+  liveUrl: string;
+}
 
-  useEffect(() => {
-    // If we have fetched project data, use it
-    if (fetchedProject) {
-      // Transform fetched project to match the component's expected format
-      const transformedProject = {
-        id: fetchedProject.id,
-        title: fetchedProject.title,
-        description: fetchedProject.project_description,
-        image: fetchedProject.project_image?.permalink,
-        tags: fetchedProject.skills?.map((s) => s.skill_name) || [],
-        workContext: fetchedProject.company_name,
-        details: {
-          overview: fetchedProject.project_overview || [],
-          technologies: fetchedProject.skills?.map((s) => s.skill_name) || [],
-          liveUrl: fetchedProject.project_link,
-        },
-      };
-      setProject(transformedProject);
-      return;
-    }
+function normalizeText(value: unknown): string {
+  return String(value || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-    // Fallback project data
-    const projects = [
-      {
-        id: "jic",
-        title: "Jeddah International College (JIC)",
-        description:
-          "Led the front-end development of a comprehensive college website, collaborating with an exceptional team to deliver a modern and user-friendly experience.",
-        image:
-          "https://images.unsplash.com/photo-1706016899218-ebe36844f70e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx1bml2ZXJzaXR5JTIwY2FtcHVzJTIwYnVpbGRpbmd8ZW58MXx8fHwxNzYyMTg0MDY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
-        tags: ["React", "Next.js", "TypeScript", "Tailwind CSS"],
-        workContext: "Brackets Technology",
-        details: {
-          overview: [
-            "As a Front-end Developer, I led the project, overseeing the technical design and development of the college's official website.",
-            "Collaborated with an incredible team, including our talented designer Salam, whose vision brought the site's aesthetics to life.",
-            "Built a fully responsive, user-friendly platform that serves students, faculty, and prospective applicants.",
-            "Implemented modern web technologies to ensure optimal performance and accessibility.",
-          ],
-          technologies: [
-            "React",
-            "Next.js",
-            "TypeScript",
-            "Tailwind CSS",
-            "Prisma",
-            "PostgreSQL",
-          ],
-          liveUrl: "https://jic.edu.sa",
-        },
-      },
-      {
-        id: "saudi-banks",
-        title: "Saudi Banks",
-        description:
-          "Developed a sophisticated banking platform with secure authentication, real-time data processing, and responsive design for optimal user experience.",
-        image:
-          "https://images.unsplash.com/photo-1709573360368-f53739b241f8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYW5raW5nJTIwZmluYW5jZSUyMHRlY2hub2xvZ3l8ZW58MXx8fHwxNzYyMjM2MjQ3fDA&ixlib=rb-4.1.0&q=80&w=1080",
-        tags: ["React", "Redux", "REST API", "Material UI"],
-        workContext: "Brackets Technology",
-        details: {
-          overview: [
-            "Developed a comprehensive banking platform serving multiple financial institutions across Saudi Arabia.",
-            "Implemented secure authentication and authorization systems to protect sensitive financial data.",
-            "Created an intuitive dashboard for account management, transactions, and financial reporting.",
-            "Ensured compliance with banking regulations and security standards.",
-          ],
-          technologies: [
-            "React",
-            "Redux",
-            "REST API",
-            "Material UI",
-            "Jest",
-            "React Testing Library",
-          ],
-          liveUrl: "https://saudibanks.example.com",
-        },
-      },
-      {
-        id: "sand-fun",
-        title: "Sand & Fun",
-        description:
-          "Created an engaging entertainment venue website with interactive booking system, event management, and seamless user navigation.",
-        image:
-          "https://images.unsplash.com/photo-1759332460392-3ace26a745a1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhbXVzZW1lbnQlMjBwYXJrJTIwcmlkZXN8ZW58MXx8fHwxNzYyMTY3NjQ5fDA&ixlib=rb-4.1.0&q=80&w=1080",
-        tags: ["Next.js", "TypeScript", "Prisma", "Tailwind CSS"],
-        workContext: "Freelance",
-        details: {
-          overview: [
-            "Built an interactive website for an entertainment and recreation venue in Saudi Arabia.",
-            "Designed and implemented a user-friendly booking system for events and activities.",
-            "Created dynamic photo galleries and event calendars to showcase attractions.",
-            "Optimized for mobile devices to enable on-the-go bookings and information access.",
-          ],
-          technologies: [
-            "Next.js",
-            "TypeScript",
-            "Prisma",
-            "Tailwind CSS",
-            "PostgreSQL",
-          ],
-          liveUrl: "https://sandfun.example.com",
-        },
-      },
-      {
-        id: "juffali-trucks",
-        title: "Juffali Trucks",
-        description:
-          "Developed a comprehensive truck management and logistics platform with advanced fleet tracking and reporting capabilities.",
-        image:
-          "https://images.unsplash.com/photo-1695222833131-54ee679ae8e5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cnVjayUyMGxvZ2lzdGljc3xlbnwxfHx8fDE3NjIyMzYyNDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-        tags: ["React", "Redux", "TypeScript", "GraphQL"],
-        workContext: "Brackets Technology",
-        details: {
-          overview: [
-            "Created a powerful logistics management system for one of the largest truck distributors in Saudi Arabia.",
-            "Implemented real-time fleet tracking and monitoring dashboard.",
-            "Built comprehensive reporting tools for sales, inventory, and service management.",
-            "Integrated with third-party APIs for enhanced functionality.",
-          ],
-          technologies: [
-            "React",
-            "Redux",
-            "TypeScript",
-            "GraphQL",
-            "Apollo Client",
-          ],
-          liveUrl: "https://juffalitrucks.example.com",
-        },
-      },
-      {
-        id: "maaden",
-        title: "Maaden",
-        description:
-          "Designed and developed a corporate website for a leading mining and metals company with complex data visualizations.",
-        image:
-          "https://images.unsplash.com/photo-1660367439240-d38cb03a4365?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtaW5pbmclMjBpbmR1c3RyaWFsfGVufDF8fHx8MTc2MjIzNjI0OHww&ixlib=rb-4.1.0&q=80&w=1080",
-        tags: ["Next.js", "React", "Tailwind CSS", "D3.js"],
-        workContext: "Brackets Technology",
-        details: {
-          overview: [
-            "Developed a corporate platform for one of the largest mining companies in the Middle East.",
-            "Created interactive data visualizations for production metrics and financial reports.",
-            "Implemented multilingual support (Arabic/English) with RTL layout considerations.",
-            "Built investor relations portal with real-time stock information.",
-          ],
-          technologies: [
-            "Next.js",
-            "React",
-            "Tailwind CSS",
-            "D3.js",
-            "Chart.js",
-          ],
-          liveUrl: "https://maaden.example.com",
-        },
-      },
-      {
-        id: "meena-health",
-        title: "Meena Health",
-        description:
-          "Built a modern healthcare platform with appointment scheduling, patient portals, and telemedicine capabilities.",
-        image:
-          "https://images.unsplash.com/photo-1668874896975-7f874c90600a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFsdGhjYXJlJTIwbWVkaWNhbHxlbnwxfHx8fDE3NjIxNjc4MDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-        tags: ["React", "TypeScript", "Redux", "REST API"],
-        workContext: "Freelance",
-        details: {
-          overview: [
-            "Created a comprehensive healthcare management system for a modern medical facility.",
-            "Implemented secure patient portal with appointment scheduling and medical records access.",
-            "Built telemedicine features for virtual consultations.",
-            "Ensured HIPAA compliance and data security best practices.",
-          ],
-          technologies: [
-            "React",
-            "TypeScript",
-            "Redux",
-            "REST API",
-            "Socket.io",
-          ],
-          liveUrl: "https://meenahealth.example.com",
-        },
-      },
-      {
-        id: "kaust-sustainability",
-        title: "KAUST Sustainability",
-        description:
-          "Developed an environmental sustainability platform featuring carbon tracking, renewable energy monitoring, and impact reporting.",
-        image:
-          "https://images.unsplash.com/photo-1675130277336-23cb686f01c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdXN0YWluYWJpbGl0eSUyMGdyZWVuJTIwZW5lcmd5fGVufDF8fHx8MTc2MjE2NzM5N3ww&ixlib=rb-4.1.0&q=80&w=1080",
-        tags: ["Next.js", "TypeScript", "Tailwind CSS", "Recharts"],
-        workContext: "Freelance",
-        details: {
-          overview: [
-            "Built a sustainability tracking platform for King Abdullah University of Science and Technology.",
-            "Created interactive dashboards for carbon footprint monitoring and energy consumption.",
-            "Implemented data visualization tools for environmental impact reporting.",
-            "Designed educational resources section for sustainability initiatives.",
-          ],
-          technologies: [
-            "Next.js",
-            "TypeScript",
-            "Tailwind CSS",
-            "Recharts",
-            "Prisma",
-          ],
-          liveUrl: "https://sustainability.kaust.edu.sa",
-        },
-      },
-    ];
+function toViewData(project: FetchedProject | null | undefined): ProjectViewData | null {
+  if (!project) {
+    return null;
+  }
 
-    const foundProject = projects.find(
-      (p) => p.id === projectId || p.id === String(projectId)
-    );
-    setProject(foundProject);
-  }, [projectId, fetchedProject]);
-  useEffect(() => {
-    // Track project view
-    if (project) {
-      Analytics.track({
-        type: "project_view",
-        itemId: project.id,
-        itemTitle: project.title,
-        metadata: {
-          tags: project.tags,
-          workContext: project.workContext,
-        },
-      });
+  const technologies = Array.from(
+    new Set((project.skills || []).map((skill) => skill.skill_name).filter(Boolean))
+  );
 
-      // Track view count in backend
-      Analytics.trackView("project", project.id, project.title);
-    }
-  }, [project]);
+  return {
+    id: project.id,
+    title: project.title,
+    companyName: project.company_name || "Independent Project",
+    description: normalizeText(project.project_description),
+    image: project.project_image?.permalink || "/cover.jpg",
+    overview: (project.project_overview || []).map((item) => normalizeText(item)).filter(Boolean),
+    technologies,
+    liveUrl: project.project_link || "",
+  };
+}
+
+export function SingleProjectPage({ projectId, project: fetchedProject }: SingleProjectPageProps) {
+  const project = useMemo(() => toViewData(fetchedProject), [fetchedProject]);
 
   if (!project) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-muted-foreground mb-4">Project not found</p>
-          <Link href="/projects" className="text-accent hover:underline">
-            Back to Projects
-          </Link>
+      <div className="min-h-screen pb-20 pt-[150px]! px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="rounded-2xl border border-border/80 bg-card/80 p-8 text-center">
+            <p className="text-2xl text-foreground mb-2">Project not found</p>
+            <p className="text-muted-foreground mb-6">
+              The requested project could not be found or is no longer available.
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Link
+                href="/projects"
+                className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm hover:text-accent transition-colors"
+              >
+                <ArrowLeft size={16} aria-hidden="true" />
+                Back to Projects
+              </Link>
+              <Link
+                href="/contact"
+                className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm text-accent-foreground"
+              >
+                Contact
+                <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Banner */}
-      <div className="relative w-full h-[400px] md:h-[500px] bg-muted">
-        <ImageWithFallback
-          width={1920}
-          height={1080}
-          src={project.image}
-          alt={project.title}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-      </div>
+    <div className="relative min-h-screen pb-20 pt-[150px]!">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(0,245,192,0.14),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(59,130,246,0.1),transparent_33%)]" />
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 relative z-10">
-        <div className="bg-card border border-border rounded-xl p-8 md:p-12 mb-12">
-          {/* Title & CTA */}
-          <div className="mb-8">
-            <h1 className="text-3xl md:text-5xl text-foreground mb-4">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-6">
+          <Link
+            href="/projects"
+            className="inline-flex items-center gap-2 rounded-lg border border-border/80 bg-card/70 px-3 py-2 text-sm text-muted-foreground hover:text-accent transition-colors"
+          >
+            <ArrowLeft size={16} aria-hidden="true" />
+            Back to Projects
+          </Link>
+        </div>
+
+        <section className="relative overflow-hidden rounded-3xl border border-border/80 min-h-[380px] md:min-h-[460px] bg-card/50">
+          <ImageWithFallback
+            width={1920}
+            height={1080}
+            src={project.image}
+            alt={project.title}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/65 to-background/20" />
+
+          <div className="relative h-full p-6 md:p-10 lg:p-14 flex flex-col justify-end">
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+              <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/60 px-3 py-1 text-xs text-muted-foreground">
+                <Briefcase size={12} aria-hidden="true" />
+                {project.companyName}
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/60 px-3 py-1 text-xs text-muted-foreground">
+                <Layers size={12} aria-hidden="true" />
+                {project.technologies.length} technologies
+              </span>
+            </div>
+
+            <h1 className="text-3xl md:text-5xl text-foreground mb-4 max-w-4xl leading-tight">
               {project.title}
             </h1>
-            {project.workContext && (
-              <div className="flex items-center gap-2 text-muted-foreground mb-4">
-                <Briefcase size={16} />
-                <span>{project.workContext}</span>
-              </div>
-            )}
-            <p
-              className="text-muted-foreground mb-6"
-              dangerouslySetInnerHTML={{ __html: project.description }}
-            ></p>
-            <div className="flex flex-wrap items-center gap-4 mb-6">
-              {project.details?.liveUrl && (
-                <a
-                  href={project.details.liveUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-8 py-3 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-colors"
+
+            <p className="text-sm md:text-base text-muted-foreground max-w-3xl mb-6">
+              {project.description || "No project description provided."}
+            </p>
+
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-3">
+                {project.liveUrl ? (
+                  <a
+                    href={project.liveUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-medium text-accent-foreground hover:bg-accent/90 transition-colors"
+                  >
+                    View Live Site
+                    <ExternalLink size={16} aria-hidden="true" />
+                  </a>
+                ) : null}
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center gap-2 rounded-lg border border-border/80 bg-background/70 px-5 py-3 text-sm text-foreground hover:border-accent/70 transition-colors"
                 >
-                  <span>View Live Site</span>
-                  <ExternalLink size={20} />
-                </a>
-              )}
-            </div>
-            <ShareButtons title={project.title} />
-          </div>
-
-          {/* Project Overview */}
-          {project.details?.overview && (
-            <div className="mb-12">
-              <h2 className="text-2xl text-foreground mb-6">
-                Project Overview
-              </h2>
-              <div className="space-y-4">
-                {project.details.overview.map((item: string, index: number) => (
-                  <div key={index} className="flex gap-3">
-                    <Check
-                      className="text-accent flex-shrink-0 mt-1"
-                      size={20}
-                    />
-                    <p className="text-muted-foreground">{item}</p>
-                  </div>
-                ))}
+                  Start a Similar Project
+                  <ArrowRight size={16} aria-hidden="true" />
+                </Link>
               </div>
-            </div>
-          )}
 
-          {/* Technology Stack */}
-          {project.details?.technologies && (
-            <div>
-              <h2 className="text-2xl text-foreground mb-6">
-                Technology Stack
-              </h2>
-              <div className="flex flex-wrap gap-3">
-                {project.details.technologies.map(
-                  (tech: string, index: number) => (
+              <ShareButtons title={project.title} itemId={projectId} itemType="project" />
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-10 grid gap-8 lg:grid-cols-12">
+          <div className="lg:col-span-8 space-y-6">
+            <article className="rounded-2xl border border-border/80 bg-card/80 p-6 md:p-8">
+              <h2 className="text-2xl text-foreground mb-5">Project Overview</h2>
+
+              {project.overview.length > 0 ? (
+                <div className="space-y-3">
+                  {project.overview.map((item, index) => (
+                    <div
+                      key={`${project.id}-overview-${index}`}
+                      className="flex gap-3 rounded-xl border border-border/60 bg-background/50 p-4"
+                    >
+                      <CheckCircle2 className="text-accent flex-shrink-0 mt-0.5" size={18} />
+                      <p className="text-muted-foreground leading-relaxed">{item}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground leading-relaxed">
+                  {project.description || "No overview details provided."}
+                </p>
+              )}
+            </article>
+
+            <article className="rounded-2xl border border-border/80 bg-card/80 p-6 md:p-8">
+              <h2 className="text-2xl text-foreground mb-5">Technology Stack</h2>
+
+              {project.technologies.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {project.technologies.map((tech) => (
                     <span
-                      key={index}
-                      className="px-4 py-2 bg-accent/10 text-accent border border-accent/20 rounded-lg"
+                      key={`${project.id}-tech-${tech}`}
+                      className="px-3 py-2 rounded-lg border border-accent/25 bg-accent/10 text-accent text-sm"
                     >
                       {tech}
                     </span>
-                  )
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">No technologies listed.</p>
+              )}
+            </article>
+          </div>
 
-        {/* Related Projects / Next Steps */}
-        <div className="text-center py-12">
-          <Link href="/projects" className="text-accent hover:underline">
+          <aside className="lg:col-span-4 space-y-4 lg:sticky lg:top-28 self-start">
+            <article className="rounded-2xl border border-border/80 bg-card/80 p-5">
+              <h3 className="text-base font-semibold text-foreground mb-4">Project Snapshot</h3>
+              <dl className="space-y-3 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-muted-foreground">Project ID</dt>
+                  <dd className="inline-flex items-center gap-1 text-foreground">
+                    <Hash size={12} aria-hidden="true" />
+                    {project.id}
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-muted-foreground">Company</dt>
+                  <dd className="text-foreground text-right">{project.companyName}</dd>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-muted-foreground">Overview Points</dt>
+                  <dd className="text-foreground">{project.overview.length}</dd>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-muted-foreground">Tech Count</dt>
+                  <dd className="text-foreground">{project.technologies.length}</dd>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-muted-foreground">Live Site</dt>
+                  <dd className={project.liveUrl ? "text-emerald-300" : "text-muted-foreground"}>
+                    {project.liveUrl ? "Available" : "Not listed"}
+                  </dd>
+                </div>
+              </dl>
+            </article>
+
+            <article className="rounded-2xl border border-border/80 bg-card/80 p-5">
+              <h3 className="text-base font-semibold text-foreground mb-2">Need a Similar Build?</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                I can help design and ship a production-ready product with modern architecture.
+              </p>
+              <Link
+                href="/contact"
+                className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground"
+              >
+                Let&apos;s Talk
+                <ArrowRight size={14} aria-hidden="true" />
+              </Link>
+            </article>
+          </aside>
+        </section>
+
+        <div className="mt-14 border-t border-border/70 pt-8 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">Want to explore more case studies?</p>
+          <Link
+            href="/projects"
+            className="inline-flex items-center gap-2 text-accent hover:underline"
+          >
             View More Projects
+            <ArrowRight size={14} aria-hidden="true" />
           </Link>
         </div>
       </div>

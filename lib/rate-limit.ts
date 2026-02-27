@@ -1,64 +1,153 @@
-// Rate limiting utility for API endpoints
+import { Redis } from "@upstash/redis";
 
 interface RateLimitConfig {
   interval: number; // Time window in milliseconds
-  uniqueTokenPerInterval: number; // Max number of unique tokens to track
+  uniqueTokenPerInterval: number; // Max unique ids kept in memory fallback
+  prefix?: string;
 }
 
-// In-memory cache for rate limiting
-// For production, consider using Redis or a distributed cache
-const tokenCache = new Map<string, number[]>();
+interface RateLimiter {
+  check(identifier: string, limit: number): Promise<void>;
+  getRemaining(identifier: string, limit: number): Promise<number>;
+  reset(identifier: string): Promise<void>;
+}
 
-export function rateLimit(config: RateLimitConfig) {
+const inMemoryTokenCache = new Map<string, number[]>();
+let cachedRedisClient: Redis | null | undefined;
+
+function getIntervalSeconds(intervalMs: number): number {
+  return Math.max(1, Math.ceil(intervalMs / 1000));
+}
+
+function sanitizeIdentifier(identifier: string): string {
+  return encodeURIComponent(identifier || "anonymous");
+}
+
+function buildWindowId(intervalMs: number): number {
+  return Math.floor(Date.now() / intervalMs);
+}
+
+function buildRedisKey(prefix: string, intervalMs: number, identifier: string): string {
+  return `${prefix}:${intervalMs}:${buildWindowId(intervalMs)}:${sanitizeIdentifier(identifier)}`;
+}
+
+function createInMemoryLimiter(config: RateLimitConfig): RateLimiter {
   const { interval, uniqueTokenPerInterval } = config;
 
   return {
-    check: async (identifier: string, limit: number): Promise<void> => {
+    async check(identifier: string, limit: number): Promise<void> {
       const now = Date.now();
-      const timestamps = tokenCache.get(identifier) || [];
-
-      // Remove timestamps outside the current interval
-      const validTimestamps = timestamps.filter(t => now - t < interval);
+      const timestamps = inMemoryTokenCache.get(identifier) || [];
+      const validTimestamps = timestamps.filter((time) => now - time < interval);
 
       if (validTimestamps.length >= limit) {
-        throw new Error('Rate limit exceeded');
+        throw new Error("Rate limit exceeded");
       }
 
-      // Add current timestamp
       validTimestamps.push(now);
-      tokenCache.set(identifier, validTimestamps);
+      inMemoryTokenCache.set(identifier, validTimestamps);
 
-      // Cleanup: Remove oldest entries if cache is too large
-      if (tokenCache.size > uniqueTokenPerInterval) {
-        const oldestKey = tokenCache.keys().next().value;
+      if (inMemoryTokenCache.size > uniqueTokenPerInterval) {
+        const oldestKey = inMemoryTokenCache.keys().next().value;
         if (oldestKey) {
-          tokenCache.delete(oldestKey);
+          inMemoryTokenCache.delete(oldestKey);
         }
       }
     },
 
-    // Get remaining requests for an identifier
-    getRemaining: (identifier: string, limit: number): number => {
+    async getRemaining(identifier: string, limit: number): Promise<number> {
       const now = Date.now();
-      const timestamps = tokenCache.get(identifier) || [];
-      const validTimestamps = timestamps.filter(t => now - t < interval);
+      const timestamps = inMemoryTokenCache.get(identifier) || [];
+      const validTimestamps = timestamps.filter((time) => now - time < interval);
       return Math.max(0, limit - validTimestamps.length);
     },
 
-    // Reset rate limit for an identifier
-    reset: (identifier: string): void => {
-      tokenCache.delete(identifier);
+    async reset(identifier: string): Promise<void> {
+      inMemoryTokenCache.delete(identifier);
     },
   };
 }
 
-// Pre-configured rate limiters
-export const fingerprintRateLimiter = rateLimit({
-  interval: 60 * 1000, // 1 minute
-  uniqueTokenPerInterval: 500,
-});
+function getRedisClient(): Redis | null {
+  if (cachedRedisClient !== undefined) {
+    return cachedRedisClient;
+  }
 
-export const analyticsRateLimiter = rateLimit({
-  interval: 60 * 1000, // 1 minute
-  uniqueTokenPerInterval: 100,
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!url || !token) {
+    cachedRedisClient = null;
+    return cachedRedisClient;
+  }
+
+  cachedRedisClient = new Redis({
+    url,
+    token,
+  });
+
+  return cachedRedisClient;
+}
+
+function parseRedisCounter(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  return 0;
+}
+
+function createRedisLimiter(config: RateLimitConfig, redis: Redis): RateLimiter {
+  const { interval } = config;
+  const prefix =
+    config.prefix || process.env.RATE_LIMIT_PREFIX || "portfolio:rate-limit";
+  const intervalSeconds = getIntervalSeconds(interval);
+
+  return {
+    async check(identifier: string, limit: number): Promise<void> {
+      const key = buildRedisKey(prefix, interval, identifier);
+      const count = await redis.incr(key);
+
+      if (count === 1) {
+        await redis.expire(key, intervalSeconds);
+      }
+
+      if (count > limit) {
+        throw new Error("Rate limit exceeded");
+      }
+    },
+
+    async getRemaining(identifier: string, limit: number): Promise<number> {
+      const key = buildRedisKey(prefix, interval, identifier);
+      const count = parseRedisCounter(await redis.get(key));
+      return Math.max(0, limit - count);
+    },
+
+    async reset(identifier: string): Promise<void> {
+      const key = buildRedisKey(prefix, interval, identifier);
+      await redis.del(key);
+    },
+  };
+}
+
+export function rateLimit(config: RateLimitConfig): RateLimiter {
+  const redis = getRedisClient();
+  if (redis) {
+    return createRedisLimiter(config, redis);
+  }
+
+  return createInMemoryLimiter(config);
+}
+
+// Optional default limiter for small public forms/endpoints.
+export const defaultPublicRateLimiter = rateLimit({
+  interval: 60 * 1000,
+  uniqueTokenPerInterval: 500,
 });

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, ChangeEvent, useEffect } from "react";
 import { 
@@ -11,16 +11,14 @@ import {
   CheckCircle, 
   RefreshCcw,
   Settings,
-  Minimize2
+  Minimize2,
+  ArrowRight
 } from "lucide-react";
 import jsPDF from "jspdf";
 import Link from "next/link";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "framer-motion";
-
-// Import PDF.js types only
-import type { PDFDocumentProxy, PDFPageProxy } from "pdfjs-dist";
 
 // Remove top-level import and worker setup to avoid SSR ReferenceError: DOMMatrix is not defined
 // We will dynamically import it on the client side
@@ -44,6 +42,14 @@ export default function CompressPdfPage() {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+      }
+    };
+  }, [pdfUrl]);
+
   const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
@@ -63,6 +69,9 @@ export default function CompressPdfPage() {
   };
 
   const clearFile = () => {
+    if (pdfUrl) {
+      URL.revokeObjectURL(pdfUrl);
+    }
     setFile(null);
     setIsSuccess(false);
     setPdfUrl(null);
@@ -137,6 +146,9 @@ export default function CompressPdfPage() {
       }
 
       const blobInfo = doc.output("bloburl");
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+      }
       setPdfUrl(String(blobInfo));
       
       const blob = doc.output("blob");
@@ -184,7 +196,7 @@ export default function CompressPdfPage() {
             Compress PDF
           </h1>
           <p className="mt-4 text-muted-foreground text-lg">
-            Ideally for Scanned documents. Text will be converted to images to reduce size.
+            Best for scanned PDFs. Text pages may be rasterized to improve compression.
           </p>
         </div>
 
@@ -209,7 +221,9 @@ export default function CompressPdfPage() {
                      <span className="text-sm">Original</span>
                      <span className="text-foreground font-semibold line-through decoration-red-500/50">{formatSize(file?.size || 0)}</span>
                   </div>
-                  <div className="text-accent">➜</div>
+                  <div className="text-accent">
+                    <ArrowRight size={16} aria-hidden="true" />
+                  </div>
                   <div className="flex flex-col items-center">
                      <span className="text-sm">Result</span>
                      <span className={`${compressedSize < (file?.size || 0) ? 'text-accent' : 'text-red-500'} font-bold text-xl`}>{formatSize(compressedSize)}</span>
@@ -349,3 +363,4 @@ export default function CompressPdfPage() {
     </div>
   );
 }
+

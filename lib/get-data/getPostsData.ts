@@ -1,15 +1,13 @@
-import { getClient } from "../clients";
-import { postsQuery } from "../queries/postsQuery";
+import { getPostsEntriesData } from "../content-service";
 
 const getPostsData = async () => {
   try {
-    const { data } = await getClient().query({
-      query: postsQuery(),
-    });
-    return data;
+    return await getPostsEntriesData();
   } catch (error) {
-    console.error("Error fetching posts:", error);
-    return null;
+    console.error("[Content] Failed to load posts:", error);
+    return {
+      entries: { data: [] },
+    };
   }
 };
 

@@ -1,15 +1,13 @@
-import { getClient } from "../clients";
-import { projectsQuery } from "../queries/projectsQuery";
+import { getProjectsEntriesData } from "../content-service";
 
 const getProjectsData = async () => {
   try {
-    const { data } = await getClient().query({
-      query: projectsQuery(),
-    });
-    return data;
+    return await getProjectsEntriesData();
   } catch (error) {
-    console.error("Error fetching projects:", error);
-    return null;
+    console.error("[Content] Failed to load projects:", error);
+    return {
+      entries: { data: [] },
+    };
   }
 };
 

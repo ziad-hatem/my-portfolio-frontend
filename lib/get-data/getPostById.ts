@@ -1,15 +1,11 @@
-import { getClient } from "../clients";
-import { postByIdQuery } from "../queries/postByIdQuery";
+import { getPostEntryData } from "../content-service";
 
 const getPostById = async (id: string) => {
   try {
-    const { data } = await getClient().query({
-      query: postByIdQuery(),
-      variables: { id },
-    });
-    return data;
+    return await getPostEntryData(id);
   } catch (error) {
-    "Error fetching post by id: " + error;
+    console.error("[Content] Failed to load post by id:", error);
+    return { entry: null };
   }
 };
 

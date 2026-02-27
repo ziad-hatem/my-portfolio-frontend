@@ -1,92 +1,129 @@
-"use client";
-import React from "react";
+﻿"use client";
+
 import Link from "next/link";
-import { LinkedinIcon, Github } from "lucide-react";
-import Threads from "../ui/Threads";
-import RotatingText from "../ui/RotatingText";
+import { ArrowUpRight, Github, Linkedin, Mail, Sparkles } from "lucide-react";
+
+const quickLinks = [
+  { label: "Home", href: "/" },
+  { label: "Projects", href: "/projects" },
+  { label: "Posts", href: "/posts" },
+  { label: "Tools", href: "/tools" },
+  { label: "Contact", href: "/contact" },
+];
+
+const socialLinks = [
+  { label: "GitHub", href: "https://github.com/ziad-hatem", icon: Github },
+  {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/in/ziadhatem2026",
+    icon: Linkedin,
+  },
+];
 
 export function Footer() {
+  const currentYear = new Date().getFullYear();
+
   return (
-    <footer className="border-t border-border bg-background h-[50vh] relative">
-      <div className="absolute top-0 left-0 w-full h-full">
-        <Threads amplitude={2} distance={0} enableMouseInteraction={false} />
+    <footer className="relative overflow-hidden border-t border-border/70 bg-background">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/75 to-transparent" />
+        <div className="absolute -top-24 left-1/2 h-64 w-[46rem] -translate-x-1/2 rounded-full bg-accent/15 blur-3xl" />
+        <div className="absolute bottom-0 left-0 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" />
       </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-20 flex flex-col justify-between h-full">
-        <div className="flex-1 flex flex-col gap-2 justify-center">
-          <h1 className="text-4xl md:text-5xl font-bold">
-            <span className="flex gap-2 md:gap-4 items-center flex-wrap">
-              Let's Get In Touch and Bring
-              <span className="w-full flex items-center gap-4">
-                Your
-                <RotatingText
-                  texts={["Brilliant", "Cool", "Inspiring", "Creative"]}
-                  mainClassName="px-2 sm:px-2 md:px-3 bg-[#00F3BE] text-[#19192E] overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center rounded-lg w-fit"
-                  staggerFrom="last"
-                  initial={{ y: "100%" }}
-                  animate={{ y: 0 }}
-                  exit={{ y: "-120%" }}
-                  staggerDuration={0.025}
-                  splitLevelClassName="overflow-hidden pb-0.5 sm:pb-1 md:pb-1"
-                  transition={{ type: "spring", damping: 30, stiffness: 400 }}
-                  rotationInterval={2000}
-                />
-              </span>
-              Idea to Life.
-            </span>
-          </h1>
-        </div>
 
-        {/* Social Links & Info Section */}
-        <div className="mt-auto pt-8">
-          <div className="flex flex-row flex-wrap items-center justify-between gap-6 md:gap-8 rounded-2xl py-5 w-full transition-all duration-300">
-            {/* Social Links */}
-            <div className="flex max-md:flex-col max-md:items-start items-center gap-4 md:gap-6 flex-wrap justify-center md:justify-start">
-              <Link
-                href="https://www.linkedin.com/in/ziadhatem2026"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center gap-2 text-muted-foreground hover:text-[#00F3BE] transition-all duration-300 relative"
-              >
-                <span className="relative">
-                  <LinkedinIcon
-                    size={20}
-                    className="group-hover:scale-110 transition-transform duration-300"
-                  />
-                  <span className="absolute inset-0 blur-md bg-[#00F3BE] opacity-0 group-hover:opacity-50 transition-opacity duration-300"></span>
-                </span>
-                <span className="font-medium text-xl md:text-2xl">
-                  LinkedIn
-                </span>
-              </Link>
-              <Link
-                href="https://github.com/ziad-hatem"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center gap-2 text-muted-foreground hover:text-[#00F3BE] transition-all duration-300 relative"
-              >
-                <span className="relative">
-                  <Github
-                    size={20}
-                    className="group-hover:scale-110 transition-transform duration-300"
-                  />
-                  <span className="absolute inset-0 blur-md bg-[#00F3BE] opacity-0 group-hover:opacity-50 transition-opacity duration-300"></span>
-                </span>
-                <span className="font-medium text-xl md:text-2xl">Github</span>
-              </Link>
+      <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <div className="rounded-3xl border border-border/70 bg-card/65 p-6 shadow-[0_25px_60px_-42px_rgba(0,243,190,0.55)] backdrop-blur-xl sm:p-8 lg:p-10">
+          <div className="grid gap-10 lg:grid-cols-12">
+            <div className="lg:col-span-6">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-accent/35 bg-accent/10 px-4 py-2 text-xs uppercase tracking-[0.2em] text-accent">
+                <Sparkles size={12} aria-hidden="true" />
+                Ready for your next build
+              </div>
+
+              <h2 className="text-3xl font-semibold leading-tight text-foreground sm:text-4xl">
+                Let&apos;s turn your next idea into a polished, production-ready product.
+              </h2>
+
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
+                I design and build fast, accessible interfaces with a clean engineering approach and reliable backend integration.
+              </p>
+
+              <div className="mt-7 flex flex-wrap items-center gap-3">
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition-all duration-300 hover:translate-y-[-1px] hover:bg-accent/90"
+                >
+                  Start a Project
+                  <ArrowUpRight size={16} aria-hidden="true" />
+                </Link>
+
+                <Link
+                  href="mailto:contact@ziadhatem.dev"
+                  className="inline-flex items-center gap-2 rounded-xl border border-border/75 bg-background/60 px-5 py-3 text-sm font-medium text-foreground transition-all duration-300 hover:border-accent/45 hover:text-accent"
+                >
+                  <Mail size={16} aria-hidden="true" />
+                  contact@ziadhatem.dev
+                </Link>
+              </div>
             </div>
 
-            {/* Email & Copyright */}
-            <div className="flex flex-col md:flex-row items-center max-w-xs:mx-auto gap-3 md:gap-6 text-muted-foreground">
-              <Link
-                href="mailto:contact@ziadhatem.dev"
-                className="hover:text-[#00F3BE] transition-colors duration-300 font-medium text-xl md:text-2xl"
-              >
-                contact@ziadhatem.dev
-              </Link>
-              <span className="text-xl md:text-2xl opacity-70">
-                © 2025 Ziad Hatem
-              </span>
+            <div className="grid gap-10 sm:grid-cols-2 lg:col-span-6">
+              <div>
+                <p className="mb-4 text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                  Navigation
+                </p>
+
+                <ul className="space-y-3">
+                  {quickLinks.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        href={link.href}
+                        className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors duration-300 hover:text-accent"
+                      >
+                        <ArrowUpRight size={14} aria-hidden="true" />
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <p className="mb-4 text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                  Connect
+                </p>
+
+                <ul className="space-y-3">
+                  {socialLinks.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors duration-300 hover:text-accent"
+                      >
+                        <link.icon size={14} aria-hidden="true" />
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                  <li>
+                    <Link
+                      href="mailto:contact@ziadhatem.dev"
+                      className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors duration-300 hover:text-accent"
+                    >
+                      <Mail size={14} aria-hidden="true" />
+                      Email
+                    </Link>
+                  </li>
+                </ul>
+              </div>
             </div>
+          </div>
+
+          <div className="mt-10 flex flex-col gap-2 border-t border-border/70 pt-5 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <p>(c) {currentYear} Ziad Hatem. All rights reserved.</p>
+            <p>Built with Next.js and a custom content API.</p>
           </div>
         </div>
       </div>

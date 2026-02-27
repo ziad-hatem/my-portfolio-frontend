@@ -6,6 +6,7 @@ import Hero from "./components/Hero";
 import PostsSection from "./components/PostsSection";
 import ProjectsSection from "./components/ProjectsSection";
 import SkillsSection from "./components/SkillsSection";
+import ToolsSection from "./components/ToolsSection";
 
 export function HomePage({ data }: any) {
   const homeData = data.home;
@@ -16,6 +17,21 @@ export function HomePage({ data }: any) {
     name: checkIfExist(homeData?.name, ""),
     role: checkIfExist(homeData?.role, ""),
     description: checkIfExist(homeData?.description, ""),
+
+    stats: [
+      {
+        label: "Projects",
+        value: String(allProjects.length || 0),
+      },
+      {
+        label: "Posts",
+        value: String(allPosts.length || 0),
+      },
+      {
+        label: "Core Skills",
+        value: String(homeData?.technology_section_1skills?.length || 0),
+      },
+    ],
 
     social_links: checkIfExist(
       homeData?.social_links?.map((social: any) => ({
@@ -112,11 +128,12 @@ export function HomePage({ data }: any) {
   };
 
   return (
-    <div className="min-h-screen relative z-10">
+    <div className="relative min-h-screen z-10 overflow-hidden">
       <Hero data={heroData} />
       <ProjectsSection data={projectsData} />
       <ExperienceSection data={experienceData} />
       <SkillsSection data={skillsData} />
+      <ToolsSection />
       <PostsSection data={postsData} />
     </div>
   );

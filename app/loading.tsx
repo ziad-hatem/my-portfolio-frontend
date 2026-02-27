@@ -1,11 +1,5 @@
-import React from "react";
+import RouteLoadingScreen from "@/components/ui/RouteLoadingScreen";
 
-const loading = () => {
-  return (
-    <div className="w-full h-screen flex items-center justify-center">
-      <span className="loader"></span>
-    </div>
-  );
-};
-
-export default loading;
+export default function Loading() {
+  return <RouteLoadingScreen />;
+}

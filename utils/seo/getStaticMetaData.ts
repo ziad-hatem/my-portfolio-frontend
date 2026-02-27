@@ -41,6 +41,7 @@ const getStaticMetaData = ({
 
   // Strip HTML from description for SEO
   const cleanDescription = description ? stripHtml(description) : undefined;
+  const safeTitle = title || "Portfolio";
 
   return {
     title,
@@ -69,38 +70,31 @@ const getStaticMetaData = ({
     },
 
     openGraph: {
-      title,
-      siteName: title,
+      title: safeTitle,
+      siteName: safeTitle,
       description: cleanDescription,
       images: [
         {
           url: image ? image : "/cover.jpg",
           width: 1200,
           height: 628,
-          alt: `${title} Cover Image`,
+          alt: `${safeTitle} Cover Image`,
         },
       ],
     },
 
     twitter: {
       card: "summary_large_image",
-      title,
+      title: safeTitle,
       description: cleanDescription,
       images: [
         {
           url: image ? image : "/cover.jpg",
           width: 1200,
           height: 628,
-          alt: `${title} Cover Image`,
+          alt: `${safeTitle} Cover Image`,
         },
       ],
-    },
-
-    viewport: {
-      width: "device-width",
-      initialScale: 1,
-      maximumScale: 1,
-      userScalable: false,
     },
 
     robots: {

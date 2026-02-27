@@ -1,14 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ArrowLeft } from "lucide-react";
+import { ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 
-// Import Swiper styles
 import "swiper/css";
 import "swiper/css/navigation";
 
@@ -37,129 +36,147 @@ const ProjectsSection = ({ data }: ProjectsSectionProps) => {
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
 
-  const featuredProjects = data.featured_projects;
+  const featuredProjects = data.featured_projects || [];
+  const canSlide = featuredProjects.length > 1;
+
+  const syncNavigationState = (swiper: SwiperType) => {
+    const locked = swiper.isLocked;
+    setIsBeginning(locked || swiper.isBeginning);
+    setIsEnd(locked || swiper.isEnd);
+  };
 
   return (
-    <section className="py-20 bg-muted/30 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col lg:flex-row justify-between items-center gap-12 lg:gap-16">
-          {/* Left Side - Header */}
-          <div className="w-full lg:w-2/5 flex flex-col">
+    <section className="relative py-20 px-4 sm:px-6 lg:px-8">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_20%,rgba(0,245,192,0.08),transparent_35%)]" />
+      <div className="relative max-w-7xl mx-auto">
+        <div className="grid lg:grid-cols-12 gap-10 items-center">
+          <div className="lg:col-span-4">
+            <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-accent mb-4">
+              <Sparkles size={12} aria-hidden="true" />
+              Featured
+            </div>
+
             <h2
               className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4"
               data-aos="fade-up"
             >
-              {data.title || ""}
+              {data.title || "Projects"}
             </h2>
+
             <p
-              className="text-lg text-muted-foreground mb-8"
+              className="text-lg text-muted-foreground mb-8 leading-relaxed"
               data-aos="fade-up"
               data-aos-delay="100"
-              dangerouslySetInnerHTML={{ __html: data.description }}
-            ></p>
+              dangerouslySetInnerHTML={{ __html: data.description || "" }}
+            />
 
-            {/* Navigation Arrows */}
-            <div
-              className="flex items-center gap-4 mb-8"
-              data-aos="fade-up"
-              data-aos-delay="200"
-            >
+            <div className="flex items-center gap-3 mb-8" data-aos="fade-up" data-aos-delay="200">
               <button
                 onClick={() => swiperRef.current?.slidePrev()}
                 disabled={isBeginning}
-                className="inline-flex items-center justify-center w-12 h-12 bg-accent/70 hover:bg-accent/90 cursor-pointer rounded-xl transition-all group disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-accent/50"
+                className="inline-flex items-center justify-center w-11 h-11 rounded-xl border border-border bg-card/70 hover:border-accent/70 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 aria-label="Previous slide"
               >
-                <ArrowLeft size={20} className="text-white" />
+                <ArrowLeft size={18} className="text-foreground" />
               </button>
               <button
                 onClick={() => swiperRef.current?.slideNext()}
                 disabled={isEnd}
-                className="inline-flex items-center justify-center w-12 h-12 bg-accent/70 hover:bg-accent/90 cursor-pointer rounded-xl transition-all group disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-accent/50"
+                className="inline-flex items-center justify-center w-11 h-11 rounded-xl border border-border bg-card/70 hover:border-accent/70 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 aria-label="Next slide"
               >
-                <ArrowRight size={20} className="text-white" />
+                <ArrowRight size={18} className="text-foreground" />
               </button>
             </div>
 
-            {/* View All Link */}
-            <div className="" data-aos="fade-up" data-aos-delay="300">
-              <Link
-                href="/projects"
-                className="inline-flex items-center gap-2 text-accent hover:gap-3 transition-all text-lg font-medium"
-              >
-                <span>View All Projects</span>
-                <ArrowRight size={20} />
-              </Link>
-            </div>
+            <Link
+              href="/projects"
+              className="inline-flex items-center gap-2 text-accent hover:gap-3 transition-all text-base font-medium"
+              data-aos="fade-up"
+              data-aos-delay="260"
+            >
+              <span>View All Projects</span>
+              <ArrowRight size={18} />
+            </Link>
           </div>
 
-          {/* Right Side - Projects Swiper */}
-          <div
-            className="w-full lg:w-3/5 max-w-[600px] "
-            data-aos="fade-up"
-            data-aos-delay="100"
-          >
+          <div className="lg:col-span-8 min-w-0 overflow-hidden" data-aos="fade-up" data-aos-delay="120">
             <Swiper
               onSwiper={(swiper) => {
                 swiperRef.current = swiper;
-                setIsBeginning(swiper.isBeginning);
-                setIsEnd(swiper.isEnd);
+                syncNavigationState(swiper);
               }}
               onSlideChange={(swiper) => {
-                setIsBeginning(swiper.isBeginning);
-                setIsEnd(swiper.isEnd);
+                syncNavigationState(swiper);
+              }}
+              onBreakpoint={(swiper) => {
+                syncNavigationState(swiper);
               }}
               modules={[Navigation]}
-              spaceBetween={32}
-              slidesPerView={1}
-              className="pb-4!"
+              watchOverflow
+              observer
+              observeParents
+              allowTouchMove={canSlide}
+              touchStartPreventDefault={false}
+              spaceBetween={14}
+              slidesPerView={1.02}
+              breakpoints={{
+                640: {
+                  slidesPerView: 1.08,
+                  spaceBetween: 18,
+                },
+                900: {
+                  slidesPerView: 1.15,
+                  spaceBetween: 24,
+                },
+              }}
+              className="w-full !pb-5"
             >
-              {featuredProjects.map((project, index) => (
-                <SwiperSlide key={index}>
+              {featuredProjects.map((project) => (
+                <SwiperSlide key={project.id}>
                   <Link href={`/projects/${project.id}`}>
-                    <div
-                      className="bg-background rounded-lg overflow-hidden h-full"
-                      data-aos="fade-up"
-                    >
-                      <div className="relative h-64 sm:h-80 w-full">
+                    <article className="group rounded-2xl border border-border/80 bg-card/85 overflow-hidden transition-all hover:border-accent/50 h-full">
+                      <div className="relative h-64 sm:h-80 w-full overflow-hidden">
                         <Image
-                          src={project.project_image}
-                          alt={project.project_name}
+                          src={project.project_image || "/cover.jpg"}
+                          alt={project.project_name || project.title}
                           fill
-                          className="object-cover"
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
                         />
-                      </div>
-                      <div className="p-6 flex flex-col">
-                        <div className="mb-2">
-                          <span className="text-xs text-accent font-medium">
-                            {project.company_name}
-                          </span>
+                        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/35 to-transparent" />
+                        <div className="absolute left-4 bottom-4 inline-flex rounded-full border border-border/70 bg-background/65 px-3 py-1 text-xs text-muted-foreground">
+                          {project.company_name || "Project"}
                         </div>
-                        <h3 className="text-2xl font-bold text-foreground mb-3">
-                          {project.project_name}
+                      </div>
+
+                      <div className="p-6 flex flex-col gap-4">
+                        <h3 className="text-2xl font-semibold text-foreground">
+                          {project.project_name || project.title}
                         </h3>
+
                         <p
-                          className="text-base text-muted-foreground mb-4"
+                          className="text-base text-muted-foreground line-clamp-3"
                           dangerouslySetInnerHTML={{
                             __html: project.project_description
-                              ? project.project_description.slice(0, 300) +
-                                "..."
+                              ? `${project.project_description.slice(0, 260)}${
+                                  project.project_description.length > 260 ? "..." : ""
+                                }`
                               : "",
                           }}
-                        ></p>
-                        <div className="flex flex-wrap gap-2 mt-auto">
-                          {project.skills.map((skill, skillIndex) => (
+                        />
+
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {(project.skills || []).slice(0, 5).map((skill, skillIndex) => (
                             <span
-                              key={skillIndex}
-                              className="px-3 py-1 bg-accent/10 text-accent text-xs rounded-full"
+                              key={`${project.id}-skill-${skillIndex}`}
+                              className="px-3 py-1 bg-accent/10 border border-accent/25 text-accent text-xs rounded-full"
                             >
                               {skill.skill_name}
                             </span>
                           ))}
                         </div>
                       </div>
-                    </div>
+                    </article>
                   </Link>
                 </SwiperSlide>
               ))}

@@ -1,5 +1,6 @@
 import { SingleProjectPage } from "@/Cpages/Projects Page/Single Project Page/SingleProjectPage";
 import getStaticMetaData from "@/utils/seo/getStaticMetaData";
+import getFollowIndex from "@/utils/seo/getFollowIndex";
 import getProjectById from "@/lib/get-data/getProjectById";
 import { checkIfExist } from "@/lib/checkIfExist";
 import getHomeData from "@/lib/get-data/getHomeData";
@@ -14,35 +15,56 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const followIndex = process.env.NEXT_PUBLIC_FOLLOW_INDEX || false;
+  const followIndex = getFollowIndex();
   const { id } = await params;
 
   const projectData: any = await getProjectById(id);
 
   const project = checkIfExist(projectData?.entry, null);
-  const image = project.project_image.permalink;
-  const keywords = [
-    project.project_description.split(" "),
-    project.project_overview.join(" "),
-  ].join(", ");
+  if (!project) {
+    return {
+      title: "Project Not Found",
+      description: "The requested project could not be found.",
+      metadataBase: new URL(
+        process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000"
+      ),
+    };
+  }
+
+  const seoSettings = project.seo_settings || {};
+  const metadataTitle =
+    (seoSettings.seo_title || "").trim() || `${project.title} | Ziad Hatem`;
+  const metadataDescription =
+    (seoSettings.seo_description || "").trim() || project.project_description;
+  const image =
+    seoSettings.seo_image?.permalink || project.project_image?.permalink || "/cover.jpg";
+  const projectOverview = Array.isArray(project.project_overview)
+    ? project.project_overview.join(" ")
+    : String(project.project_overview || "");
+  const keywords =
+    (seoSettings.seo_keywords || "").trim() ||
+    [String(project.project_description || ""), projectOverview]
+      .filter(Boolean)
+      .join(", ");
 
   // Generate OG image URL with project details
   const baseUrl =
     process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
-  const ogImageUrl = `${baseUrl}/api/og/project?title=${encodeURIComponent(
-    project.title
-  )}&image=${encodeURIComponent(image)}&company=${encodeURIComponent(
-    project.company_name || ""
-  )}`;
-  console.log(ogImageUrl);
+  const ogImageUrl = project.ogImagePath
+    ? `${baseUrl}${project.ogImagePath}`
+    : `${baseUrl}/api/og/project?title=${encodeURIComponent(
+        project.title
+      )}&image=${encodeURIComponent(image)}&company=${encodeURIComponent(
+        project.company_name || ""
+      )}`;
 
   try {
     const metadata = getStaticMetaData({
-      title: `${project.title} | Ziad Hatem`,
-      description: project.project_description,
+      title: metadataTitle,
+      description: metadataDescription,
       keywords,
       image: ogImageUrl,
-      isRobotFollow: followIndex as boolean,
+      isRobotFollow: followIndex,
     });
 
     return {
@@ -73,6 +95,9 @@ export default async function ProjectPage({
   const projectData: any = await getProjectById(id);
 
   const project = checkIfExist(projectData?.entry, null);
+  if (!project) {
+    return <SingleProjectPage projectId={id} project={null} />;
+  }
 
   const baseUrl =
     process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
@@ -84,7 +109,8 @@ export default async function ProjectPage({
   // Generate structured data
   const projectSchema = generateProjectSchema({
     name: project.title,
-    description: project.project_description,
+    description:
+      project.seo_settings?.seo_description || project.project_description,
     image: project.project_image?.permalink,
     url: `${baseUrl}/projects/${id}`,
     author: authorName,

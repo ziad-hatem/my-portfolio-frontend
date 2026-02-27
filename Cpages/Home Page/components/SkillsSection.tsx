@@ -16,23 +16,24 @@ interface SkillsSectionProps {
 }
 
 export default function SkillsSection({ data }: SkillsSectionProps) {
-  const techLogos = data.skills.map((skill) => ({
+  const logos = (data.skills || []).map((skill) => ({
     node: (
       <Image
-        src={skill.skill_image}
+        src={skill.skill_image || "/logo.png"}
         alt={skill.skill_name}
-        width={60}
-        height={60}
+        width={56}
+        height={56}
         className="object-contain"
       />
     ),
     title: skill.skill_name,
-    href: skill.skill_link,
+    href: skill.skill_link || "#",
   }));
+
   return (
-    <section className="py-20">
-      <div className="w-full">
-        <div className="text-center mb-20">
+    <section className="py-20 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-14">
           <h2
             className="text-4xl md:text-6xl font-bold text-foreground mb-4"
             data-aos="fade-up"
@@ -43,21 +44,22 @@ export default function SkillsSection({ data }: SkillsSectionProps) {
             className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto"
             data-aos="fade-up"
             data-aos-delay="100"
-            dangerouslySetInnerHTML={{ __html: data.description }}
-          ></p>
+            dangerouslySetInnerHTML={{ __html: data.description || "" }}
+          />
         </div>
-        <div className="flex flex-wrap h-[100px]">
+
+        <div className="rounded-2xl border border-border/70 bg-card/70 p-4 md:p-6 overflow-hidden">
           <LogoLoop
-            logos={techLogos}
+            logos={logos}
             speed={120}
             direction="left"
-            logoHeight={60}
-            gap={40}
+            logoHeight={56}
+            gap={36}
             pauseOnHover
             scaleOnHover
             fadeOut
             fadeOutColor="#19192E"
-            ariaLabel="Technology partners"
+            ariaLabel="Core technologies"
           />
         </div>
       </div>

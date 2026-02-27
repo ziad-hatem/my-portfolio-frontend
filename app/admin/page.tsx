@@ -1,14 +1,15 @@
-import { AdminAnalytics } from "@/Cpages/AdminPage/AdminAnalytics";
 import getStaticMetaData from "@/utils/seo/getStaticMetaData";
+import getFollowIndex from "@/utils/seo/getFollowIndex";
+import AdminDashboard from "./_components/AdminDashboard";
+
 export async function generateMetadata() {
-  const followIndex = process.env.NEXT_PUBLIC_FOLLOW_INDEX || false;
+  const followIndex = getFollowIndex();
 
   try {
     const metadata = getStaticMetaData({
-      title: "Ziad Hatem - Frontend Developer",
-      description:
-        "Front-end developer skilled in React, Next.js, TypeScript, Tailwind CSS and Redux, turning complex requirements into fast, user-centric web apps. I thrive in collaborative environments and stay ahead of industry trends to deliver cutting-edge solutions.",
-      isRobotFollow: followIndex as boolean,
+      title: "Admin",
+      description: "Premium admin dashboard for managing home, project, and post content.",
+      isRobotFollow: followIndex,
     });
 
     return {
@@ -32,5 +33,12 @@ export async function generateMetadata() {
 export const dynamic = "force-dynamic";
 
 export default function Admin() {
-  return <AdminAnalytics />;
+  return (
+    <div className="relative min-h-screen px-4 py-8 md:px-8">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(0,245,192,0.12),transparent_40%),radial-gradient(circle_at_90%_0%,rgba(59,130,246,0.1),transparent_36%)]" />
+      <div className="relative max-w-7xl mx-auto">
+        <AdminDashboard />
+      </div>
+    </div>
+  );
 }

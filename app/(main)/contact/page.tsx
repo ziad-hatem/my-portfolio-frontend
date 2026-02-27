@@ -2,9 +2,10 @@ import { ContactPage } from "@/Cpages/ContactPage/ContactPage";
 import { checkIfExist } from "@/lib/checkIfExist";
 import getHomeData from "@/lib/get-data/getHomeData";
 import getStaticMetaData from "@/utils/seo/getStaticMetaData";
+import getFollowIndex from "@/utils/seo/getFollowIndex";
 
 export async function generateMetadata() {
-  const followIndex = process.env.NEXT_PUBLIC_FOLLOW_INDEX || false;
+  const followIndex = getFollowIndex();
   const homeData: any = await getHomeData();
   try {
     const seoSettings = checkIfExist(homeData?.home?.seo_settings, {});
@@ -13,7 +14,8 @@ export async function generateMetadata() {
       title: checkIfExist(seoSettings?.seo_title),
       description: checkIfExist(seoSettings?.seo_description),
       keywords: checkIfExist(seoSettings?.seo_keywords),
-      isRobotFollow: followIndex as boolean,
+      image: checkIfExist(seoSettings?.seo_image?.permalink, "/cover.jpg"),
+      isRobotFollow: followIndex,
     });
 
     return {

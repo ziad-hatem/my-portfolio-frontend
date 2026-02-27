@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 import { ArrowLeft, Calendar, User } from "lucide-react";
-import { Analytics } from "@/utils/analytics";
 import { ShareButtons } from "@/components/ShareButtons";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 
@@ -13,20 +12,6 @@ interface SinglePostPageProps {
 }
 
 export function SinglePostPage({ postId, post }: SinglePostPageProps) {
-  useEffect(() => {
-    // Track post view
-    if (post) {
-      Analytics.track({
-        type: "post_view",
-        itemId: post.id,
-        itemTitle: post.title,
-      });
-
-      // Track view count in backend
-      Analytics.trackView("post", post.id, post.title);
-    }
-  }, [post]);
-
   if (!post) {
     return (
       <div className="min-h-screen flex items-center justify-center">

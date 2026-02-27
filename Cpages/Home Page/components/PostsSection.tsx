@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import type { Swiper as SwiperType } from "swiper";
@@ -8,7 +8,6 @@ import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { PostCard } from "./PostCard";
 
-// Import Swiper styles
 import "swiper/css";
 import "swiper/css/navigation";
 
@@ -33,84 +32,104 @@ const PostsSection = ({ data }: PostsSectionProps) => {
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
 
+  const posts = data.posts || [];
+  const canSlide = posts.length > 1;
+
+  const syncNavigationState = (swiper: SwiperType) => {
+    const locked = swiper.isLocked;
+    setIsBeginning(locked || swiper.isBeginning);
+    setIsEnd(locked || swiper.isEnd);
+  };
+
   return (
-    <section className="py-20 bg-muted/30 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col lg:flex-row justify-between items-center gap-12 lg:gap-16">
-          {/* Left Side - Header */}
-          <div className="w-full lg:w-2/5 flex flex-col">
+    <section className="relative py-20 px-4 sm:px-6 lg:px-8">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_90%_10%,rgba(0,245,192,0.08),transparent_34%)]" />
+      <div className="relative max-w-7xl mx-auto">
+        <div className="grid lg:grid-cols-12 gap-10 items-center">
+          <div className="lg:col-span-4">
+            <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-accent mb-4">
+              <Sparkles size={12} aria-hidden="true" />
+              Insights
+            </div>
+
             <h2
               className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4"
               data-aos="fade-up"
             >
               {data.title || "Latest Blog Posts"}
             </h2>
+
             <p
-              className="text-lg text-muted-foreground mb-8"
+              className="text-lg text-muted-foreground mb-8 leading-relaxed"
               data-aos="fade-up"
               data-aos-delay="100"
-              dangerouslySetInnerHTML={{ __html: data.description }}
-            ></p>
+              dangerouslySetInnerHTML={{ __html: data.description || "" }}
+            />
 
-            {/* Navigation Arrows */}
-            <div
-              className="flex items-center gap-4 mb-8"
-              data-aos="fade-up"
-              data-aos-delay="200"
-            >
+            <div className="flex items-center gap-3 mb-8" data-aos="fade-up" data-aos-delay="200">
               <button
                 onClick={() => swiperRef.current?.slidePrev()}
                 disabled={isBeginning}
-                className="inline-flex items-center justify-center w-12 h-12 bg-accent/70 hover:bg-accent/90 cursor-pointer rounded-xl transition-all group disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-accent/50"
+                className="inline-flex items-center justify-center w-11 h-11 rounded-xl border border-border bg-card/70 hover:border-accent/70 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 aria-label="Previous slide"
               >
-                <ArrowLeft size={20} className="text-white" />
+                <ArrowLeft size={18} className="text-foreground" />
               </button>
               <button
                 onClick={() => swiperRef.current?.slideNext()}
                 disabled={isEnd}
-                className="inline-flex items-center justify-center w-12 h-12 bg-accent/70 hover:bg-accent/90 cursor-pointer rounded-xl transition-all group disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-accent/50"
+                className="inline-flex items-center justify-center w-11 h-11 rounded-xl border border-border bg-card/70 hover:border-accent/70 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 aria-label="Next slide"
               >
-                <ArrowRight size={20} className="text-white" />
+                <ArrowRight size={18} className="text-foreground" />
               </button>
             </div>
 
-            {/* View All Link */}
-            <div className="" data-aos="fade-up" data-aos-delay="300">
-              <Link
-                href="/posts"
-                className="inline-flex items-center gap-2 text-accent hover:gap-3 transition-all text-lg font-medium"
-              >
-                <span>View All Posts</span>
-                <ArrowRight size={20} />
-              </Link>
-            </div>
+            <Link
+              href="/posts"
+              className="inline-flex items-center gap-2 text-accent hover:gap-3 transition-all text-base font-medium"
+              data-aos="fade-up"
+              data-aos-delay="260"
+            >
+              <span>View All Posts</span>
+              <ArrowRight size={18} />
+            </Link>
           </div>
 
-          {/* Right Side - Posts Swiper */}
-          <div
-            className="w-full lg:w-3/5 max-w-[600px]"
-            data-aos="fade-up"
-            data-aos-delay="100"
-          >
+          <div className="lg:col-span-8 min-w-0 overflow-hidden" data-aos="fade-up" data-aos-delay="120">
             <Swiper
               onSwiper={(swiper) => {
                 swiperRef.current = swiper;
-                setIsBeginning(swiper.isBeginning);
-                setIsEnd(swiper.isEnd);
+                syncNavigationState(swiper);
               }}
               onSlideChange={(swiper) => {
-                setIsBeginning(swiper.isBeginning);
-                setIsEnd(swiper.isEnd);
+                syncNavigationState(swiper);
+              }}
+              onBreakpoint={(swiper) => {
+                syncNavigationState(swiper);
               }}
               modules={[Navigation]}
-              spaceBetween={32}
-              slidesPerView={1}
-              className="pb-4!"
+              watchOverflow
+              observer
+              observeParents
+              allowTouchMove={canSlide}
+              touchStartPreventDefault={false}
+              spaceBetween={14}
+              slidesPerView={1.02}
+              breakpoints={{
+                640: {
+                  slidesPerView: 1.08,
+                  spaceBetween: 18,
+                },
+                900: {
+                  slidesPerView: 1.15,
+                  spaceBetween: 24,
+                },
+              }}
+              className="w-full !pb-5"
             >
-              {data.posts.map((post, index) => (
-                <SwiperSlide key={index}>
+              {posts.map((post) => (
+                <SwiperSlide key={post.id}>
                   <PostCard
                     postId={post.id}
                     title={post.title}

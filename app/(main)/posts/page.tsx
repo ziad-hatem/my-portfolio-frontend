@@ -3,9 +3,10 @@ import { checkIfExist } from "@/lib/checkIfExist";
 import getHomeData from "@/lib/get-data/getHomeData";
 import getPostsData from "@/lib/get-data/getPostsData";
 import getStaticMetaData from "@/utils/seo/getStaticMetaData";
+import getFollowIndex from "@/utils/seo/getFollowIndex";
 
 export async function generateMetadata() {
-  const followIndex = process.env.NEXT_PUBLIC_FOLLOW_INDEX || false;
+  const followIndex = getFollowIndex();
   const homeData: any = await getHomeData();
   const postsData: any = await getPostsData();
   const posts = checkIfExist(postsData?.entries?.data, []);
@@ -23,7 +24,8 @@ export async function generateMetadata() {
       title: `Blog Posts | ${checkIfExist(seoSettings?.seo_title, "Frontend Developer Portfolio")}`,
       description: `Read my latest ${posts.length} blog posts about web development, programming, React, Next.js, and frontend technologies.`,
       keywords: postKeywords || checkIfExist(seoSettings?.seo_keywords),
-      isRobotFollow: followIndex as boolean,
+      image: checkIfExist(seoSettings?.seo_image?.permalink, "/cover.jpg"),
+      isRobotFollow: followIndex,
     });
 
     return {

@@ -1,14 +1,15 @@
-import { getClient } from "../clients";
-import { homeQuery } from "../queries/homeQuery";
+import { getHomeBundleData } from "../content-service";
 
 const getHomeData = async () => {
   try {
-    const { data } = await getClient().query({
-      query: homeQuery(),
-    });
-    return data;
+    return await getHomeBundleData();
   } catch (error) {
-    "errrror:: " + error;
+    console.error("[Content] Failed to load home bundle:", error);
+    return {
+      home: null,
+      projects: { data: [] },
+      posts: { data: [] },
+    };
   }
 };
 
