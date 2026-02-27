@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { listPostsContent } from "@/lib/content-repository";
+import { getPublicPostsContent } from "@/lib/content-service";
 
 export async function GET() {
   try {
-    const posts = await listPostsContent();
+    const posts = await getPublicPostsContent();
     return NextResponse.json({ success: true, data: posts });
   } catch (error) {
     console.error("[Content Posts] Failed to list posts:", error);
@@ -13,4 +13,3 @@ export async function GET() {
     );
   }
 }
-

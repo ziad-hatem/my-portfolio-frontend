@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { getToolPageSeoBySlug } from "@/lib/content-repository";
+import { getPublicToolSeoBySlug } from "@/lib/content-service";
 
 export const runtime = "nodejs";
 
@@ -26,7 +26,7 @@ export async function GET(
 ) {
   const { slug: rawSlug } = await params;
   const slug = (rawSlug || "").trim().toLowerCase();
-  const entry = slug ? await getToolPageSeoBySlug(slug) : null;
+  const entry = slug ? await getPublicToolSeoBySlug(slug) : null;
 
   const fallbackLabel = slugToLabel(slug || "tool");
   const title = clampText(

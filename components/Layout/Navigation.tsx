@@ -31,10 +31,7 @@ export function Navigation() {
   const pathname = usePathname() || "/";
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-
-  // Hide navigation on /tools and subpages if requested
-  // "remove navbar from tools slug" implies /tools/*
-  if (pathname.startsWith("/tools")) return null;
+  const shouldHideNavigation = pathname.startsWith("/tools");
 
   useEffect(() => {
     setIsMenuOpen(false);
@@ -58,6 +55,12 @@ export function Navigation() {
       document.body.style.overflow = previousOverflow;
     };
   }, [isMenuOpen]);
+
+  // Hide navigation on /tools and subpages if requested.
+  // Keep this after hooks so hooks order remains stable between renders.
+  if (shouldHideNavigation) {
+    return null;
+  }
 
   return (
     <header

@@ -1,11 +1,13 @@
-import { listPostsContent, listProjectsContent } from "../content-repository";
+import { getPostsEntriesData, getProjectsEntriesData } from "../content-service";
 
 const getAllPages = async () => {
   try {
-    const [projects, posts] = await Promise.all([
-      listProjectsContent(),
-      listPostsContent(),
+    const [projectsData, postsData] = await Promise.all([
+      getProjectsEntriesData(),
+      getPostsEntriesData(),
     ]);
+    const projects = projectsData.entries.data;
+    const posts = postsData.entries.data;
 
     return [
       { type: "page", slug: "home", id: "home" },

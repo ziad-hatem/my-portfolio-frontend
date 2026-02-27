@@ -1,20 +1,19 @@
 import { MetadataRoute } from "next";
 import {
-  getToolsContent,
-  listPostsContent,
-  listProjectsContent,
-} from "@/lib/content-repository";
+  getPublicPostsContent,
+  getPublicProjectsContent,
+  getPublicToolsContent,
+} from "@/lib/content-service";
 
-// Revalidate sitemap every hour
-export const revalidate = 3600;
+export const revalidate = false;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl =
     process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
   const [projects, posts, tools] = await Promise.all([
-    listProjectsContent(),
-    listPostsContent(),
-    getToolsContent(),
+    getPublicProjectsContent(),
+    getPublicPostsContent(),
+    getPublicToolsContent(),
   ]);
   const toolPaths = Array.from(
     new Set([

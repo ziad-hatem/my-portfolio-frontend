@@ -1,6 +1,7 @@
 "use client";
 import AOS from "aos";
-import { useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 
 interface AosSettings {
   offset_lg?: number;
@@ -21,29 +22,48 @@ interface AosSettings {
 }
 
 export const useAos = (settings?: AosSettings) => {
+  const pathname = usePathname();
+  const initializedRef = useRef(false);
+  const settingsRef = useRef<AosSettings | undefined>(settings);
+
+  settingsRef.current = settings;
+
   useEffect(() => {
-    const isSmallScreen = window.innerWidth <= 768; // Adjust breakpoint as needed
-    const offsetValue = isSmallScreen ? 50 : settings?.offset_lg || 100; // 50 for small screens, 250 for larger screens
+    const initTimeout = window.setTimeout(() => {
+      const currentSettings = settingsRef.current;
+      const isSmallScreen = window.innerWidth <= 768;
+      const offsetValue = isSmallScreen ? 50 : currentSettings?.offset_lg || 100;
 
-    AOS.init({
-      offset: offsetValue,
-      disable: settings?.disable,
-      duration: settings?.duration || 1000,
-      once: settings?.once || true,
-      mirror: settings?.mirror || false,
-      anchorPlacement: settings?.anchorPlacement || "top-bottom",
-      easing: "ease-out-cubic",
-    });
+      AOS.init({
+        offset: offsetValue,
+        disable: currentSettings?.disable,
+        duration: currentSettings?.duration ?? 1000,
+        once: currentSettings?.once ?? true,
+        mirror: currentSettings?.mirror ?? false,
+        anchorPlacement: currentSettings?.anchorPlacement ?? "top-bottom",
+        easing: "ease-out-cubic",
+      });
 
-    // Refresh AOS after initialization to ensure elements are detected
-    // Use setTimeout to ensure DOM is fully rendered
-    const refreshTimeout = setTimeout(() => {
-      AOS.refresh();
-    }, 100);
+      initializedRef.current = true;
+      AOS.refreshHard();
+    }, 180);
 
     return () => {
-      clearTimeout(refreshTimeout);
-      AOS.refresh();
+      window.clearTimeout(initTimeout);
     };
-  }, [settings]);
+  }, []);
+
+  useEffect(() => {
+    if (!initializedRef.current) {
+      return;
+    }
+
+    const refreshTimeout = window.setTimeout(() => {
+      AOS.refreshHard();
+    }, 120);
+
+    return () => {
+      window.clearTimeout(refreshTimeout);
+    };
+  }, [pathname]);
 };

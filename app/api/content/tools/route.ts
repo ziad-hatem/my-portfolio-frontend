@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { getToolsContent } from "@/lib/content-repository";
+import { getPublicToolsContent } from "@/lib/content-service";
 
 export async function GET() {
   try {
-    const tools = await getToolsContent();
+    const tools = await getPublicToolsContent();
     if (!tools) {
       return NextResponse.json(
         { success: false, error: "Tools SEO content not found" },

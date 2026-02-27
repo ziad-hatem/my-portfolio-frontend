@@ -5,6 +5,18 @@ import { cn } from "@/lib/utils";
 
 export const BackgroundBeams = React.memo(
   ({ className }: { className?: string }) => {
+    const gradientMotion = (index: number) => {
+      const y2 = 93 + (index % 8);
+      const duration = 10 + (index % 10);
+      const delay = ((index * 37) % 100) / 10;
+
+      return {
+        y2,
+        duration,
+        delay,
+      };
+    };
+
     const paths = [
       "M-380 -189C-380 -189 -312 216 152 343C616 470 684 875 684 875",
       "M-373 -197C-373 -197 -305 208 159 335C623 462 691 867 691 867",
@@ -103,13 +115,13 @@ export const BackgroundBeams = React.memo(
                   x1: ["0%", "100%"],
                   x2: ["0%", "95%"],
                   y1: ["0%", "100%"],
-                  y2: ["0%", `${93 + Math.random() * 8}%`],
+                  y2: ["0%", `${gradientMotion(index).y2}%`],
                 }}
                 transition={{
-                  duration: Math.random() * 10 + 10,
+                  duration: gradientMotion(index).duration,
                   ease: "easeInOut",
                   repeat: Infinity,
-                  delay: Math.random() * 10,
+                  delay: gradientMotion(index).delay,
                 }}
               >
                 <stop stopColor="#18CCFC" stopOpacity="0"></stop>

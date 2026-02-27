@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { listProjectsContent } from "@/lib/content-repository";
+import { getPublicProjectsContent } from "@/lib/content-service";
 
 export async function GET() {
   try {
-    const projects = await listProjectsContent();
+    const projects = await getPublicProjectsContent();
     return NextResponse.json({ success: true, data: projects });
   } catch (error) {
     console.error("[Content Projects] Failed to list projects:", error);
@@ -13,4 +13,3 @@ export async function GET() {
     );
   }
 }
-

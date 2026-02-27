@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { getHomeContent } from "@/lib/content-repository";
+import { getPublicHomeContent } from "@/lib/content-service";
 
 export async function GET() {
   try {
-    const home = await getHomeContent();
+    const home = await getPublicHomeContent();
     if (!home) {
       return NextResponse.json(
         { success: false, error: "Home content not found" },
@@ -20,4 +20,3 @@ export async function GET() {
     );
   }
 }
-

@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { getToolsContent } from "@/lib/content-repository";
+import { getPublicToolsContent } from "@/lib/content-service";
 
 export const runtime = "nodejs";
 
@@ -13,7 +13,7 @@ function clampText(value: string, max: number): string {
 }
 
 export async function GET() {
-  const tools = await getToolsContent();
+  const tools = await getPublicToolsContent();
   const seo = tools?.tools_index_seo;
 
   const title = clampText(

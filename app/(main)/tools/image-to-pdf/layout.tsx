@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getToolPageSeoBySlug } from "@/lib/content-repository";
+import { getPublicToolSeoBySlug } from "@/lib/content-service";
 import getFollowIndex from "@/utils/seo/getFollowIndex";
 
 const FALLBACK_TITLE = "Image to PDF Converter | Fast, Private, Shareable";
@@ -33,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const followIndex = getFollowIndex();
 
   try {
-    const toolSeo = await getToolPageSeoBySlug("image-to-pdf");
+    const toolSeo = await getPublicToolSeoBySlug("image-to-pdf");
     const seo = toolSeo?.seo_settings;
 
     const title = seo?.seo_title?.trim() || FALLBACK_TITLE;

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getProjectContentById } from "@/lib/content-repository";
+import { getPublicProjectContentById } from "@/lib/content-service";
 
 export async function GET(
   _request: NextRequest,
@@ -7,7 +7,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const project = await getProjectContentById(id);
+    const project = await getPublicProjectContentById(id);
 
     if (!project) {
       return NextResponse.json(
@@ -25,4 +25,3 @@ export async function GET(
     );
   }
 }
-

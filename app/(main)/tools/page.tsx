@@ -10,7 +10,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { Metadata } from "next";
-import { getToolsContent } from "@/lib/content-repository";
+import { getPublicToolsContent } from "@/lib/content-service";
 import getFollowIndex from "@/utils/seo/getFollowIndex";
 
 interface ToolItem {
@@ -74,7 +74,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const followIndex = getFollowIndex();
 
   try {
-    const tools = await getToolsContent();
+    const tools = await getPublicToolsContent();
     const seo = tools?.tools_index_seo;
     const title = seo?.seo_title?.trim() || FALLBACK_TOOLS_TITLE;
     const description = seo?.seo_description?.trim() || FALLBACK_TOOLS_DESCRIPTION;

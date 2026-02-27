@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToolPageSeoBySlug } from "@/lib/content-repository";
+import { getPublicToolSeoBySlug } from "@/lib/content-service";
 
 export async function GET(
   _request: NextRequest,
@@ -7,7 +7,7 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    const toolSeo = await getToolPageSeoBySlug(slug);
+    const toolSeo = await getPublicToolSeoBySlug(slug);
 
     if (!toolSeo) {
       return NextResponse.json(
