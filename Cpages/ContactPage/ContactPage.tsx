@@ -194,7 +194,10 @@ export function ContactPage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(0,245,192,0.16),transparent_40%),radial-gradient(circle_at_90%_5%,rgba(59,130,246,0.12),transparent_36%)]" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <section className="rounded-3xl border border-border/80 bg-card/70 p-6 md:p-10 mb-8">
+        <section
+          className="rounded-3xl border border-border/80 bg-card/70 p-6 md:p-10 mb-8"
+          data-aos="fade-up"
+        >
           <div className="inline-flex items-center gap-2 rounded-full border border-accent/35 bg-accent/10 px-3 py-1 text-xs text-accent mb-4 uppercase tracking-[0.18em]">
             <Sparkles size={12} aria-hidden="true" />
             Contact
@@ -223,7 +226,11 @@ export function ContactPage() {
 
         <div className="grid gap-6 lg:grid-cols-12">
           <aside className="lg:col-span-5 space-y-4">
-            <article className="rounded-2xl border border-border/80 bg-card/80 p-5">
+            <article
+              className="rounded-2xl border border-border/80 bg-card/80 p-5"
+              data-aos="fade-up"
+              data-aos-delay="80"
+            >
               <h2 className="text-xl text-foreground mb-2">Direct Channels</h2>
               <p className="text-sm text-muted-foreground mb-4">
                 Reach out through any of these channels if you prefer.
@@ -315,7 +322,11 @@ export function ContactPage() {
             </article>
           </aside>
 
-          <section className="lg:col-span-7 rounded-2xl border border-border/80 bg-card/85 p-5 md:p-7">
+          <section
+            className="lg:col-span-7 rounded-2xl border border-border/80 bg-card/85 p-5 md:p-7"
+            data-aos="fade-up"
+            data-aos-delay="110"
+          >
             <div className="mb-5">
               <h2 className="text-2xl text-foreground mb-2">Send a Message</h2>
               <p className="text-sm text-muted-foreground">

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import { ShareButtons } from "@/components/ShareButtons";
+import { CountUpNumber } from "@/components/ui/CountUpNumber";
 
 interface Skill {
   id: string;
@@ -120,13 +121,18 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
           <Link
             href="/projects"
             className="inline-flex items-center gap-2 rounded-lg border border-border/80 bg-card/70 px-3 py-2 text-sm text-muted-foreground hover:text-accent transition-colors"
+            data-aos="fade-up"
           >
             <ArrowLeft size={16} aria-hidden="true" />
             Back to Projects
           </Link>
         </div>
 
-        <section className="relative overflow-hidden rounded-3xl border border-border/80 min-h-[380px] md:min-h-[460px] bg-card/50">
+        <section
+          className="relative overflow-hidden rounded-3xl border border-border/80 min-h-[380px] md:min-h-[460px] bg-card/50"
+          data-aos="fade-up"
+          data-aos-delay="60"
+        >
           <ImageWithFallback
             width={1920}
             height={1080}
@@ -138,25 +144,45 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
 
           <div className="relative h-full p-6 md:p-10 lg:p-14 flex flex-col justify-end">
             <div className="flex flex-wrap items-center gap-2 mb-4">
-              <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/60 px-3 py-1 text-xs text-muted-foreground">
+              <span
+                className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/60 px-3 py-1 text-xs text-muted-foreground"
+                data-aos="fade-up"
+                data-aos-delay="90"
+              >
                 <Briefcase size={12} aria-hidden="true" />
                 {project.companyName}
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/60 px-3 py-1 text-xs text-muted-foreground">
+              <span
+                className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/60 px-3 py-1 text-xs text-muted-foreground"
+                data-aos="fade-up"
+                data-aos-delay="120"
+              >
                 <Layers size={12} aria-hidden="true" />
-                {project.technologies.length} technologies
+                <CountUpNumber value={project.technologies.length} duration={1.1} /> technologies
               </span>
             </div>
 
-            <h1 className="text-3xl md:text-5xl text-foreground mb-4 max-w-4xl leading-tight">
+            <h1
+              className="text-3xl md:text-5xl text-foreground mb-4 max-w-4xl leading-tight"
+              data-aos="fade-up"
+              data-aos-delay="160"
+            >
               {project.title}
             </h1>
 
-            <p className="text-sm md:text-base text-muted-foreground max-w-3xl mb-6">
+            <p
+              className="text-sm md:text-base text-muted-foreground max-w-3xl mb-6"
+              data-aos="fade-up"
+              data-aos-delay="200"
+            >
               {project.description || "No project description provided."}
             </p>
 
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div
+              className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
+              data-aos="fade-up"
+              data-aos-delay="240"
+            >
               <div className="flex flex-wrap items-center gap-3">
                 {project.liveUrl ? (
                   <a
@@ -185,7 +211,11 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
 
         <section className="mt-10 grid gap-8 lg:grid-cols-12">
           <div className="lg:col-span-8 space-y-6">
-            <article className="rounded-2xl border border-border/80 bg-card/80 p-6 md:p-8">
+            <article
+              className="rounded-2xl border border-border/80 bg-card/80 p-6 md:p-8"
+              data-aos="fade-up"
+              data-aos-delay="90"
+            >
               <h2 className="text-2xl text-foreground mb-5">Project Overview</h2>
 
               {project.overview.length > 0 ? (
@@ -194,6 +224,8 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
                     <div
                       key={`${project.id}-overview-${index}`}
                       className="flex gap-3 rounded-xl border border-border/60 bg-background/50 p-4"
+                      data-aos="fade-up"
+                      data-aos-delay={Math.min(index * 70, 350)}
                     >
                       <CheckCircle2 className="text-accent flex-shrink-0 mt-0.5" size={18} />
                       <p className="text-muted-foreground leading-relaxed">{item}</p>
@@ -207,7 +239,11 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
               )}
             </article>
 
-            <article className="rounded-2xl border border-border/80 bg-card/80 p-6 md:p-8">
+            <article
+              className="rounded-2xl border border-border/80 bg-card/80 p-6 md:p-8"
+              data-aos="fade-up"
+              data-aos-delay="120"
+            >
               <h2 className="text-2xl text-foreground mb-5">Technology Stack</h2>
 
               {project.technologies.length > 0 ? (
@@ -228,7 +264,11 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
           </div>
 
           <aside className="lg:col-span-4 space-y-4 lg:sticky lg:top-28 self-start">
-            <article className="rounded-2xl border border-border/80 bg-card/80 p-5">
+            <article
+              className="rounded-2xl border border-border/80 bg-card/80 p-5"
+              data-aos="fade-up"
+              data-aos-delay="150"
+            >
               <h3 className="text-base font-semibold text-foreground mb-4">Project Snapshot</h3>
               <dl className="space-y-3 text-sm">
                 <div className="flex items-center justify-between gap-3">
@@ -244,11 +284,15 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-muted-foreground">Overview Points</dt>
-                  <dd className="text-foreground">{project.overview.length}</dd>
+                  <dd className="text-foreground">
+                    <CountUpNumber value={project.overview.length} duration={1.1} />
+                  </dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-muted-foreground">Tech Count</dt>
-                  <dd className="text-foreground">{project.technologies.length}</dd>
+                  <dd className="text-foreground">
+                    <CountUpNumber value={project.technologies.length} duration={1.1} />
+                  </dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-muted-foreground">Live Site</dt>
@@ -259,7 +303,11 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
               </dl>
             </article>
 
-            <article className="rounded-2xl border border-border/80 bg-card/80 p-5">
+            <article
+              className="rounded-2xl border border-border/80 bg-card/80 p-5"
+              data-aos="fade-up"
+              data-aos-delay="200"
+            >
               <h3 className="text-base font-semibold text-foreground mb-2">Need a Similar Build?</h3>
               <p className="text-sm text-muted-foreground mb-4">
                 I can help design and ship a production-ready product with modern architecture.
@@ -275,7 +323,11 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
           </aside>
         </section>
 
-        <div className="mt-14 border-t border-border/70 pt-8 flex flex-wrap items-center justify-between gap-3">
+        <div
+          className="mt-14 border-t border-border/70 pt-8 flex flex-wrap items-center justify-between gap-3"
+          data-aos="fade-up"
+          data-aos-delay="160"
+        >
           <p className="text-sm text-muted-foreground">Want to explore more case studies?</p>
           <Link
             href="/projects"

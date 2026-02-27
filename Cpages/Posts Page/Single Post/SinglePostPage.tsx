@@ -32,6 +32,7 @@ export function SinglePostPage({ postId, post }: SinglePostPageProps) {
         <Link
           href="/posts"
           className="flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors"
+          data-aos="fade-up"
         >
           <ArrowLeft size={20} />
           <span>Back to Posts</span>
@@ -41,7 +42,7 @@ export function SinglePostPage({ postId, post }: SinglePostPageProps) {
       {/* Article Content */}
       <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         {/* Title & Meta */}
-        <header className="mb-8">
+        <header className="mb-8" data-aos="fade-up" data-aos-delay="60">
           <h1 className="text-3xl md:text-5xl text-foreground mb-6">
             {post.title}
           </h1>
@@ -55,11 +56,15 @@ export function SinglePostPage({ postId, post }: SinglePostPageProps) {
               <span>By {post.author || "Ziad Hatem"}</span>
             </div>
           </div>
-          <ShareButtons title={post.title} />
+          <ShareButtons title={post.title} itemId={postId} itemType="post" />
         </header>
 
         {/* Hero Image */}
-        <div className="relative w-full aspect-video rounded-xl overflow-hidden mb-12 bg-muted">
+        <div
+          className="relative w-full aspect-video rounded-xl overflow-hidden mb-12 bg-muted"
+          data-aos="fade-up"
+          data-aos-delay="100"
+        >
           <ImageWithFallback
             width={1920}
             height={1080}
@@ -70,7 +75,7 @@ export function SinglePostPage({ postId, post }: SinglePostPageProps) {
         </div>
 
         {/* Article Body */}
-        <div className="prose prose-invert max-w-none">
+        <div className="prose prose-invert max-w-none" data-aos="fade-up" data-aos-delay="140">
           <div
             className="text-muted-foreground"
             dangerouslySetInnerHTML={{ __html: post.post_text }}
@@ -78,9 +83,9 @@ export function SinglePostPage({ postId, post }: SinglePostPageProps) {
         </div>
 
         {/* Back to Posts CTA */}
-        <div className="mt-16 pt-8 border-t border-border">
+        <div className="mt-16 pt-8 border-t border-border" data-aos="fade-up" data-aos-delay="180">
           <Link href="/posts" className="text-accent hover:underline">
-            ← Read More Posts
+            {"<-"} Read More Posts
           </Link>
         </div>
       </article>

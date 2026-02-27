@@ -185,17 +185,18 @@ export default function CompressPdfPage() {
           <Link 
             href="/tools" 
             className="inline-flex items-center text-muted-foreground hover:text-accent mb-4 transition-colors"
+            data-aos="fade-up"
           >
             <ArrowLeft size={16} className="mr-2" />
             Back to Tools
           </Link>
-          <h1 className="text-3xl md:text-4xl font-bold flex items-center gap-3">
+          <h1 className="text-3xl md:text-4xl font-bold flex items-center gap-3" data-aos="fade-up" data-aos-delay="60">
             <div className="p-2 bg-accent/10 rounded-lg">
               <Minimize2 className="w-8 h-8 text-accent" />
             </div>
             Compress PDF
           </h1>
-          <p className="mt-4 text-muted-foreground text-lg">
+          <p className="mt-4 text-muted-foreground text-lg" data-aos="fade-up" data-aos-delay="100">
             Best for scanned PDFs. Text pages may be rasterized to improve compression.
           </p>
         </div>

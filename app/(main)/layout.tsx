@@ -9,7 +9,9 @@ export default function MainLayout({
   return (
     <>
       <Navigation />
-      <main className="z-50 relative">{children}</main>
+      <main className="z-50 relative" data-aos="fade-up" data-aos-delay="40">
+        {children}
+      </main>
       <Footer />
     </>
   );

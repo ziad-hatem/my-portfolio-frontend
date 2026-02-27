@@ -24,7 +24,7 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative overflow-hidden border-t border-border/70 bg-background">
+    <footer className="relative overflow-hidden border-t border-border/70 bg-background" data-aos="fade-up">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/75 to-transparent" />
         <div className="absolute -top-24 left-1/2 h-64 w-[46rem] -translate-x-1/2 rounded-full bg-accent/15 blur-3xl" />
@@ -32,7 +32,11 @@ export function Footer() {
       </div>
 
       <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-        <div className="rounded-3xl border border-border/70 bg-card/65 p-6 shadow-[0_25px_60px_-42px_rgba(0,243,190,0.55)] backdrop-blur-xl sm:p-8 lg:p-10">
+        <div
+          className="rounded-3xl border border-border/70 bg-card/65 p-6 shadow-[0_25px_60px_-42px_rgba(0,243,190,0.55)] backdrop-blur-xl sm:p-8 lg:p-10"
+          data-aos="fade-up"
+          data-aos-delay="60"
+        >
           <div className="grid gap-10 lg:grid-cols-12">
             <div className="lg:col-span-6">
               <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-accent/35 bg-accent/10 px-4 py-2 text-xs uppercase tracking-[0.2em] text-accent">

@@ -12,6 +12,7 @@ import {
 import type { Metadata } from "next";
 import { getPublicToolsContent } from "@/lib/content-service";
 import getFollowIndex from "@/utils/seo/getFollowIndex";
+import { CountUpNumber } from "@/components/ui/CountUpNumber";
 
 interface ToolItem {
   id: string;
@@ -159,7 +160,7 @@ export default function ToolsPage() {
       </div>
 
       <div className="relative mx-auto max-w-7xl">
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-3" data-aos="fade-up">
           <Link
             href="/"
             className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-accent"
@@ -174,8 +175,12 @@ export default function ToolsPage() {
           </div>
         </div>
 
-        <section className="mb-10 grid gap-6 rounded-3xl border border-border/70 bg-card/70 p-6 backdrop-blur-xl md:grid-cols-12 md:p-8">
-          <div className="md:col-span-8">
+        <section
+          className="mb-10 grid gap-6 rounded-3xl border border-border/70 bg-card/70 p-6 backdrop-blur-xl md:grid-cols-12 md:p-8"
+          data-aos="fade-up"
+          data-aos-delay="60"
+        >
+          <div className="md:col-span-8" data-aos="fade-up" data-aos-delay="100">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-accent">
               <Sparkles size={12} aria-hidden="true" />
               Fast Utilities
@@ -207,15 +212,29 @@ export default function ToolsPage() {
           </div>
 
           <div className="grid gap-3 md:col-span-4 sm:grid-cols-3 md:grid-cols-1">
-            <article className="rounded-2xl border border-border/70 bg-background/65 p-4">
+            <article
+              className="rounded-2xl border border-border/70 bg-background/65 p-4"
+              data-aos="fade-up"
+              data-aos-delay="130"
+            >
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Tools</p>
-              <p className="mt-2 text-2xl font-semibold text-foreground">{tools.length}</p>
+              <p className="mt-2 text-2xl font-semibold text-foreground">
+                <CountUpNumber value={tools.length} duration={1.1} />
+              </p>
             </article>
-            <article className="rounded-2xl border border-border/70 bg-background/65 p-4">
+            <article
+              className="rounded-2xl border border-border/70 bg-background/65 p-4"
+              data-aos="fade-up"
+              data-aos-delay="170"
+            >
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Processing</p>
               <p className="mt-2 text-2xl font-semibold text-foreground">Local</p>
             </article>
-            <article className="rounded-2xl border border-border/70 bg-background/65 p-4">
+            <article
+              className="rounded-2xl border border-border/70 bg-background/65 p-4"
+              data-aos="fade-up"
+              data-aos-delay="210"
+            >
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Data Retention</p>
               <p className="mt-2 text-2xl font-semibold text-foreground">None</p>
             </article>
@@ -223,11 +242,13 @@ export default function ToolsPage() {
         </section>
 
         <section id="tool-grid" className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {tools.map((tool) => (
+          {tools.map((tool, index) => (
             <Link
               key={tool.id}
               href={tool.href}
               className="group rounded-2xl border border-border/70 bg-card/80 p-5 transition-all duration-300 hover:border-accent/50 hover:translate-y-[-2px]"
+              data-aos="fade-up"
+              data-aos-delay={Math.min(index * 70, 280)}
             >
               <div className="mb-4 flex items-center justify-between">
                 <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-accent/30 bg-accent/10 text-accent">
@@ -265,7 +286,11 @@ export default function ToolsPage() {
           ))}
         </section>
 
-        <section className="mt-10 rounded-2xl border border-border/70 bg-card/60 p-5 md:p-6">
+        <section
+          className="mt-10 rounded-2xl border border-border/70 bg-card/60 p-5 md:p-6"
+          data-aos="fade-up"
+          data-aos-delay="140"
+        >
           <p className="mb-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">Roadmap</p>
           <p className="text-sm text-muted-foreground md:text-base">
             Upcoming utilities will be added here as standalone modules under

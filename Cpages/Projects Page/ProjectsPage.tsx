@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { ProjectGridSkeleton } from "../Home Page/components/ProjectSkeleton";
 import { ProjectCard } from "../Home Page/components/ProjectCard";
+import { CountUpNumber } from "@/components/ui/CountUpNumber";
 
 interface Skill {
   id: string;
@@ -223,13 +224,19 @@ export function ProjectsPage({ projects: fetchedProjects }: ProjectsPageProps) {
     <div className="min-h-screen pb-20 pt-[150px]!">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-12">
+        <div className="mb-12" data-aos="fade-up">
           <h1 className="text-4xl md:text-5xl text-foreground mb-4">
             Projects
           </h1>
           <p className="text-muted-foreground max-w-2xl">
             A selection of my work. Each project represents a unique challenge
             and an opportunity to create exceptional digital experiences.
+          </p>
+          <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-3 py-1 text-sm text-muted-foreground">
+            Total projects:
+            <span className="text-foreground font-semibold">
+              <CountUpNumber value={projects.length} duration={1.1} />
+            </span>
           </p>
         </div>
 
@@ -238,38 +245,39 @@ export function ProjectsPage({ projects: fetchedProjects }: ProjectsPageProps) {
           <ProjectGridSkeleton count={6} />
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => {
+            {projects.map((project, index) => {
               // Map fetched project data to component props
               const isFetchedProject = "project_description" in project;
 
               return (
-                <ProjectCard
-                  key={project.id}
-                  projectId={project.id}
-                  title={
-                    isFetchedProject ? project.title : (project as any).title
-                  }
-                  description={
-                    isFetchedProject
-                      ? project.project_description
-                      : (project as any).description
-                  }
-                  image={
-                    isFetchedProject
-                      ? project.project_image.permalink
-                      : (project as any).image
-                  }
-                  tags={
-                    isFetchedProject
-                      ? project.skills.map((s) => s.skill_name)
-                      : (project as any).tags
-                  }
-                  workContext={
-                    isFetchedProject
-                      ? project.company_name
-                      : (project as any).workContext
-                  }
-                />
+                <div key={project.id} data-aos="fade-up" data-aos-delay={Math.min(index * 80, 320)}>
+                  <ProjectCard
+                    projectId={project.id}
+                    title={
+                      isFetchedProject ? project.title : (project as any).title
+                    }
+                    description={
+                      isFetchedProject
+                        ? project.project_description
+                        : (project as any).description
+                    }
+                    image={
+                      isFetchedProject
+                        ? project.project_image.permalink
+                        : (project as any).image
+                    }
+                    tags={
+                      isFetchedProject
+                        ? project.skills.map((s) => s.skill_name)
+                        : (project as any).tags
+                    }
+                    workContext={
+                      isFetchedProject
+                        ? project.company_name
+                        : (project as any).workContext
+                    }
+                  />
+                </div>
               );
             })}
           </div>

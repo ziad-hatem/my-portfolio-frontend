@@ -65,6 +65,8 @@ export function Navigation() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-[90] transition-all duration-300 ${isScrolled ? "pt-3" : "pt-5"}`}
+      data-aos="fade-down"
+      data-aos-delay="40"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div

@@ -48,6 +48,7 @@ import {
   DEFAULT_IMAGE_TO_PDF_OPTIONS,
   type ImageToPdfOptions,
 } from "@/lib/tools/image-to-pdf-types";
+import { CountUpNumber } from "@/components/ui/CountUpNumber";
 
 interface ImageItem {
   id: string;
@@ -542,6 +543,7 @@ export default function ImageToPdfPage() {
           <Link
             href="/tools"
             className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-4 py-2 text-sm text-muted-foreground hover:text-accent"
+            data-aos="fade-up"
           >
             <ArrowLeft size={16} />
             Back to Tools
@@ -553,7 +555,11 @@ export default function ImageToPdfPage() {
           </div>
         </div>
 
-        <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/75 p-6 md:p-8">
+        <section
+          className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/75 p-6 md:p-8"
+          data-aos="fade-up"
+          data-aos-delay="60"
+        >
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-accent/10 blur-3xl" />
             <div className="absolute -bottom-32 -left-16 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" />
@@ -581,19 +587,35 @@ export default function ImageToPdfPage() {
           </div>
 
           <div className="relative grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-border/60 bg-background/45 p-4">
+            <div
+              className="rounded-2xl border border-border/60 bg-background/45 p-4"
+              data-aos="fade-up"
+              data-aos-delay="90"
+            >
               <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Images</p>
-              <p className="mt-2 text-2xl font-semibold">{images.length}</p>
+              <p className="mt-2 text-2xl font-semibold">
+                <CountUpNumber value={images.length} duration={0.8} />
+              </p>
             </div>
-            <div className="rounded-2xl border border-border/60 bg-background/45 p-4">
+            <div
+              className="rounded-2xl border border-border/60 bg-background/45 p-4"
+              data-aos="fade-up"
+              data-aos-delay="130"
+            >
               <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Mode</p>
               <p className="mt-2 text-2xl font-semibold">
                 {result?.mode === "local" ? "Local Fallback" : "Server"}
               </p>
             </div>
-            <div className="rounded-2xl border border-border/60 bg-background/45 p-4">
+            <div
+              className="rounded-2xl border border-border/60 bg-background/45 p-4"
+              data-aos="fade-up"
+              data-aos-delay="170"
+            >
               <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Max Files</p>
-              <p className="mt-2 text-2xl font-semibold">{FILE_LIMIT}</p>
+              <p className="mt-2 text-2xl font-semibold">
+                <CountUpNumber value={FILE_LIMIT} duration={0.8} />
+              </p>
             </div>
           </div>
 
@@ -631,7 +653,7 @@ export default function ImageToPdfPage() {
             </div>
           ) : null}
 
-          <div className="relative mt-6 space-y-5">
+          <div className="relative mt-6 space-y-5" data-aos="fade-up" data-aos-delay="120">
             <div
               onClick={() => fileInputRef.current?.click()}
               onDrop={onDrop}
@@ -907,7 +929,9 @@ export default function ImageToPdfPage() {
                 <div className="grid gap-3 sm:grid-cols-2 text-sm">
                   <div className="rounded-lg border border-border/60 bg-card/45 p-3">
                     <p className="text-muted-foreground">Pages</p>
-                    <p className="text-lg font-semibold">{result.pageCount}</p>
+                    <p className="text-lg font-semibold">
+                      <CountUpNumber value={result.pageCount} duration={0.8} />
+                    </p>
                   </div>
                   <div className="rounded-lg border border-border/60 bg-card/45 p-3">
                     <p className="text-muted-foreground">File size</p>

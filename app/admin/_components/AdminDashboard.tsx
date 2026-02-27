@@ -9,6 +9,7 @@ import {
   FolderKanban,
   House,
   Plus,
+  RefreshCcw,
   TerminalSquare,
   Wrench,
 } from "lucide-react";
@@ -17,8 +18,17 @@ import AdminFeedbackBanner from "../content/_components/AdminFeedbackBanner";
 import AdminPageHeader from "../content/_components/AdminPageHeader";
 import AdminStatCard from "../content/_components/AdminStatCard";
 import { useAdminApiKey } from "../content/_hooks/useAdminApiKey";
-import { adminGet } from "../content/_lib/admin-client";
+import { adminGet, adminPost } from "../content/_lib/admin-client";
 import { DashboardStatsVM } from "../content/_types/admin-ui";
+
+type RevalidateScope = "all" | "home" | "projects" | "posts" | "tools";
+
+interface RevalidateResultData {
+  path: string;
+  type: "page" | "layout";
+  scope: RevalidateScope;
+  timestamp: string;
+}
 
 function parseDateValue(value: string | Date | undefined): number {
   if (!value) {
@@ -78,6 +88,14 @@ export default function AdminDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [connectivity, setConnectivity] = useState<"idle" | "checking" | "online" | "offline">("idle");
   const [focusInputSignal, setFocusInputSignal] = useState(0);
+  const [revalidatePath, setRevalidatePath] = useState("/");
+  const [revalidateType, setRevalidateType] = useState<"page" | "layout">("page");
+  const [revalidateScope, setRevalidateScope] = useState<RevalidateScope>("all");
+  const [isRevalidating, setIsRevalidating] = useState(false);
+  const [revalidateFeedback, setRevalidateFeedback] = useState<{
+    variant: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const loadStats = useCallback(async () => {
     if (!hasKey) {
@@ -137,6 +155,55 @@ export default function AdminDashboard() {
     setConnectivity("online");
     setLoading(false);
   }, [apiKey, hasKey]);
+
+  const triggerRevalidate = useCallback(async () => {
+    if (!hasKey) {
+      setRevalidateFeedback({
+        variant: "error",
+        message: "Add your admin key before running revalidation.",
+      });
+      return;
+    }
+
+    setIsRevalidating(true);
+    setRevalidateFeedback(null);
+    try {
+      const response = await adminPost<RevalidateResultData>(
+        apiKey,
+        "/api/admin/revalidate",
+        {
+          path: revalidatePath,
+          type: revalidateType,
+          scope: revalidateScope,
+        }
+      );
+
+      if (!response.success) {
+        setRevalidateFeedback({
+          variant: "error",
+          message: response.error || "Revalidation failed.",
+        });
+        if (response.unauthorized) {
+          setFocusInputSignal((current) => current + 1);
+        }
+        return;
+      }
+
+      const result = response.data;
+      setRevalidateFeedback({
+        variant: "success",
+        message: `Revalidated ${result?.scope || revalidateScope} cache for ${result?.path || revalidatePath} at ${formatTimestamp(result?.timestamp || null)}.`,
+      });
+    } catch (error) {
+      console.error("[Admin Dashboard] Revalidation request failed:", error);
+      setRevalidateFeedback({
+        variant: "error",
+        message: "Revalidation failed due to a network or server issue.",
+      });
+    } finally {
+      setIsRevalidating(false);
+    }
+  }, [apiKey, hasKey, revalidatePath, revalidateScope, revalidateType]);
 
   useEffect(() => {
     if (!ready) {
@@ -240,6 +307,84 @@ export default function AdminDashboard() {
                 Control metadata for /tools and /tools/toolname pages.
               </p>
             </Link>
+            <article className="rounded-xl border border-border/80 bg-background/60 p-4 sm:col-span-2">
+              <p className="text-sm font-semibold text-foreground mb-1 inline-flex items-center gap-2">
+                <RefreshCcw size={14} aria-hidden="true" />
+                Revalidate Frontend Cache
+              </p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Public pages stay cached until this is called. Admin data stays live.
+              </p>
+
+              <div className="grid gap-2 md:grid-cols-3">
+                <label className="space-y-1">
+                  <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                    Path
+                  </span>
+                  <input
+                    value={revalidatePath}
+                    onChange={(event) => setRevalidatePath(event.target.value)}
+                    placeholder="/"
+                    className="w-full rounded-md border border-border/80 bg-background px-2 py-2 text-xs text-foreground"
+                  />
+                </label>
+
+                <label className="space-y-1">
+                  <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                    Type
+                  </span>
+                  <select
+                    value={revalidateType}
+                    onChange={(event) =>
+                      setRevalidateType(event.target.value === "layout" ? "layout" : "page")
+                    }
+                    className="w-full rounded-md border border-border/80 bg-background px-2 py-2 text-xs text-foreground"
+                  >
+                    <option value="page">page</option>
+                    <option value="layout">layout</option>
+                  </select>
+                </label>
+
+                <label className="space-y-1">
+                  <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                    Scope
+                  </span>
+                  <select
+                    value={revalidateScope}
+                    onChange={(event) =>
+                      setRevalidateScope(event.target.value as RevalidateScope)
+                    }
+                    className="w-full rounded-md border border-border/80 bg-background px-2 py-2 text-xs text-foreground"
+                  >
+                    <option value="all">all</option>
+                    <option value="home">home</option>
+                    <option value="projects">projects</option>
+                    <option value="posts">posts</option>
+                    <option value="tools">tools</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => void triggerRevalidate()}
+                  disabled={isRevalidating || !hasKey}
+                  className="inline-flex items-center gap-2 rounded-md bg-accent px-3 py-2 text-xs font-semibold text-accent-foreground disabled:opacity-60"
+                >
+                  <RefreshCcw size={13} className={isRevalidating ? "animate-spin" : ""} />
+                  {isRevalidating ? "Revalidating..." : "Run Revalidate"}
+                </button>
+              </div>
+
+              {revalidateFeedback ? (
+                <AdminFeedbackBanner
+                  variant={revalidateFeedback.variant}
+                  message={revalidateFeedback.message}
+                  className="mt-3"
+                />
+              ) : null}
+            </article>
             <article className="rounded-xl border border-border/80 bg-background/60 p-4">
               <p className="text-sm font-semibold text-foreground mb-1">Re-run API Smoke</p>
               <p className="text-xs text-muted-foreground mb-2">Run this command from your terminal:</p>

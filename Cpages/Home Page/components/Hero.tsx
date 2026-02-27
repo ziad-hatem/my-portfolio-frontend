@@ -1,6 +1,7 @@
 "use client";
 
 import { BackgroundBeams } from "@/components/ui/background-beams";
+import { CountUpNumber } from "@/components/ui/CountUpNumber";
 import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 
@@ -30,6 +31,20 @@ interface HeroProps {
     buttons: HeroButton[];
     social_links: HeroSocial[];
     stats: HeroStat[];
+  };
+}
+
+function parseStatValue(value: string): { amount: number; suffix: string } | null {
+  const normalized = String(value || "").trim();
+  const matched = normalized.match(/^(\d+(?:\.\d+)?)(\+?)$/);
+
+  if (!matched) {
+    return null;
+  }
+
+  return {
+    amount: Number(matched[1]),
+    suffix: matched[2] || "",
   };
 }
 
@@ -138,7 +153,22 @@ const Hero = ({ data }: HeroProps) => {
                     key={stat.label}
                     className="rounded-xl border border-border/70 bg-background/60 p-3 text-center"
                   >
-                    <p className="text-xl font-semibold text-foreground">{stat.value}</p>
+                    <p className="text-xl font-semibold text-foreground">
+                      {(() => {
+                        const parsed = parseStatValue(stat.value);
+                        if (!parsed) {
+                          return stat.value;
+                        }
+
+                        return (
+                          <CountUpNumber
+                            value={parsed.amount}
+                            suffix={parsed.suffix}
+                            duration={1.2}
+                          />
+                        );
+                      })()}
+                    </p>
                     <p className="text-[11px] text-muted-foreground mt-1">{stat.label}</p>
                   </div>
                 ))}

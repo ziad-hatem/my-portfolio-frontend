@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath, revalidateTag } from "next/cache";
 import { validateAdminApiKey } from "@/lib/admin-auth";
 import {
-  getPublicContentTagsForScope,
-  isPublicContentScope,
-} from "@/lib/public-content-cache-tags";
-
-function isValidRevalidateType(value: string | null): value is "page" | "layout" {
-  return value === "page" || value === "layout";
-}
+  executeRevalidation,
+  resolveRevalidateInput,
+} from "@/lib/revalidate-content";
 
 export async function GET(request: NextRequest) {
   const auth = validateAdminApiKey(request);
@@ -38,32 +33,19 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const path = request.nextUrl.searchParams.get("path") || "/";
-  if (!path.startsWith("/")) {
+  const resolved = resolveRevalidateInput({
+    path: request.nextUrl.searchParams.get("path"),
+    type: request.nextUrl.searchParams.get("type"),
+    scope: request.nextUrl.searchParams.get("scope"),
+  });
+
+  if (!resolved.success) {
     return NextResponse.json(
-      { success: false, error: "Invalid path parameter" },
-      { status: 400 }
+      { success: false, error: resolved.error },
+      { status: resolved.status }
     );
   }
 
-  const revalidateType = request.nextUrl.searchParams.get("type");
-  const type = isValidRevalidateType(revalidateType) ? revalidateType : "page";
-  const scopeParam = request.nextUrl.searchParams.get("scope");
-  const scope = isPublicContentScope(scopeParam) ? scopeParam : "all";
-  const tags = getPublicContentTagsForScope(scope);
-
-  for (const tag of tags) {
-    revalidateTag(tag, "max");
-  }
-
-  revalidatePath(path, type);
-  return NextResponse.json({
-    success: true,
-    revalidated: true,
-    path,
-    type,
-    scope,
-    tags,
-    timestamp: new Date().toISOString(),
-  });
+  const result = executeRevalidation(resolved.data);
+  return NextResponse.json({ success: true, ...result });
 }
