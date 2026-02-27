@@ -11,6 +11,27 @@ export const metadata: Metadata = {
   title: "Frontend Developer Portfolio",
   description:
     "A modern portfolio showcasing frontend development projects and skills",
+  icons: {
+    icon: [
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "32x32",
+        url: "/favicons/favicon-32x32.png",
+      },
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "16x16",
+        url: "/favicons/favicon-16x16.png",
+      },
+      { rel: "icon", url: "/favicons/favicon.ico" },
+    ],
+    apple: {
+      rel: "apple-touch-icon",
+      url: "/favicons/apple-touch-icon.png",
+    },
+  },
 };
 
 export const viewport: Viewport = {
