@@ -12,6 +12,15 @@ function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function getRequesterIp(request: NextRequest): string {
   const forwardedFor = request.headers.get("x-forwarded-for");
   const realIp = request.headers.get("x-real-ip");
@@ -28,12 +37,101 @@ function getRequesterIp(request: NextRequest): string {
   return request.ip || "anonymous";
 }
 
-function getRequiredEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`Missing required env var: ${name}`);
+function getEnvValue(name: string): string {
+  return (process.env[name] || "").trim();
+}
+
+interface ContactMailConfig {
+  resendApiKey: string;
+  toEmail: string;
+  fromEmail: string;
+  confirmationFromEmail: string;
+}
+
+function getContactMailConfig():
+  | { success: true; data: ContactMailConfig }
+  | { success: false; error: string } {
+  const resendApiKey = getEnvValue("RESEND_API_KEY");
+  const toEmail = getEnvValue("CONTACT_TO_EMAIL");
+  const fromEmail = getEnvValue("CONTACT_FROM_EMAIL");
+  const confirmationFromEmail =
+    getEnvValue("CONTACT_CONFIRMATION_FROM_EMAIL") || fromEmail;
+
+  const missing = [
+    !resendApiKey ? "RESEND_API_KEY" : null,
+    !toEmail ? "CONTACT_TO_EMAIL" : null,
+    !fromEmail ? "CONTACT_FROM_EMAIL" : null,
+  ].filter(Boolean) as string[];
+
+  if (missing.length > 0) {
+    return {
+      success: false,
+      error: `Server configuration error: missing ${missing.join(", ")}`,
+    };
   }
-  return value;
+
+  return {
+    success: true,
+    data: {
+      resendApiKey,
+      toEmail,
+      fromEmail,
+      confirmationFromEmail,
+    },
+  };
+}
+
+interface ContactPayload {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
+function parseAndValidatePayload(payload: unknown):
+  | { success: true; data: ContactPayload }
+  | { success: false; status: number; error: string } {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return {
+      success: false,
+      status: 400,
+      error: "Invalid payload format",
+    };
+  }
+
+  const body = payload as Record<string, unknown>;
+  const name = typeof body.name === "string" ? body.name.trim().slice(0, 120) : "";
+  const email = typeof body.email === "string" ? body.email.trim().slice(0, 200) : "";
+  const subject =
+    typeof body.subject === "string" ? body.subject.trim().slice(0, 200) : "";
+  const message =
+    typeof body.message === "string" ? body.message.trim().slice(0, 8000) : "";
+
+  if (!name || !email || !subject || !message) {
+    return {
+      success: false,
+      status: 400,
+      error: "name, email, subject, and message are required",
+    };
+  }
+
+  if (!isValidEmail(email)) {
+    return {
+      success: false,
+      status: 400,
+      error: "Invalid email format",
+    };
+  }
+
+  return {
+    success: true,
+    data: {
+      name,
+      email,
+      subject,
+      message,
+    },
+  };
 }
 
 export async function POST(request: NextRequest) {
@@ -53,71 +151,63 @@ export async function POST(request: NextRequest) {
       // Fail open so transient limiter backend issues do not block legitimate contact requests.
     }
 
-    const body = await request.json();
-    const { name, email, subject, message } = body ?? {};
-
-    if (!name || !email || !subject || !message) {
+    let rawBody: unknown;
+    try {
+      rawBody = await request.json();
+    } catch {
       return NextResponse.json(
-        { success: false, error: "name, email, subject, and message are required" },
+        { success: false, error: "Invalid JSON body" },
         { status: 400 }
       );
     }
 
-    if (
-      typeof name !== "string" ||
-      typeof email !== "string" ||
-      typeof subject !== "string" ||
-      typeof message !== "string"
-    ) {
+    const payloadResult = parseAndValidatePayload(rawBody);
+    if (!payloadResult.success) {
       return NextResponse.json(
-        { success: false, error: "Invalid payload format" },
-        { status: 400 }
+        { success: false, error: payloadResult.error },
+        { status: payloadResult.status }
       );
     }
 
-    if (!isValidEmail(email)) {
+    const configResult = getContactMailConfig();
+    if (!configResult.success) {
+      console.error("[Contact API] Missing mail configuration");
       return NextResponse.json(
-        { success: false, error: "Invalid email format" },
-        { status: 400 }
+        { success: false, error: configResult.error },
+        { status: 500 }
       );
     }
 
-    const sanitizedName = name.trim().slice(0, 120);
-    const sanitizedEmail = email.trim().slice(0, 200);
-    const sanitizedSubject = subject.trim().slice(0, 200);
-    const sanitizedMessage = message.trim().slice(0, 8000);
+    const { name, email, subject, message } = payloadResult.data;
+    const { resendApiKey, toEmail, fromEmail, confirmationFromEmail } =
+      configResult.data;
+    const resend = new Resend(resendApiKey);
 
-    if (!sanitizedName || !sanitizedSubject || !sanitizedMessage) {
-      return NextResponse.json(
-        { success: false, error: "Invalid payload values" },
-        { status: 400 }
-      );
-    }
-
-    const resend = new Resend(getRequiredEnv("RESEND_API_KEY"));
-    const toEmail = getRequiredEnv("CONTACT_TO_EMAIL");
-    const fromEmail = getRequiredEnv("CONTACT_FROM_EMAIL");
-    const confirmationFromEmail = getRequiredEnv("CONTACT_CONFIRMATION_FROM_EMAIL");
+    const escapedName = escapeHtml(name);
+    const escapedEmail = escapeHtml(email);
+    const escapedSubject = escapeHtml(subject);
+    const escapedMessage = escapeHtml(message);
+    const escapedIdentifier = escapeHtml(identifier);
 
     const notification = await resend.emails.send({
       from: fromEmail,
       to: [toEmail],
-      replyTo: sanitizedEmail,
-      subject: `Portfolio Contact: ${sanitizedSubject}`,
+      replyTo: email,
+      subject: `Portfolio Contact: ${subject}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333; border-bottom: 2px solid #4F46E5; padding-bottom: 10px;">
+          <h2 style="color: #333; border-bottom: 2px solid #00f5c0; padding-bottom: 10px;">
             New Contact Form Submission
           </h2>
           <div style="margin: 20px 0;">
-            <p style="margin: 10px 0;"><strong>From:</strong> ${sanitizedName}</p>
-            <p style="margin: 10px 0;"><strong>Email:</strong> ${sanitizedEmail}</p>
-            <p style="margin: 10px 0;"><strong>Subject:</strong> ${sanitizedSubject}</p>
-            <p style="margin: 10px 0;"><strong>IP:</strong> ${identifier}</p>
+            <p style="margin: 10px 0;"><strong>From:</strong> ${escapedName}</p>
+            <p style="margin: 10px 0;"><strong>Email:</strong> ${escapedEmail}</p>
+            <p style="margin: 10px 0;"><strong>Subject:</strong> ${escapedSubject}</p>
+            <p style="margin: 10px 0;"><strong>IP:</strong> ${escapedIdentifier}</p>
           </div>
           <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="margin-top: 0; color: #555;">Message:</h3>
-            <p style="color: #333; line-height: 1.6; white-space: pre-wrap;">${sanitizedMessage}</p>
+            <p style="color: #333; line-height: 1.6; white-space: pre-wrap;">${escapedMessage}</p>
           </div>
         </div>
       `,
@@ -133,19 +223,19 @@ export async function POST(request: NextRequest) {
 
     const confirmation = await resend.emails.send({
       from: confirmationFromEmail,
-      to: [sanitizedEmail],
+      to: [email],
       subject: "Thanks for reaching out",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333; border-bottom: 2px solid #4F46E5; padding-bottom: 10px; text-align: center;">
+          <h2 style="color: #333; border-bottom: 2px solid #00f5c0; padding-bottom: 10px; text-align: center;">
             Thanks for your message
           </h2>
-          <p style="color: #333; line-height: 1.6;">Hi ${sanitizedName},</p>
+          <p style="color: #333; line-height: 1.6;">Hi ${escapedName},</p>
           <p style="color: #333; line-height: 1.6;">
             Your message was received successfully. I will respond as soon as possible.
           </p>
           <div style="background-color: #f5f5f5; padding: 16px; border-radius: 8px; margin: 16px 0;">
-            <p style="margin: 0;"><strong>Subject:</strong> ${sanitizedSubject}</p>
+            <p style="margin: 0;"><strong>Subject:</strong> ${escapedSubject}</p>
           </div>
         </div>
       `,
