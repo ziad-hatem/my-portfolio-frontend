@@ -513,11 +513,8 @@ async function renderProjectImage(input: ProjectRenderInput, baseOrigin: string)
           }}
         >
           {logoUrl ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <div style={{ display: "flex", alignItems: "center" }}>
               <img src={logoUrl} alt="Logo" width={220} height={54} />
-              <div style={{ color: "#e4e4e7", fontSize: "30px", fontWeight: 600 }}>
-                Ziad Hatem
-              </div>
             </div>
           ) : (
             <div style={{ display: "flex", color: "#e4e4e7", fontSize: "30px", fontWeight: 600 }}>
@@ -638,11 +635,8 @@ async function renderPostImage(input: PostRenderInput): Promise<Buffer> {
           }}
         >
           {logoUrl ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <div style={{ display: "flex", alignItems: "center" }}>
               <img src={logoUrl} alt="Logo" width={220} height={54} />
-              <div style={{ color: "#e4e4e7", fontSize: "30px", fontWeight: 600 }}>
-                Ziad Hatem
-              </div>
             </div>
           ) : (
             <div style={{ display: "flex", color: "#e4e4e7", fontSize: "30px", fontWeight: 600 }}>

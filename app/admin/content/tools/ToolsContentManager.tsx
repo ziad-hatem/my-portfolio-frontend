@@ -7,6 +7,7 @@ import {
   Plus,
   RotateCcw,
   Save,
+  Sparkles,
   Trash2,
 } from "lucide-react";
 import { ToolPageSeoEntry, ToolsContentDoc } from "@/lib/content-types";
@@ -17,7 +18,7 @@ import FormField from "../_components/forms/FormField";
 import FormImageField from "../_components/forms/FormImageField";
 import FormTextarea from "../_components/forms/FormTextarea";
 import { useAdminApiKey } from "../_hooks/useAdminApiKey";
-import { adminGet, adminPut } from "../_lib/admin-client";
+import { adminGet, adminPost, adminPut } from "../_lib/admin-client";
 import { EditorMode } from "../_types/admin-ui";
 
 interface ToolSeoGuidedEntry {
@@ -36,6 +37,38 @@ interface ToolsGuidedState {
   toolsKeywords: string;
   toolsImagePermalink: string;
   toolPages: ToolSeoGuidedEntry[];
+}
+
+interface OgGenerateApiResponse {
+  permalink?: string;
+}
+
+function slugifyTool(value: string): string {
+  return String(value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+function buildToolOgTemplatePermalink(pathValue: string, slugValue: string): string {
+  const path = pathValue.trim();
+  if (path) {
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    if (normalizedPath.endsWith("/opengraph-image")) {
+      return normalizedPath;
+    }
+
+    return `${normalizedPath.replace(/\/+$/, "")}/opengraph-image`;
+  }
+
+  const slug = slugifyTool(slugValue);
+  if (slug) {
+    return `/tools/${slug}/opengraph-image`;
+  }
+
+  return "/tools/opengraph-image";
 }
 
 const EMPTY_TOOL_ENTRY: ToolSeoGuidedEntry = {
@@ -135,6 +168,8 @@ export default function ToolsContentManager() {
   const [jsonBaseline, setJsonBaseline] = useState("{}");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [generatingToolsIndexImage, setGeneratingToolsIndexImage] = useState(false);
+  const [generatingToolRowIndex, setGeneratingToolRowIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [focusInputSignal, setFocusInputSignal] = useState(0);
@@ -233,6 +268,112 @@ export default function ToolsContentManager() {
         itemIndex === index ? { ...entry, ...patch } : entry
       ),
     }));
+  };
+
+  const onGenerateToolsIndexSeoImage = async () => {
+    if (!canRequest) {
+      setError("Set your admin API key first.");
+      setSuccess(null);
+      return;
+    }
+
+    const title = guided.toolsTitle.trim();
+    if (!title) {
+      setError("Tools index SEO title is required to generate SEO image.");
+      setSuccess(null);
+      return;
+    }
+
+    setGeneratingToolsIndexImage(true);
+    setError(null);
+    setSuccess(null);
+
+    const response = await adminPost<OgGenerateApiResponse>(apiKey, "/api/admin/og/generate", {
+      kind: "tool",
+      title,
+      image: "/tools/opengraph-image",
+      subtitle: "Free Browser Utilities",
+    });
+
+    if (!response.success || !response.data?.permalink) {
+      setGeneratingToolsIndexImage(false);
+      setError(response.error || "Failed to generate tools index SEO image.");
+
+      if (response.unauthorized) {
+        setFocusInputSignal((current) => current + 1);
+      }
+
+      return;
+    }
+
+    const permalink = response.data.permalink;
+    setGuided((current) => ({
+      ...current,
+      toolsImagePermalink: permalink,
+    }));
+    setGeneratingToolsIndexImage(false);
+    const warning =
+      typeof response.warning === "string" ? response.warning : null;
+    setSuccess(
+      warning
+        ? `Tools index SEO image generated. ${warning}`
+        : "Tools index SEO image generated and permalink updated."
+    );
+  };
+
+  const onGenerateToolPageSeoImage = async (index: number) => {
+    if (!canRequest) {
+      setError("Set your admin API key first.");
+      setSuccess(null);
+      return;
+    }
+
+    const entry = guided.toolPages[index];
+    if (!entry) {
+      setError("Invalid tool row.");
+      setSuccess(null);
+      return;
+    }
+
+    const title = entry.seoTitle.trim() || entry.label.trim();
+    if (!title) {
+      setError(`Tool row ${index + 1}: SEO title is required to generate image.`);
+      setSuccess(null);
+      return;
+    }
+
+    setGeneratingToolRowIndex(index);
+    setError(null);
+    setSuccess(null);
+
+    const response = await adminPost<OgGenerateApiResponse>(apiKey, "/api/admin/og/generate", {
+      kind: "tool",
+      title,
+      image: buildToolOgTemplatePermalink(entry.path, entry.slug),
+      subtitle: entry.label.trim() || entry.path.trim() || "Tool",
+    });
+
+    if (!response.success || !response.data?.permalink) {
+      setGeneratingToolRowIndex(null);
+      setError(response.error || `Tool row ${index + 1}: failed to generate SEO image.`);
+
+      if (response.unauthorized) {
+        setFocusInputSignal((current) => current + 1);
+      }
+
+      return;
+    }
+
+    onUpdateTool(index, { seoImagePermalink: response.data.permalink });
+    setGeneratingToolRowIndex(null);
+    const warning =
+      typeof response.warning === "string" ? response.warning : null;
+    const label = entry.label.trim() || entry.slug.trim() || `Tool row ${index + 1}`;
+    setSuccess(
+      warning
+        ? `${label}: SEO image generated. ${warning}`
+        : `${label}: SEO image generated and permalink updated.`
+    );
   };
 
   const validateGuidedState = (): string | null => {
@@ -515,17 +656,28 @@ export default function ToolsContentManager() {
                         setGuided((current) => ({ ...current, toolsTitle: value }))
                       }
                     />
-                    <FormImageField
-                      apiKey={apiKey}
-                      label="SEO Image Permalink"
-                      value={guided.toolsImagePermalink}
-                      onChange={(value) =>
-                        setGuided((current) => ({
-                          ...current,
-                          toolsImagePermalink: value,
-                        }))
-                      }
-                    />
+                    <div className="flex flex-col gap-2">
+                      <FormImageField
+                        apiKey={apiKey}
+                        label="SEO Image Permalink"
+                        value={guided.toolsImagePermalink}
+                        onChange={(value) =>
+                          setGuided((current) => ({
+                            ...current,
+                            toolsImagePermalink: value,
+                          }))
+                        }
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void onGenerateToolsIndexSeoImage()}
+                        disabled={generatingToolsIndexImage}
+                        className="inline-flex items-center justify-center gap-2 rounded-md border border-border px-3 py-2 text-xs text-foreground disabled:opacity-60"
+                      >
+                        <Sparkles size={12} aria-hidden="true" />
+                        {generatingToolsIndexImage ? "Generating..." : "Generate SEO OG Image"}
+                      </button>
+                    </div>
                     <div className="md:col-span-2">
                       <FormTextarea
                         label="SEO Description"
@@ -608,15 +760,28 @@ export default function ToolsContentManager() {
                             onChange={(value) => onUpdateTool(index, { path: value })}
                             placeholder="/tools/image-to-pdf"
                           />
-                          <FormImageField
-                            apiKey={apiKey}
-                            label="SEO Image Permalink"
-                            value={entry.seoImagePermalink}
-                            onChange={(value) =>
-                              onUpdateTool(index, { seoImagePermalink: value })
-                            }
-                            placeholder="/tools/image-to-pdf/opengraph-image"
-                          />
+                          <div className="flex flex-col gap-2">
+                            <FormImageField
+                              apiKey={apiKey}
+                              label="SEO Image Permalink"
+                              value={entry.seoImagePermalink}
+                              onChange={(value) =>
+                                onUpdateTool(index, { seoImagePermalink: value })
+                              }
+                              placeholder="/tools/image-to-pdf/opengraph-image"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => void onGenerateToolPageSeoImage(index)}
+                              disabled={generatingToolRowIndex === index}
+                              className="inline-flex items-center justify-center gap-2 rounded-md border border-border px-3 py-2 text-xs text-foreground disabled:opacity-60"
+                            >
+                              <Sparkles size={12} aria-hidden="true" />
+                              {generatingToolRowIndex === index
+                                ? "Generating..."
+                                : "Generate SEO OG Image"}
+                            </button>
+                          </div>
                           <div className="md:col-span-2">
                             <FormField
                               label="SEO Title"

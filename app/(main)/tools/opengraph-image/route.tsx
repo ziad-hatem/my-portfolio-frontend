@@ -12,6 +12,99 @@ function clampText(value: string, max: number): string {
   return `${trimmed.slice(0, Math.max(0, max - 1)).trimEnd()}...`;
 }
 
+function splitTextLines(
+  value: string,
+  maxCharsPerLine: number,
+  maxLines: number
+): string[] {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (!normalized) {
+    return [""];
+  }
+
+  const words = normalized.split(" ");
+  const lines: string[] = [];
+  let currentLine = "";
+
+  for (const word of words) {
+    if (word.length > maxCharsPerLine) {
+      if (currentLine) {
+        lines.push(currentLine);
+        currentLine = "";
+        if (lines.length >= maxLines) {
+          break;
+        }
+      }
+
+      const segments = word.match(new RegExp(`.{1,${maxCharsPerLine}}`, "g")) || [word];
+      for (const segment of segments) {
+        lines.push(segment);
+        if (lines.length >= maxLines) {
+          break;
+        }
+      }
+      if (lines.length >= maxLines) {
+        break;
+      }
+      continue;
+    }
+
+    const candidate = currentLine ? `${currentLine} ${word}` : word;
+    if (candidate.length <= maxCharsPerLine) {
+      currentLine = candidate;
+      continue;
+    }
+
+    lines.push(currentLine);
+    if (lines.length >= maxLines) {
+      break;
+    }
+    currentLine = word;
+  }
+
+  if (currentLine && lines.length < maxLines) {
+    lines.push(currentLine);
+  }
+
+  if (lines.length === 0) {
+    lines.push(normalized.slice(0, maxCharsPerLine));
+  }
+
+  const consumed = lines.join(" ").length;
+  if (normalized.length > consumed) {
+    const lastIndex = lines.length - 1;
+    if (lastIndex >= 0) {
+      const lastLine = lines[lastIndex];
+      lines[lastIndex] =
+        lastLine.length >= maxCharsPerLine
+          ? `${lastLine.slice(0, Math.max(0, maxCharsPerLine - 1))}...`
+          : `${lastLine}...`;
+    }
+  }
+
+  return lines.slice(0, maxLines);
+}
+
+function getSiteLabel(): string {
+  const fallback = "ziadhatem.dev";
+  const source = process.env.NEXT_PUBLIC_FRONTEND_URL?.trim();
+
+  if (!source) {
+    return fallback;
+  }
+
+  try {
+    const host = new URL(source).hostname.replace(/^www\./i, "");
+    if (!host || host === "localhost" || /^\d+\.\d+\.\d+\.\d+$/.test(host)) {
+      return fallback;
+    }
+
+    return host;
+  } catch {
+    return fallback;
+  }
+}
+
 export async function GET() {
   const tools = await getPublicToolsContent();
   const seo = tools?.tools_index_seo;
@@ -25,6 +118,9 @@ export async function GET() {
       "A practical suite of browser-based tools focused on speed and privacy.",
     120
   );
+  const titleLines = splitTextLines(title, 28, 2);
+  const descriptionLines = splitTextLines(description, 50, 2);
+  const siteLabel = getSiteLabel();
 
   const image = new ImageResponse(
     (
@@ -88,33 +184,55 @@ export async function GET() {
           </div>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-          <h1
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <div
             style={{
-              margin: 0,
-              fontSize: 62,
-              lineHeight: 1.05,
-              fontWeight: 800,
-              letterSpacing: "-0.02em",
-              color: "#ffffff",
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
               maxWidth: 1040,
             }}
           >
-            {title}
-          </h1>
+            {titleLines.map((line, index) => (
+              <div
+                key={`title-line-${index}`}
+                style={{
+                  margin: 0,
+                  fontSize: 58,
+                  lineHeight: 1.05,
+                  fontWeight: 800,
+                  letterSpacing: "-0.02em",
+                  color: "#ffffff",
+                }}
+              >
+                {line}
+              </div>
+            ))}
+          </div>
 
-          <p
+          <div
             style={{
-              margin: 0,
-              fontSize: 31,
-              lineHeight: 1.28,
-              fontWeight: 500,
-              color: "#b4b4bb",
+              display: "flex",
+              flexDirection: "column",
+              gap: 5,
               maxWidth: 1000,
             }}
           >
-            {description}
-          </p>
+            {descriptionLines.map((line, index) => (
+              <div
+                key={`description-line-${index}`}
+                style={{
+                  margin: 0,
+                  fontSize: 30,
+                  lineHeight: 1.22,
+                  fontWeight: 500,
+                  color: "#b4b4bb",
+                }}
+              >
+                {line}
+              </div>
+            ))}
+          </div>
         </div>
 
         <div
@@ -128,12 +246,12 @@ export async function GET() {
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span>Fast</span>
-            <span style={{ color: "#3f3f46" }}>•</span>
+            <span style={{ color: "#3f3f46" }}>|</span>
             <span>Private</span>
-            <span style={{ color: "#3f3f46" }}>•</span>
+            <span style={{ color: "#3f3f46" }}>|</span>
             <span>No Tracking</span>
           </div>
-          <div>my-portfolio.tools</div>
+          <div>{siteLabel}</div>
         </div>
       </div>
     ),
