@@ -1,7 +1,6 @@
 import { randomUUID } from "crypto";
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
 import { NextRequest, NextResponse } from "next/server";
+import { put } from "@vercel/blob";
 import { validateAdminApiKey } from "@/lib/admin-auth";
 
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
@@ -61,6 +60,17 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Server configuration error: BLOB_READ_WRITE_TOKEN is not configured.",
+        },
+        { status: 500 }
+      );
+    }
+
     const formData = await request.formData();
     const fileEntry = formData.get("file");
 
@@ -96,18 +106,18 @@ export async function POST(request: NextRequest) {
     const originalBase = fileEntry.name.replace(/\.[^.]+$/, "");
     const safeBase = sanitizeFilename(originalBase) || "image";
     const fileName = `${Date.now()}-${safeBase}-${randomUUID().slice(0, 8)}.${extension}`;
+    const blobPath = `uploads/admin/${fileName}`;
 
-    const uploadsDir = path.join(process.cwd(), "public", "uploads", "admin");
-    await mkdir(uploadsDir, { recursive: true });
-
-    const filePath = path.join(uploadsDir, fileName);
-    const buffer = Buffer.from(await fileEntry.arrayBuffer());
-    await writeFile(filePath, buffer);
+    const blob = await put(blobPath, fileEntry, {
+      access: "public",
+      addRandomSuffix: false,
+      contentType: fileEntry.type || undefined,
+    });
 
     return NextResponse.json({
       success: true,
       data: {
-        url: `/uploads/admin/${fileName}`,
+        url: blob.url,
       },
     });
   } catch (error) {
