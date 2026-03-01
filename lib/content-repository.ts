@@ -154,6 +154,13 @@ function buildPostKeywordFallback(
   return body.slice(0, 180);
 }
 
+function formatDateYyyyMmDd(value: Date): string {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 const TOOLS_INDEX_FALLBACK = {
   title: "Developer Tools | Free Browser Utilities",
   description:
@@ -473,8 +480,9 @@ function buildPostDoc(input: CreatePostInput, now: Date): PostContentDoc {
   const id = input.id?.trim() || slugify(input.title) || nanoid(10);
   const updatedAt = now;
   const ogAssetKey = buildPostOgAssetKey(id, updatedAt);
+  const ogImagePath = buildPostOgPath(ogAssetKey);
   const title = input.title.trim();
-  const author = input.author?.trim() || "Frontend Developer";
+  const author = input.author?.trim() || "Ziad Hatem";
   const postText = input.post_text.trim();
   const imagePermalink = input.post_image?.permalink?.trim() || "/cover.jpg";
 
@@ -489,13 +497,13 @@ function buildPostDoc(input: CreatePostInput, now: Date): PostContentDoc {
     seo_settings: sanitizeSeoSettings(input.seo_settings, {
       title,
       description: postText.slice(0, 180),
-      imagePermalink,
+      imagePermalink: ogImagePath,
       keywords: buildPostKeywordFallback(title, author, postText),
     }),
-    publish_date: input.publish_date?.trim() || now.getFullYear().toString(),
+    publish_date: input.publish_date?.trim() || formatDateYyyyMmDd(now),
     permalink: input.permalink?.trim() || `/posts/${id}`,
     ogAssetKey,
-    ogImagePath: buildPostOgPath(ogAssetKey),
+    ogImagePath,
     createdAt: now,
     updatedAt,
   };
@@ -1010,6 +1018,8 @@ export async function updatePostContent(
   }
 
   const now = new Date();
+  const nextOgAssetKey = buildPostOgAssetKey(existing.id, now);
+  const nextOgImagePath = buildPostOgPath(nextOgAssetKey);
   const title = (patch.title ?? existing.title).trim();
   const author = (patch.author ?? existing.author).trim();
   const postText = (patch.post_text ?? existing.post_text).trim();
@@ -1019,15 +1029,28 @@ export async function updatePostContent(
     "/cover.jpg";
   const publishDate = (patch.publish_date ?? existing.publish_date).trim();
   const permalink = (patch.permalink ?? existing.permalink).trim();
-  const seoSettings = sanitizeSeoSettings(
+  const initialSeoSettings = sanitizeSeoSettings(
     patch.seo_settings ?? existing.seo_settings,
     {
       title,
       description: postText.slice(0, 180),
-      imagePermalink,
+      imagePermalink: nextOgImagePath,
       keywords: buildPostKeywordFallback(title, author, postText),
     }
   );
+  const existingSeoImagePermalink =
+    existing.seo_settings?.seo_image?.permalink?.trim() || "";
+  const shouldFollowGeneratedOg =
+    !patch.seo_settings?.seo_image?.permalink?.trim() &&
+    existingSeoImagePermalink === existing.ogImagePath;
+  const seoSettings = shouldFollowGeneratedOg
+    ? {
+        ...initialSeoSettings,
+        seo_image: {
+          permalink: nextOgImagePath,
+        },
+      }
+    : initialSeoSettings;
 
   const nextDoc: PostContentDoc = {
     ...existing,
@@ -1043,11 +1066,9 @@ export async function updatePostContent(
     publish_date: publishDate,
     permalink,
     updatedAt: now,
-    ogAssetKey: buildPostOgAssetKey(existing.id, now),
-    ogImagePath: "",
+    ogAssetKey: nextOgAssetKey,
+    ogImagePath: nextOgImagePath,
   };
-
-  nextDoc.ogImagePath = buildPostOgPath(nextDoc.ogAssetKey);
 
   await postsCollection.updateOne({ id }, { $set: nextDoc });
   return nextDoc;

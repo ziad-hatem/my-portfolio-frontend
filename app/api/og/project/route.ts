@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
           title: project.title,
           image: project.project_image?.permalink || null,
           company: project.company_name || null,
+          baseUrl: request.nextUrl.origin,
         });
 
         return respondWithAsset(request, generated);
@@ -67,6 +68,7 @@ export async function GET(request: NextRequest) {
       title,
       image,
       company,
+      baseUrl: request.nextUrl.origin,
     });
 
     return respondWithAsset(request, generated);

@@ -63,16 +63,16 @@ export const validateImage = (file: File): { valid: boolean; error?: string } =>
 /**
  * Compress and resize image before upload
  * @param file - Original image file
- * @param maxWidth - Maximum width (default: 800px)
- * @param maxHeight - Maximum height (default: 800px)
- * @param quality - JPEG quality 0-1 (default: 0.8)
+ * @param maxWidth - Maximum width (default: no limit)
+ * @param maxHeight - Maximum height (default: no limit)
+ * @param quality - JPEG quality 0-1 (default: 1)
  * @returns Promise<string> - Base64 encoded compressed image
  */
 export const compressImage = async (
   file: File,
-  maxWidth: number = 800,
-  maxHeight: number = 800,
-  quality: number = 0.8
+  maxWidth: number = Number.POSITIVE_INFINITY,
+  maxHeight: number = Number.POSITIVE_INFINITY,
+  quality: number = 1
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -131,7 +131,7 @@ export const compressImage = async (
 };
 
 /**
- * Process image upload with validation and compression
+ * Process image upload with validation and no compression
  * @param file - Image file to process
  * @returns Promise<{ success: boolean, data?: string, error?: string }>
  */
@@ -148,8 +148,8 @@ export const processImageUpload = async (
       };
     }
 
-    // Compress and encode
-    const base64Image = await compressImage(file);
+    // Preserve original quality by encoding the untouched file.
+    const base64Image = await fileToBase64(file);
 
     return {
       success: true,

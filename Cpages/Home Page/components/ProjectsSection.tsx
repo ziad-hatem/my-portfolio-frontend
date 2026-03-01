@@ -136,14 +136,15 @@ const ProjectsSection = ({ data }: ProjectsSectionProps) => {
                 <SwiperSlide key={project.id}>
                   <Link href={`/projects/${project.id}`}>
                     <article className="group rounded-2xl border border-border/80 bg-card/85 overflow-hidden transition-all hover:border-accent/50 h-full">
-                      <div className="relative h-64 sm:h-80 w-full overflow-hidden">
+                      <div className="relative aspect-video w-full overflow-hidden bg-background">
                         <Image
                           src={project.project_image || "/cover.jpg"}
                           alt={project.project_name || project.title}
                           fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="object-contain group-hover:scale-105 transition-transform duration-500"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/35 to-transparent" />
+                        <div className="absolute inset-0 bg-black/20" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-background/10 to-transparent" />
                         <div className="absolute left-4 bottom-4 inline-flex rounded-full border border-border/70 bg-background/65 px-3 py-1 text-xs text-muted-foreground">
                           {project.company_name || "Project"}
                         </div>

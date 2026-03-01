@@ -37,6 +37,7 @@ export function PostsPage({ posts }: PostsPageProps) {
               excerpt={post.post_text}
               image={post.post_image?.permalink}
               date={post.publish_date}
+              imageFit="contain"
               data-aos="fade-up"
               data-aos-delay={Math.min(index * 80, 320)}
             />

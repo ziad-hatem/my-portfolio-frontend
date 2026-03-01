@@ -42,6 +42,26 @@ function validateProjectPayload(body: unknown): {
   return { valid: true };
 }
 
+function getDuplicateProjectError(error: unknown): string | null {
+  if (!error || typeof error !== "object") {
+    return null;
+  }
+
+  const candidate = error as { code?: unknown; keyValue?: unknown };
+  if (candidate.code !== 11000) {
+    return null;
+  }
+
+  if (candidate.keyValue && typeof candidate.keyValue === "object") {
+    const keyValue = candidate.keyValue as { id?: unknown };
+    if (typeof keyValue.id === "string" && keyValue.id.trim().length > 0) {
+      return `Project id '${keyValue.id}' already exists. Use a different id or edit the existing project.`;
+    }
+  }
+
+  return "Project id already exists. Use a different id or edit the existing project.";
+}
+
 export async function GET(request: NextRequest) {
   const unauthorized = unauthorizedResponse(request);
   if (unauthorized) {
@@ -78,15 +98,35 @@ export async function POST(request: NextRequest) {
 
     const project = await createProjectContent(body as CreateProjectInput);
 
-    await ensureProjectOgAsset({
-      assetKey: project.ogAssetKey,
-      title: project.title,
-      image: project.project_image?.permalink || null,
-      company: project.company_name || null,
-    });
+    let warning: string | undefined;
+    try {
+      await ensureProjectOgAsset({
+        assetKey: project.ogAssetKey,
+        title: project.title,
+        image: project.project_image?.permalink || null,
+        company: project.company_name || null,
+        baseUrl: request.nextUrl.origin,
+      });
+    } catch (ogError) {
+      console.error("[Admin Projects] Project created but failed to generate OG image:", ogError);
+      warning = "Project created, but OG image generation failed. It will be regenerated on demand.";
+    }
 
-    return NextResponse.json({ success: true, data: project }, { status: 201 });
+    return NextResponse.json(
+      warning
+        ? { success: true, data: project, warning }
+        : { success: true, data: project },
+      { status: 201 }
+    );
   } catch (error) {
+    const duplicateError = getDuplicateProjectError(error);
+    if (duplicateError) {
+      return NextResponse.json(
+        { success: false, error: duplicateError },
+        { status: 409 }
+      );
+    }
+
     console.error("[Admin Projects] Failed to create project:", error);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
@@ -94,4 +134,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

@@ -8,6 +8,7 @@ import {
   Plus,
   RotateCcw,
   Save,
+  Sparkles,
   Trash2,
 } from "lucide-react";
 import { ProjectContentDoc } from "@/lib/content-types";
@@ -17,6 +18,7 @@ import AdminPageHeader from "../_components/AdminPageHeader";
 import AdminSearchSortBar from "../_components/AdminSearchSortBar";
 import AdminSplitLayout from "../_components/AdminSplitLayout";
 import FormField from "../_components/forms/FormField";
+import FormImageField from "../_components/forms/FormImageField";
 import FormTextarea from "../_components/forms/FormTextarea";
 import { useAdminApiKey } from "../_hooks/useAdminApiKey";
 import { useListQuery } from "../_hooks/useListQuery";
@@ -37,6 +39,10 @@ interface ProjectFormState {
   imagePermalink: string;
   skillsCsv: string;
   overviewText: string;
+}
+
+interface OgGenerateApiResponse {
+  permalink?: string;
 }
 
 const EMPTY_PROJECT_FORM: ProjectFormState = {
@@ -161,6 +167,7 @@ export default function ProjectsContentManager() {
   const [jsonBaseline, setJsonBaseline] = useState(toJson(buildPayloadFromForm(EMPTY_PROJECT_FORM)));
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [generatingSeoImage, setGeneratingSeoImage] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -244,17 +251,22 @@ export default function ProjectsContentManager() {
       setProjects(data);
       setLoading(false);
 
-      const nextSelectionId = preferredSelectionId ?? selectedId;
-      if (!nextSelectionId) {
+      const hasExplicitSelection = preferredSelectionId !== undefined;
+      const nextSelectionId = hasExplicitSelection ? preferredSelectionId : selectedId;
+      if (nextSelectionId) {
+        const matched = data.find((item) => item.id === nextSelectionId);
+        if (matched) {
+          selectProject(matched);
+          return;
+        }
+      }
+
+      if (data.length > 0) {
+        selectProject(data[0]);
         return;
       }
 
-      const matched = data.find((item) => item.id === nextSelectionId);
-      if (matched) {
-        selectProject(matched);
-      } else {
-        beginCreateMode();
-      }
+      beginCreateMode();
     },
     [apiKey, beginCreateMode, canRequest, selectProject, selectedId]
   );
@@ -416,6 +428,53 @@ export default function ProjectsContentManager() {
     await loadProjects(id === selectedId ? null : selectedId);
   };
 
+  const onGenerateSeoImage = async () => {
+    if (!canRequest) {
+      setError("Set your admin API key first.");
+      setSuccess(null);
+      return;
+    }
+
+    const title = form.title.trim();
+    if (!title) {
+      setError("Title is required to generate SEO image.");
+      setSuccess(null);
+      return;
+    }
+
+    setGeneratingSeoImage(true);
+    setError(null);
+    setSuccess(null);
+
+    const response = await adminPost<OgGenerateApiResponse>(
+      apiKey,
+      "/api/admin/og/generate",
+      {
+        kind: "project",
+        title,
+        image: form.imagePermalink.trim() || null,
+        company: form.companyName.trim() || null,
+      }
+    );
+
+    if (!response.success || !response.data?.permalink) {
+      setGeneratingSeoImage(false);
+      setError(response.error || "Failed to generate SEO image permalink.");
+      return;
+    }
+
+    const permalink = response.data.permalink;
+    setForm((prev) => ({ ...prev, seoImagePermalink: permalink }));
+    setGeneratingSeoImage(false);
+    const warning =
+      typeof response.warning === "string" ? response.warning : null;
+    setSuccess(
+      warning
+        ? `SEO OG image generated. ${warning}`
+        : "SEO OG image generated and permalink updated."
+    );
+  };
+
   return (
     <div className="space-y-4">
       <AdminPageHeader
@@ -431,6 +490,12 @@ export default function ProjectsContentManager() {
         refreshing={loading}
       />
 
+      {ready && !hasKey ? (
+        <AdminFeedbackBanner
+          variant="info"
+          message="Save your admin API key above to load and manage all projects."
+        />
+      ) : null}
       {error ? <AdminFeedbackBanner variant="error" message={error} /> : null}
       {success ? <AdminFeedbackBanner variant="success" message={success} /> : null}
 
@@ -636,25 +701,42 @@ export default function ProjectsContentManager() {
                   value={form.projectLink}
                   onChange={(value) => setForm((prev) => ({ ...prev, projectLink: value }))}
                 />
-                <FormField
+                <FormImageField
+                  apiKey={apiKey}
                   label="Image Permalink"
                   value={form.imagePermalink}
                   onChange={(value) => setForm((prev) => ({ ...prev, imagePermalink: value }))}
                   placeholder="/cover.jpg"
+                  previewAspect="16:9"
+                  previewFit="contain"
                 />
                 <FormField
                   label="SEO Title"
                   value={form.seoTitle}
                   onChange={(value) => setForm((prev) => ({ ...prev, seoTitle: value }))}
                 />
-                <FormField
-                  label="SEO Image Permalink"
-                  value={form.seoImagePermalink}
-                  onChange={(value) =>
-                    setForm((prev) => ({ ...prev, seoImagePermalink: value }))
-                  }
-                  placeholder="/cover.jpg"
-                />
+                <div className="flex flex-col gap-2">
+                  <FormImageField
+                    apiKey={apiKey}
+                    label="SEO Image Permalink"
+                    value={form.seoImagePermalink}
+                    onChange={(value) =>
+                      setForm((prev) => ({ ...prev, seoImagePermalink: value }))
+                    }
+                    placeholder="/cover.jpg"
+                    previewAspect="16:9"
+                    previewFit="contain"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void onGenerateSeoImage()}
+                    disabled={generatingSeoImage}
+                    className="inline-flex items-center justify-center gap-2 rounded-md border border-border px-3 py-2 text-xs text-foreground disabled:opacity-60"
+                  >
+                    <Sparkles size={12} aria-hidden="true" />
+                    {generatingSeoImage ? "Generating..." : "Generate SEO OG Image"}
+                  </button>
+                </div>
                 <div className="md:col-span-2">
                   <FormTextarea
                     label="Description"

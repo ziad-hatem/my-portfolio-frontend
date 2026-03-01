@@ -91,14 +91,23 @@ export async function PUT(
       );
     }
 
-    await ensurePostOgAsset({
-      assetKey: post.ogAssetKey,
-      title: post.title,
-      image: post.post_image?.permalink || null,
-      author: post.author || null,
-    });
+    let warning: string | undefined;
+    try {
+      await ensurePostOgAsset({
+        assetKey: post.ogAssetKey,
+        title: post.title,
+        image: post.post_image?.permalink || null,
+        author: post.author || null,
+        baseUrl: request.nextUrl.origin,
+      });
+    } catch (ogError) {
+      console.error("[Admin Post] Post updated but failed to generate OG image:", ogError);
+      warning = "Post updated, but OG image generation failed. It will be regenerated on demand.";
+    }
 
-    return NextResponse.json({ success: true, data: post });
+    return NextResponse.json(
+      warning ? { success: true, data: post, warning } : { success: true, data: post }
+    );
   } catch (error) {
     console.error("[Admin Post] Failed to update post:", error);
     return NextResponse.json(
@@ -136,4 +145,3 @@ export async function DELETE(
     );
   }
 }
-

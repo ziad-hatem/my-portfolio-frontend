@@ -14,6 +14,7 @@ import AdminFeedbackBanner from "../_components/AdminFeedbackBanner";
 import AdminPageHeader from "../_components/AdminPageHeader";
 import AdminSplitLayout from "../_components/AdminSplitLayout";
 import FormField from "../_components/forms/FormField";
+import FormImageField from "../_components/forms/FormImageField";
 import FormTextarea from "../_components/forms/FormTextarea";
 import { useAdminApiKey } from "../_hooks/useAdminApiKey";
 import { adminGet, adminPut } from "../_lib/admin-client";
@@ -514,7 +515,8 @@ export default function ToolsContentManager() {
                         setGuided((current) => ({ ...current, toolsTitle: value }))
                       }
                     />
-                    <FormField
+                    <FormImageField
+                      apiKey={apiKey}
                       label="SEO Image Permalink"
                       value={guided.toolsImagePermalink}
                       onChange={(value) =>
@@ -606,7 +608,8 @@ export default function ToolsContentManager() {
                             onChange={(value) => onUpdateTool(index, { path: value })}
                             placeholder="/tools/image-to-pdf"
                           />
-                          <FormField
+                          <FormImageField
+                            apiKey={apiKey}
                             label="SEO Image Permalink"
                             value={entry.seoImagePermalink}
                             onChange={(value) =>

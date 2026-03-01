@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowLeft, Calendar, User } from "lucide-react";
 import { ShareButtons } from "@/components/ShareButtons";
@@ -9,6 +9,25 @@ import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 interface SinglePostPageProps {
   postId: string | number;
   post: any;
+}
+
+function hasArabicText(value: string): boolean {
+  const plainText = String(value || "").replace(/<[^>]*>/g, " ");
+  return /[\u0600-\u06FF]/.test(plainText);
+}
+
+function escapeCodeInnerHtml(value: string): string {
+  return String(value || "")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function protectCodeBlocks(value: string): string {
+  return String(value || "").replace(
+    /<code(\s[^>]*)?>([\s\S]*?)<\/code>/gi,
+    (_match, attributes = "", codeContent = "") =>
+      `<code${attributes}>${escapeCodeInnerHtml(codeContent)}</code>`
+  );
 }
 
 export function SinglePostPage({ postId, post }: SinglePostPageProps) {
@@ -24,6 +43,35 @@ export function SinglePostPage({ postId, post }: SinglePostPageProps) {
       </div>
     );
   }
+
+  const postHtml = String(post.post_text || "");
+  const safePostHtml = protectCodeBlocks(postHtml);
+  const isArabicPost = hasArabicText(postHtml);
+  const postBodyRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const container = postBodyRef.current;
+    if (!container) {
+      return;
+    }
+
+    let active = true;
+    void (async () => {
+      const hljs = (await import("highlight.js")).default;
+      if (!active) {
+        return;
+      }
+
+      const blocks = container.querySelectorAll("pre code");
+      blocks.forEach((block) => {
+        hljs.highlightElement(block as HTMLElement);
+      });
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [safePostHtml]);
 
   return (
     <div className="min-h-screen pb-20 pt-[150px]!">
@@ -70,15 +118,20 @@ export function SinglePostPage({ postId, post }: SinglePostPageProps) {
             height={1080}
             src={post.post_image?.permalink}
             alt={post.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
           />
+          <div className="absolute inset-0 bg-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-background/10 to-transparent" />
         </div>
 
         {/* Article Body */}
-        <div className="prose prose-invert max-w-none" data-aos="fade-up" data-aos-delay="140">
+        <div className="max-w-none" data-aos="fade-up" data-aos-delay="140">
           <div
-            className="text-muted-foreground"
-            dangerouslySetInnerHTML={{ __html: post.post_text }}
+            ref={postBodyRef}
+            className="post-rich-text"
+            dir={isArabicPost ? "rtl" : "ltr"}
+            lang={isArabicPost ? "ar" : "en"}
+            dangerouslySetInnerHTML={{ __html: safePostHtml }}
           />
         </div>
 

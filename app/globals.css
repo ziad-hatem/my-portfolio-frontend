@@ -227,3 +227,103 @@ html {
     animation: rotation 1s linear infinite;
   }
 }
+
+@layer components {
+  .post-rich-text {
+    color: hsl(var(--muted-foreground));
+    line-height: 1.9;
+    word-break: break-word;
+  }
+
+  .post-rich-text h2,
+  .post-rich-text h3,
+  .post-rich-text h4 {
+    color: hsl(var(--foreground));
+    margin-top: 2rem;
+    margin-bottom: 0.9rem;
+    line-height: 1.4;
+  }
+
+  .post-rich-text h2 {
+    font-size: 1.75rem;
+  }
+
+  .post-rich-text h3 {
+    font-size: 1.35rem;
+  }
+
+  .post-rich-text p,
+  .post-rich-text ul,
+  .post-rich-text ol,
+  .post-rich-text blockquote,
+  .post-rich-text pre,
+  .post-rich-text table {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .post-rich-text ul,
+  .post-rich-text ol {
+    padding-inline-start: 1.2rem;
+  }
+
+  .post-rich-text li + li {
+    margin-top: 0.4rem;
+  }
+
+  .post-rich-text blockquote {
+    border-inline-start: 3px solid hsl(var(--accent));
+    padding-inline: 1rem;
+    opacity: 0.95;
+  }
+
+  .post-rich-text a {
+    color: hsl(var(--accent));
+    text-underline-offset: 3px;
+    text-decoration: underline;
+  }
+
+  .post-rich-text pre {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.75rem;
+    padding: 1rem;
+    overflow-x: auto;
+    direction: ltr;
+    text-align: left;
+    unicode-bidi: isolate;
+  }
+
+  .post-rich-text code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+      "Liberation Mono", "Courier New", monospace;
+    font-size: 0.9em;
+  }
+
+  .post-rich-text :not(pre) > code {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.45rem;
+    padding: 0.12rem 0.4rem;
+  }
+
+  .post-rich-text pre code {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    white-space: pre;
+    display: block;
+  }
+
+  .post-rich-text[lang="ar"] {
+    direction: rtl;
+    text-align: right;
+  }
+
+  .post-rich-text[lang="ar"] pre,
+  .post-rich-text[lang="ar"] code,
+  .post-rich-text[lang="ar"] a {
+    direction: ltr;
+    text-align: left;
+  }
+}

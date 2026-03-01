@@ -9,6 +9,23 @@ import {
   StructuredData,
 } from "@/utils/seo/structuredData";
 
+function sanitizeOptionalString(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function toAbsoluteUrl(source: string, baseUrl: string): string {
+  try {
+    return new URL(source).toString();
+  } catch {
+    return new URL(source.startsWith("/") ? source : `/${source}`, baseUrl).toString();
+  }
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -37,8 +54,13 @@ export async function generateMetadata({
     (seoSettings.seo_description || "").trim() ||
     post?.post_text?.substring(0, 160) ||
     "";
-  const image =
-    seoSettings.seo_image?.permalink || post?.post_image?.permalink || "/cover.jpg";
+  const seoImagePermalink = sanitizeOptionalString(
+    seoSettings.seo_image?.permalink
+  );
+  const legacyOgImagePath = sanitizeOptionalString(post.ogImagePath);
+  const postImagePermalink =
+    sanitizeOptionalString(post?.post_image?.permalink) || "/cover.jpg";
+  const image = seoImagePermalink || postImagePermalink;
   const keywords =
     (seoSettings.seo_keywords || "").trim() ||
     [post?.title, post?.author, post?.post_text].filter(Boolean).join(", ");
@@ -46,8 +68,9 @@ export async function generateMetadata({
   // Generate OG image URL with post details
   const baseUrl =
     process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
-  const ogImageUrl = post.ogImagePath
-    ? `${baseUrl}${post.ogImagePath}`
+  const storedOgImage = seoImagePermalink || legacyOgImagePath;
+  const ogImageUrl = storedOgImage
+    ? toAbsoluteUrl(storedOgImage, baseUrl)
     : `${baseUrl}/api/og/post?title=${encodeURIComponent(
         post?.title || ""
       )}&image=${encodeURIComponent(image || "")}&author=${encodeURIComponent(
@@ -97,6 +120,11 @@ export default async function PostPage({
 
   const baseUrl =
     process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+  const seoImagePermalink = sanitizeOptionalString(
+    post?.seo_settings?.seo_image?.permalink
+  );
+  const postImagePermalink =
+    sanitizeOptionalString(post?.post_image?.permalink) || "/cover.jpg";
 
   // Generate structured data
   const blogPostSchema = generateBlogPostSchema({
@@ -107,7 +135,7 @@ export default async function PostPage({
       "",
     author: post?.author || "Frontend Developer",
     datePublished: post?.publish_date || new Date().toISOString(),
-    image: post?.post_image?.permalink,
+    image: toAbsoluteUrl(seoImagePermalink || postImagePermalink, baseUrl),
     url: `${baseUrl}/posts/${id}`,
   });
 

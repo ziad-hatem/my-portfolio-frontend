@@ -10,6 +10,7 @@ import { useAdminApiKey } from "../_hooks/useAdminApiKey";
 import { adminGet, adminPut } from "../_lib/admin-client";
 import { EditorMode } from "../_types/admin-ui";
 import FormField from "../_components/forms/FormField";
+import FormImageField from "../_components/forms/FormImageField";
 import FormTextarea from "../_components/forms/FormTextarea";
 
 interface HomeGuidedState {
@@ -450,12 +451,14 @@ export default function HomeContentManager() {
                   value={guided.seoTitle}
                   onChange={(value) => setGuided((prev) => ({ ...prev, seoTitle: value }))}
                 />
-                <FormField
+                <FormImageField
+                  apiKey={apiKey}
                   label="SEO Image Permalink"
                   value={guided.seoImagePermalink}
                   onChange={(value) =>
                     setGuided((prev) => ({ ...prev, seoImagePermalink: value }))
                   }
+                  placeholder="/cover.jpg"
                 />
                 <div className="md:col-span-2">
                   <FormTextarea

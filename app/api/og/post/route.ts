@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
           title: post.title,
           image: post.post_image?.permalink || null,
           author: post.author || null,
+          baseUrl: request.nextUrl.origin,
         });
 
         return respondWithAsset(request, generated);
@@ -67,6 +68,7 @@ export async function GET(request: NextRequest) {
       title,
       image,
       author,
+      baseUrl: request.nextUrl.origin,
     });
 
     return respondWithAsset(request, generated);

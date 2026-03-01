@@ -10,6 +10,23 @@ import {
   StructuredData,
 } from "@/utils/seo/structuredData";
 
+function sanitizeOptionalString(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function toAbsoluteUrl(source: string, baseUrl: string): string {
+  try {
+    return new URL(source).toString();
+  } catch {
+    return new URL(source.startsWith("/") ? source : `/${source}`, baseUrl).toString();
+  }
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -36,8 +53,13 @@ export async function generateMetadata({
     (seoSettings.seo_title || "").trim() || `${project.title} | Ziad Hatem`;
   const metadataDescription =
     (seoSettings.seo_description || "").trim() || project.project_description;
-  const image =
-    seoSettings.seo_image?.permalink || project.project_image?.permalink || "/cover.jpg";
+  const seoImagePermalink = sanitizeOptionalString(
+    seoSettings.seo_image?.permalink
+  );
+  const legacyOgImagePath = sanitizeOptionalString(project.ogImagePath);
+  const projectImagePermalink =
+    sanitizeOptionalString(project.project_image?.permalink) || "/cover.jpg";
+  const image = seoImagePermalink || projectImagePermalink;
   const projectOverview = Array.isArray(project.project_overview)
     ? project.project_overview.join(" ")
     : String(project.project_overview || "");
@@ -50,8 +72,9 @@ export async function generateMetadata({
   // Generate OG image URL with project details
   const baseUrl =
     process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
-  const ogImageUrl = project.ogImagePath
-    ? `${baseUrl}${project.ogImagePath}`
+  const storedOgImage = seoImagePermalink || legacyOgImagePath;
+  const ogImageUrl = storedOgImage
+    ? toAbsoluteUrl(storedOgImage, baseUrl)
     : `${baseUrl}/api/og/project?title=${encodeURIComponent(
         project.title
       )}&image=${encodeURIComponent(image)}&company=${encodeURIComponent(
@@ -101,6 +124,11 @@ export default async function ProjectPage({
 
   const baseUrl =
     process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+  const seoImagePermalink = sanitizeOptionalString(
+    project.seo_settings?.seo_image?.permalink
+  );
+  const projectImagePermalink =
+    sanitizeOptionalString(project.project_image?.permalink) || "/cover.jpg";
 
   // Get author name from home data
   const homeData: any = await getHomeData();
@@ -111,7 +139,7 @@ export default async function ProjectPage({
     name: project.title,
     description:
       project.seo_settings?.seo_description || project.project_description,
-    image: project.project_image?.permalink,
+    image: toAbsoluteUrl(seoImagePermalink || projectImagePermalink, baseUrl),
     url: `${baseUrl}/projects/${id}`,
     author: authorName,
     keywords: project.skills?.map((skill: any) => skill.skill_name) || [],

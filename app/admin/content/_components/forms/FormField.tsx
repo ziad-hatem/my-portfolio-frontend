@@ -6,7 +6,7 @@ interface FormFieldProps {
   onChange: (value: string) => void;
   placeholder?: string;
   required?: boolean;
-  type?: "text" | "url" | "email";
+  type?: "text" | "url" | "email" | "date";
 }
 
 export default function FormField({

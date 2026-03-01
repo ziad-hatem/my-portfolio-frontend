@@ -10,6 +10,7 @@ interface PostCardProps {
   image: string;
   date: string;
   postId: string | number;
+  imageFit?: "cover" | "contain";
   "data-aos"?: string;
   "data-aos-delay"?: string | number;
 }
@@ -27,9 +28,15 @@ export function PostCard({
   image,
   date,
   postId,
+  imageFit = "cover",
   "data-aos": dataAos,
   "data-aos-delay": dataAosDelay,
 }: PostCardProps) {
+  const imageClassName =
+    imageFit === "contain"
+      ? "w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+      : "w-full h-full object-cover group-hover:scale-105 transition-transform duration-500";
+
   return (
     <Link
       href={`/posts/${postId}`}
@@ -43,7 +50,7 @@ export function PostCard({
           height={600}
           src={image || "/cover.jpg"}
           alt={title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className={imageClassName}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/85 via-background/20 to-transparent opacity-85" />
       </div>

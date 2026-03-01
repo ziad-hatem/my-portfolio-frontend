@@ -11,6 +11,7 @@ interface ProjectCardProps {
   tags: string[];
   workContext?: string;
   projectId: string | number;
+  imageFit?: "cover" | "contain";
 }
 
 function stripHtml(value: string): string {
@@ -27,7 +28,13 @@ export function ProjectCard({
   tags,
   workContext,
   projectId,
+  imageFit = "cover",
 }: ProjectCardProps) {
+  const imageClassName =
+    imageFit === "contain"
+      ? "w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+      : "w-full h-full object-cover group-hover:scale-105 transition-transform duration-500";
+
   return (
     <Link
       href={`/projects/${projectId}`}
@@ -39,7 +46,7 @@ export function ProjectCard({
           height={600}
           src={image || "/cover.jpg"}
           alt={title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className={imageClassName}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/85 via-background/20 to-transparent opacity-85" />
       </div>

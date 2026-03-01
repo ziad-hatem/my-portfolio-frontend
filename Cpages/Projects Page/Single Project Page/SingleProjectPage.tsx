@@ -129,20 +129,23 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
         </div>
 
         <section
-          className="relative overflow-hidden rounded-3xl border border-border/80 min-h-[380px] md:min-h-[460px] bg-card/50"
+          className="relative overflow-hidden rounded-3xl border border-border/80 bg-card/50"
           data-aos="fade-up"
           data-aos-delay="60"
         >
-          <ImageWithFallback
-            width={1920}
-            height={1080}
-            src={project.image}
-            alt={project.title}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/65 to-background/20" />
+          <div className="relative aspect-video w-full overflow-hidden bg-background">
+            <ImageWithFallback
+              width={1920}
+              height={1080}
+              src={project.image}
+              alt={project.title}
+              className="absolute inset-0 w-full h-full object-contain"
+            />
+            <div className="absolute inset-0 bg-black/20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-background/10 to-transparent" />
+          </div>
 
-          <div className="relative h-full p-6 md:p-10 lg:p-14 flex flex-col justify-end">
+          <div className="relative p-6 md:p-10 lg:p-14">
             <div className="flex flex-wrap items-center gap-2 mb-4">
               <span
                 className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/60 px-3 py-1 text-xs text-muted-foreground"

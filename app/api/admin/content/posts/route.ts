@@ -71,14 +71,25 @@ export async function POST(request: NextRequest) {
     }
 
     const post = await createPostContent(body as CreatePostInput);
-    await ensurePostOgAsset({
-      assetKey: post.ogAssetKey,
-      title: post.title,
-      image: post.post_image?.permalink || null,
-      author: post.author || null,
-    });
 
-    return NextResponse.json({ success: true, data: post }, { status: 201 });
+    let warning: string | undefined;
+    try {
+      await ensurePostOgAsset({
+        assetKey: post.ogAssetKey,
+        title: post.title,
+        image: post.post_image?.permalink || null,
+        author: post.author || null,
+        baseUrl: request.nextUrl.origin,
+      });
+    } catch (ogError) {
+      console.error("[Admin Posts] Post created but failed to generate OG image:", ogError);
+      warning = "Post created, but OG image generation failed. It will be regenerated on demand.";
+    }
+
+    return NextResponse.json(
+      warning ? { success: true, data: post, warning } : { success: true, data: post },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("[Admin Posts] Failed to create post:", error);
     return NextResponse.json(
@@ -87,4 +98,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

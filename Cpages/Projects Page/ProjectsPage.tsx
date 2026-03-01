@@ -276,6 +276,7 @@ export function ProjectsPage({ projects: fetchedProjects }: ProjectsPageProps) {
                         ? project.company_name
                         : (project as any).workContext
                     }
+                    imageFit="contain"
                   />
                 </div>
               );

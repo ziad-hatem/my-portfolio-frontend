@@ -26,6 +26,7 @@
     "clsx": "^2.1.1",
     "gsap": "^3.13.0",
     "heic2any": "^0.0.4",
+    "highlight.js": "^11.11.1",
     "hono": "^4.10.4",
     "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",

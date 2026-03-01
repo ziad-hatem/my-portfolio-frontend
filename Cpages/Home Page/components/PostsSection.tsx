@@ -136,6 +136,7 @@ const PostsSection = ({ data }: PostsSectionProps) => {
                     excerpt={post.post_text}
                     image={post.post_image}
                     date={post.date}
+                    imageFit="contain"
                     data-aos="fade-up"
                   />
                 </SwiperSlide>

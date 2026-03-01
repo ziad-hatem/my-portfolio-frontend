@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "aos/dist/aos.css";
+import "highlight.js/styles/github-dark.css";
 import { Toaster } from "sonner";
 import ClientEffects from "@/components/ClientEffects";
 

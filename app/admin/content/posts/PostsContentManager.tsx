@@ -2,12 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  Check,
+  Copy,
   Edit3,
   FileJson,
   LayoutTemplate,
   Plus,
   RotateCcw,
   Save,
+  Sparkles,
   Trash2,
 } from "lucide-react";
 import { PostContentDoc } from "@/lib/content-types";
@@ -17,11 +20,13 @@ import AdminPageHeader from "../_components/AdminPageHeader";
 import AdminSearchSortBar from "../_components/AdminSearchSortBar";
 import AdminSplitLayout from "../_components/AdminSplitLayout";
 import FormField from "../_components/forms/FormField";
+import FormImageField from "../_components/forms/FormImageField";
 import FormTextarea from "../_components/forms/FormTextarea";
 import { useAdminApiKey } from "../_hooks/useAdminApiKey";
 import { useListQuery } from "../_hooks/useListQuery";
 import { adminDelete, adminGet, adminPost, adminPut } from "../_lib/admin-client";
 import { EditorMode } from "../_types/admin-ui";
+import { LINKEDIN_TO_POST_HTML_PROMPT } from "@/lib/prompts/linkedin-to-post-html";
 
 interface PostFormState {
   id: string;
@@ -37,19 +42,51 @@ interface PostFormState {
   imagePermalink: string;
 }
 
-const EMPTY_POST_FORM: PostFormState = {
-  id: "",
-  title: "",
-  author: "",
-  postText: "",
-  seoTitle: "",
-  seoDescription: "",
-  seoKeywords: "",
-  seoImagePermalink: "",
-  publishDate: "",
-  permalink: "",
-  imagePermalink: "",
-};
+interface OgGenerateApiResponse {
+  permalink?: string;
+}
+
+function getTodayDateValue(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function slugifyPostId(value: string): string {
+  return String(value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+function buildPostPermalink(id: string): string {
+  const trimmed = id.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  return `/posts/${trimmed}`;
+}
+
+function createEmptyPostFormState(): PostFormState {
+  return {
+    id: "",
+    title: "",
+    author: "Ziad Hatem",
+    postText: "",
+    seoTitle: "",
+    seoDescription: "",
+    seoKeywords: "",
+    seoImagePermalink: "",
+    publishDate: getTodayDateValue(),
+    permalink: "",
+    imagePermalink: "",
+  };
+}
 
 function toJson(value: unknown): string {
   return JSON.stringify(value, null, 2);
@@ -59,7 +96,7 @@ function buildFormFromPost(post: PostContentDoc): PostFormState {
   return {
     id: post.id || "",
     title: post.title || "",
-    author: post.author || "",
+    author: post.author || "Ziad Hatem",
     postText: post.post_text || "",
     seoTitle: post.seo_settings?.seo_title || "",
     seoDescription: post.seo_settings?.seo_description || "",
@@ -89,10 +126,7 @@ function buildPayloadFromForm(form: PostFormState): Record<string, unknown> {
       form.seoKeywords.trim() ||
       [form.title.trim(), form.author.trim()].filter(Boolean).join(", "),
     seo_image: {
-      permalink:
-        form.seoImagePermalink.trim() ||
-        form.imagePermalink.trim() ||
-        "/cover.jpg",
+      permalink: form.seoImagePermalink.trim(),
     },
   };
 
@@ -131,12 +165,22 @@ export default function PostsContentManager() {
   const [posts, setPosts] = useState<PostContentDoc[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mode, setMode] = useState<EditorMode>("guided");
-  const [form, setForm] = useState<PostFormState>(EMPTY_POST_FORM);
-  const [formBaseline, setFormBaseline] = useState(toJson(EMPTY_POST_FORM));
-  const [jsonBody, setJsonBody] = useState(toJson(buildPayloadFromForm(EMPTY_POST_FORM)));
-  const [jsonBaseline, setJsonBaseline] = useState(toJson(buildPayloadFromForm(EMPTY_POST_FORM)));
+  const [form, setForm] = useState<PostFormState>(() => createEmptyPostFormState());
+  const [formBaseline, setFormBaseline] = useState(() =>
+    toJson(createEmptyPostFormState())
+  );
+  const [jsonBody, setJsonBody] = useState(() =>
+    toJson(buildPayloadFromForm(createEmptyPostFormState()))
+  );
+  const [jsonBaseline, setJsonBaseline] = useState(() =>
+    toJson(buildPayloadFromForm(createEmptyPostFormState()))
+  );
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [generatingSeoImage, setGeneratingSeoImage] = useState(false);
+  const [promptCopied, setPromptCopied] = useState(false);
+  const [idOverridden, setIdOverridden] = useState(false);
+  const [permalinkOverridden, setPermalinkOverridden] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -179,7 +223,9 @@ export default function PostsContentManager() {
   const beginCreateMode = useCallback(() => {
     setSelectedId(null);
     setMode("guided");
-    applyEditorState(EMPTY_POST_FORM);
+    applyEditorState(createEmptyPostFormState());
+    setIdOverridden(false);
+    setPermalinkOverridden(false);
     setError(null);
     setSuccess(null);
   }, [applyEditorState]);
@@ -189,6 +235,8 @@ export default function PostsContentManager() {
       setSelectedId(post.id);
       setMode("guided");
       applyEditorState(buildFormFromPost(post));
+      setIdOverridden(true);
+      setPermalinkOverridden(true);
       setError(null);
       setSuccess(null);
     },
@@ -392,6 +440,65 @@ export default function PostsContentManager() {
     await loadPosts(id === selectedId ? null : selectedId);
   };
 
+  const onGenerateSeoImage = async () => {
+    if (!canRequest) {
+      setError("Set your admin API key first.");
+      setSuccess(null);
+      return;
+    }
+
+    const title = form.title.trim();
+    if (!title) {
+      setError("Title is required to generate SEO image.");
+      setSuccess(null);
+      return;
+    }
+
+    setGeneratingSeoImage(true);
+    setError(null);
+    setSuccess(null);
+
+    const response = await adminPost<OgGenerateApiResponse>(
+      apiKey,
+      "/api/admin/og/generate",
+      {
+        kind: "post",
+        title,
+        image: form.imagePermalink.trim() || null,
+        author: form.author.trim() || null,
+      }
+    );
+
+    if (!response.success || !response.data?.permalink) {
+      setGeneratingSeoImage(false);
+      setError(response.error || "Failed to generate SEO image permalink.");
+      return;
+    }
+
+    const permalink = response.data.permalink;
+    setForm((prev) => ({ ...prev, seoImagePermalink: permalink }));
+    setGeneratingSeoImage(false);
+    const warning =
+      typeof response.warning === "string" ? response.warning : null;
+    setSuccess(
+      warning
+        ? `SEO OG image generated. ${warning}`
+        : "SEO OG image generated and permalink updated."
+    );
+  };
+
+  const onCopyLinkedInPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(LINKEDIN_TO_POST_HTML_PROMPT);
+      setPromptCopied(true);
+      window.setTimeout(() => {
+        setPromptCopied(false);
+      }, 1600);
+    } catch {
+      setError("Could not copy prompt. Copy it manually from code.");
+    }
+  };
+
   return (
     <div className="space-y-4">
       <AdminPageHeader
@@ -588,14 +695,66 @@ export default function PostsContentManager() {
                 <FormField
                   label="Post ID"
                   value={form.id}
-                  onChange={(value) => setForm((prev) => ({ ...prev, id: value }))}
+                  onChange={(value) => {
+                    const trimmed = value.trim();
+
+                    if (trimmed.length === 0) {
+                      setIdOverridden(false);
+                      setForm((prev) => ({
+                        ...prev,
+                        id: selectedPost ? value : slugifyPostId(prev.title),
+                        permalink:
+                          selectedPost || permalinkOverridden
+                            ? prev.permalink
+                            : buildPostPermalink(slugifyPostId(prev.title)),
+                      }));
+                      return;
+                    }
+
+                    setIdOverridden(true);
+                    setForm((prev) => ({
+                      ...prev,
+                      id: value,
+                      permalink:
+                        selectedPost || permalinkOverridden
+                          ? prev.permalink
+                          : buildPostPermalink(trimmed),
+                    }));
+                  }}
                   placeholder={selectedPost ? selectedPost.id : "optional-custom-id"}
                 />
                 <FormField
                   label="Title"
                   required
                   value={form.title}
-                  onChange={(value) => setForm((prev) => ({ ...prev, title: value }))}
+                  onChange={(value) => {
+                    const autoId = slugifyPostId(value);
+                    setForm((prev) => {
+                      const nextId =
+                        selectedPost || idOverridden ? prev.id.trim() : autoId;
+
+                      if (selectedPost || idOverridden) {
+                        return {
+                          ...prev,
+                          title: value,
+                          permalink:
+                            selectedPost || permalinkOverridden
+                              ? prev.permalink
+                              : buildPostPermalink(nextId),
+                        };
+                      }
+
+                      return {
+                        ...prev,
+                        title: value,
+                        id: autoId,
+                        permalink:
+                          selectedPost || permalinkOverridden
+                            ? prev.permalink
+                            : buildPostPermalink(autoId),
+                      };
+                    });
+                  }}
                 />
                 <FormField
                   label="Author"
@@ -604,35 +763,67 @@ export default function PostsContentManager() {
                 />
                 <FormField
                   label="Publish Date"
+                  type="date"
                   value={form.publishDate}
                   onChange={(value) => setForm((prev) => ({ ...prev, publishDate: value }))}
-                  placeholder="2026"
+                  placeholder="YYYY-MM-DD"
                 />
                 <FormField
                   label="Permalink"
                   value={form.permalink}
-                  onChange={(value) => setForm((prev) => ({ ...prev, permalink: value }))}
+                  onChange={(value) => {
+                    const trimmed = value.trim();
+
+                    if (trimmed.length === 0) {
+                      setPermalinkOverridden(false);
+                      setForm((prev) => ({
+                        ...prev,
+                        permalink: selectedPost ? value : buildPostPermalink(prev.id),
+                      }));
+                      return;
+                    }
+
+                    setPermalinkOverridden(true);
+                    setForm((prev) => ({ ...prev, permalink: value }));
+                  }}
                   placeholder="/posts/post-id"
                 />
-                <FormField
+                <FormImageField
+                  apiKey={apiKey}
                   label="Image Permalink"
                   value={form.imagePermalink}
                   onChange={(value) => setForm((prev) => ({ ...prev, imagePermalink: value }))}
                   placeholder="/cover.jpg"
+                  previewAspect="16:9"
+                  previewFit="contain"
                 />
                 <FormField
                   label="SEO Title"
                   value={form.seoTitle}
                   onChange={(value) => setForm((prev) => ({ ...prev, seoTitle: value }))}
                 />
-                <FormField
-                  label="SEO Image Permalink"
-                  value={form.seoImagePermalink}
-                  onChange={(value) =>
-                    setForm((prev) => ({ ...prev, seoImagePermalink: value }))
-                  }
-                  placeholder="/cover.jpg"
-                />
+                <div className="flex flex-col gap-2">
+                  <FormImageField
+                    apiKey={apiKey}
+                    label="SEO Image Permalink"
+                    value={form.seoImagePermalink}
+                    onChange={(value) =>
+                      setForm((prev) => ({ ...prev, seoImagePermalink: value }))
+                    }
+                    placeholder="/cover.jpg"
+                    previewAspect="16:9"
+                    previewFit="contain"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void onGenerateSeoImage()}
+                    disabled={generatingSeoImage}
+                    className="inline-flex items-center justify-center gap-2 rounded-md border border-border px-3 py-2 text-xs text-foreground disabled:opacity-60"
+                  >
+                    <Sparkles size={12} aria-hidden="true" />
+                    {generatingSeoImage ? "Generating..." : "Generate SEO OG Image"}
+                  </button>
+                </div>
                 <div className="md:col-span-2">
                   <FormTextarea
                     label="SEO Description"
@@ -650,6 +841,19 @@ export default function PostsContentManager() {
                   placeholder="next.js, web development, frontend"
                 />
                 <div className="md:col-span-2">
+                  <div className="mb-3 rounded-lg border border-border/80 bg-background/50 px-3 py-2">
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Need to convert LinkedIn text to valid HTML (with code blocks + Arabic support)?
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => void onCopyLinkedInPrompt()}
+                      className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs text-foreground"
+                    >
+                      {promptCopied ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
+                      {promptCopied ? "Prompt copied" : "Copy AI Prompt"}
+                    </button>
+                  </div>
                   <FormTextarea
                     label="Post Body (HTML allowed)"
                     required

@@ -91,14 +91,25 @@ export async function PUT(
       );
     }
 
-    await ensureProjectOgAsset({
-      assetKey: project.ogAssetKey,
-      title: project.title,
-      image: project.project_image?.permalink || null,
-      company: project.company_name || null,
-    });
+    let warning: string | undefined;
+    try {
+      await ensureProjectOgAsset({
+        assetKey: project.ogAssetKey,
+        title: project.title,
+        image: project.project_image?.permalink || null,
+        company: project.company_name || null,
+        baseUrl: request.nextUrl.origin,
+      });
+    } catch (ogError) {
+      console.error("[Admin Project] Project updated but failed to generate OG image:", ogError);
+      warning = "Project updated, but OG image generation failed. It will be regenerated on demand.";
+    }
 
-    return NextResponse.json({ success: true, data: project });
+    return NextResponse.json(
+      warning
+        ? { success: true, data: project, warning }
+        : { success: true, data: project }
+    );
   } catch (error) {
     console.error("[Admin Project] Failed to update project:", error);
     return NextResponse.json(
@@ -136,4 +147,3 @@ export async function DELETE(
     );
   }
 }
-
