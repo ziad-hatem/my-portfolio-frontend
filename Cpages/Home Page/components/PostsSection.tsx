@@ -2,11 +2,12 @@
 
 import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useRef, useState } from "react";
 import type { Swiper as SwiperType } from "swiper";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { PostCard } from "./PostCard";
+import { sanitizeHtml } from "@/utils/sanitize";
+import { useSwiper } from "@/hooks/useSwiper";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -28,18 +29,9 @@ interface PostsSectionProps {
 }
 
 const PostsSection = ({ data }: PostsSectionProps) => {
-  const swiperRef = useRef<SwiperType | null>(null);
-  const [isBeginning, setIsBeginning] = useState(true);
-  const [isEnd, setIsEnd] = useState(false);
-
+  const { swiperRef, isBeginning, isEnd, syncNavigationState } = useSwiper();
   const posts = data.posts || [];
   const canSlide = posts.length > 1;
-
-  const syncNavigationState = (swiper: SwiperType) => {
-    const locked = swiper.isLocked;
-    setIsBeginning(locked || swiper.isBeginning);
-    setIsEnd(locked || swiper.isEnd);
-  };
 
   return (
     <section className="relative py-20 px-4 sm:px-6 lg:px-8">
@@ -63,10 +55,16 @@ const PostsSection = ({ data }: PostsSectionProps) => {
               className="text-lg text-muted-foreground mb-8 leading-relaxed"
               data-aos="fade-up"
               data-aos-delay="100"
-              dangerouslySetInnerHTML={{ __html: data.description || "" }}
+              dangerouslySetInnerHTML={{
+                __html: sanitizeHtml(data.description || ""),
+              }}
             />
 
-            <div className="flex items-center gap-3 mb-8" data-aos="fade-up" data-aos-delay="200">
+            <div
+              className="flex items-center gap-3 mb-8"
+              data-aos="fade-up"
+              data-aos-delay="200"
+            >
               <button
                 onClick={() => swiperRef.current?.slidePrev()}
                 disabled={isBeginning}
@@ -96,7 +94,11 @@ const PostsSection = ({ data }: PostsSectionProps) => {
             </Link>
           </div>
 
-          <div className="lg:col-span-8 min-w-0 overflow-hidden" data-aos="fade-up" data-aos-delay="120">
+          <div
+            className="lg:col-span-8 min-w-0 overflow-hidden"
+            data-aos="fade-up"
+            data-aos-delay="120"
+          >
             <Swiper
               onSwiper={(swiper) => {
                 swiperRef.current = swiper;
@@ -126,7 +128,7 @@ const PostsSection = ({ data }: PostsSectionProps) => {
                   spaceBetween: 24,
                 },
               }}
-              className="w-full !pb-5"
+              className="w-full pb-5!"
             >
               {posts.map((post) => (
                 <SwiperSlide key={post.id}>

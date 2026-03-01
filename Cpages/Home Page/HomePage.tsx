@@ -1,5 +1,3 @@
-"use client";
-
 import { checkIfExist } from "@/lib/checkIfExist";
 import ExperienceSection from "./components/ExperienceSection";
 import Hero from "./components/Hero";
@@ -9,7 +7,7 @@ import SkillsSection from "./components/SkillsSection";
 import ToolsSection from "./components/ToolsSection";
 
 export function HomePage({ data }: any) {
-  const homeData = data.home;
+  const homeData = data?.home ?? {};
   const allProjects = data.projects?.data || [];
   const allPosts = data.posts?.data || [];
 
@@ -39,24 +37,24 @@ export function HomePage({ data }: any) {
         icon: checkIfExist(social?.social_icon?.permalink, ""),
         link: checkIfExist(social?.social_link, ""),
       })),
-      []
+      [],
     ),
 
     buttons: checkIfExist(
       homeData?.buttons?.map((btn: any) => ({
         id: checkIfExist(btn?.id, ""),
-        text: checkIfExist(btn?.buttton_text, ""),
+        text: checkIfExist(btn?.button_text, ""),
         link: checkIfExist(btn?.button_link, ""),
         fill_background: checkIfExist(btn?.fill_background, false),
       })),
-      []
+      [],
     ),
   };
 
   const projectsData = {
     title: checkIfExist(homeData?.featured_projects_section_1title, ""),
     description: checkIfExist(
-      homeData?.featured_projects_section_1project_description
+      homeData?.featured_projects_section_1project_description,
     ),
     featured_projects: checkIfExist(
       allProjects.map((project: any) => ({
@@ -72,10 +70,10 @@ export function HomePage({ data }: any) {
           project?.skills?.map((skill: any) => ({
             skill_name: checkIfExist(skill?.skill_name, ""),
           })),
-          []
+          [],
         ),
       })),
-      []
+      [],
     ),
   };
 
@@ -92,7 +90,7 @@ export function HomePage({ data }: any) {
         to: checkIfExist(exp?.to, ""),
         present: checkIfExist(exp?.present, false),
       })),
-      []
+      [],
     ),
   };
 
@@ -106,7 +104,7 @@ export function HomePage({ data }: any) {
         skill_link: checkIfExist(skill?.skill_link, ""),
         skill_image: checkIfExist(skill?.skill_image?.permalink, ""),
       })),
-      []
+      [],
     ),
   };
 
@@ -123,7 +121,7 @@ export function HomePage({ data }: any) {
         post_text: checkIfExist(post?.post_text, ""),
         post_image: checkIfExist(post?.post_image?.permalink, ""),
       })),
-      []
+      [],
     ),
   };
 

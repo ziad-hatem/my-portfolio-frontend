@@ -24,9 +24,12 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative overflow-hidden border-t border-border/70 bg-background" data-aos="fade-up">
+    <footer
+      className="relative overflow-hidden border-t border-border/70 bg-background"
+      data-aos="fade-up"
+    >
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/75 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-accent/75 to-transparent" />
         <div className="absolute -top-24 left-1/2 h-64 w-[46rem] -translate-x-1/2 rounded-full bg-accent/15 blur-3xl" />
         <div className="absolute bottom-0 left-0 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" />
       </div>
@@ -45,11 +48,13 @@ export function Footer() {
               </div>
 
               <h2 className="text-3xl font-semibold leading-tight text-foreground sm:text-4xl">
-                Let&apos;s turn your next idea into a polished, production-ready product.
+                Let&apos;s turn your next idea into a polished, production-ready
+                product.
               </h2>
 
               <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-                I design and build fast, accessible interfaces with a clean engineering approach and reliable backend integration.
+                I design and build fast, accessible interfaces with a clean
+                engineering approach and reliable backend integration.
               </p>
 
               <div className="mt-7 flex flex-wrap items-center gap-3">

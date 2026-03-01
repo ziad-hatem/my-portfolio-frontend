@@ -1,6 +1,12 @@
+import { cache } from "react";
 import { getHomeBundleData } from "../content-service";
 
-const getHomeData = async () => {
+/**
+ * Fetches all data needed for the home page.
+ * Wrapped with React.cache() to deduplicate calls within the same render cycle
+ * (e.g. generateMetadata + the page component both calling it).
+ */
+const getHomeData = cache(async () => {
   try {
     return await getHomeBundleData();
   } catch (error) {
@@ -11,6 +17,6 @@ const getHomeData = async () => {
       posts: { data: [] },
     };
   }
-};
+});
 
 export default getHomeData;

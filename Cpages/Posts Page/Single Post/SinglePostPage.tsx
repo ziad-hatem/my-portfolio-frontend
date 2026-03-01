@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Calendar, User } from "lucide-react";
 import { ShareButtons } from "@/components/ShareButtons";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 interface SinglePostPageProps {
   postId: string | number;
@@ -26,7 +27,7 @@ function protectCodeBlocks(value: string): string {
   return String(value || "").replace(
     /<code(\s[^>]*)?>([\s\S]*?)<\/code>/gi,
     (_match, attributes = "", codeContent = "") =>
-      `<code${attributes}>${escapeCodeInnerHtml(codeContent)}</code>`
+      `<code${attributes}>${escapeCodeInnerHtml(codeContent)}</code>`,
   );
 }
 
@@ -45,7 +46,9 @@ export function SinglePostPage({ postId, post }: SinglePostPageProps) {
   }
 
   const postHtml = String(post.post_text || "");
-  const safePostHtml = protectCodeBlocks(postHtml);
+  // Protect code blocks first, then run through DOMPurify to strip malicious scripts/iframes
+  const codeProtectedHtml = protectCodeBlocks(postHtml);
+  const safePostHtml = sanitizeHtml(codeProtectedHtml);
   const isArabicPost = hasArabicText(postHtml);
   const postBodyRef = useRef<HTMLDivElement | null>(null);
 
@@ -121,7 +124,7 @@ export function SinglePostPage({ postId, post }: SinglePostPageProps) {
             className="w-full h-full object-contain"
           />
           <div className="absolute inset-0 bg-black/20" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-background/10 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-background/70 via-background/10 to-transparent" />
         </div>
 
         {/* Article Body */}
@@ -136,7 +139,11 @@ export function SinglePostPage({ postId, post }: SinglePostPageProps) {
         </div>
 
         {/* Back to Posts CTA */}
-        <div className="mt-16 pt-8 border-t border-border" data-aos="fade-up" data-aos-delay="180">
+        <div
+          className="mt-16 pt-8 border-t border-border"
+          data-aos="fade-up"
+          data-aos-delay="180"
+        >
           <Link href="/posts" className="text-accent hover:underline">
             {"<-"} Read More Posts
           </Link>

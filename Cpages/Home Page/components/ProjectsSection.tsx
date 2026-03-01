@@ -6,7 +6,9 @@ import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
-import { useRef, useState } from "react";
+import { sanitizeHtml } from "@/utils/sanitize";
+import { stripHtml } from "@/utils/stripHtml";
+import { useSwiper } from "@/hooks/useSwiper";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -32,18 +34,9 @@ interface ProjectsSectionProps {
 }
 
 const ProjectsSection = ({ data }: ProjectsSectionProps) => {
-  const swiperRef = useRef<SwiperType | null>(null);
-  const [isBeginning, setIsBeginning] = useState(true);
-  const [isEnd, setIsEnd] = useState(false);
-
+  const { swiperRef, isBeginning, isEnd, syncNavigationState } = useSwiper();
   const featuredProjects = data.featured_projects || [];
   const canSlide = featuredProjects.length > 1;
-
-  const syncNavigationState = (swiper: SwiperType) => {
-    const locked = swiper.isLocked;
-    setIsBeginning(locked || swiper.isBeginning);
-    setIsEnd(locked || swiper.isEnd);
-  };
 
   return (
     <section className="relative py-20 px-4 sm:px-6 lg:px-8">
@@ -67,10 +60,16 @@ const ProjectsSection = ({ data }: ProjectsSectionProps) => {
               className="text-lg text-muted-foreground mb-8 leading-relaxed"
               data-aos="fade-up"
               data-aos-delay="100"
-              dangerouslySetInnerHTML={{ __html: data.description || "" }}
+              dangerouslySetInnerHTML={{
+                __html: sanitizeHtml(data.description || ""),
+              }}
             />
 
-            <div className="flex items-center gap-3 mb-8" data-aos="fade-up" data-aos-delay="200">
+            <div
+              className="flex items-center gap-3 mb-8"
+              data-aos="fade-up"
+              data-aos-delay="200"
+            >
               <button
                 onClick={() => swiperRef.current?.slidePrev()}
                 disabled={isBeginning}
@@ -100,7 +99,11 @@ const ProjectsSection = ({ data }: ProjectsSectionProps) => {
             </Link>
           </div>
 
-          <div className="lg:col-span-8 min-w-0 overflow-hidden" data-aos="fade-up" data-aos-delay="120">
+          <div
+            className="lg:col-span-8 min-w-0 overflow-hidden"
+            data-aos="fade-up"
+            data-aos-delay="120"
+          >
             <Swiper
               onSwiper={(swiper) => {
                 swiperRef.current = swiper;
@@ -130,7 +133,7 @@ const ProjectsSection = ({ data }: ProjectsSectionProps) => {
                   spaceBetween: 24,
                 },
               }}
-              className="w-full !pb-5"
+              className="w-full pb-5!"
             >
               {featuredProjects.map((project) => (
                 <SwiperSlide key={project.id}>
@@ -144,7 +147,7 @@ const ProjectsSection = ({ data }: ProjectsSectionProps) => {
                           className="object-contain group-hover:scale-105 transition-transform duration-500"
                         />
                         <div className="absolute inset-0 bg-black/20" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-background/10 to-transparent" />
+                        <div className="absolute inset-0 bg-linear-to-t from-background/70 via-background/10 to-transparent" />
                         <div className="absolute left-4 bottom-4 inline-flex rounded-full border border-border/70 bg-background/65 px-3 py-1 text-xs text-muted-foreground">
                           {project.company_name || "Project"}
                         </div>
@@ -155,26 +158,21 @@ const ProjectsSection = ({ data }: ProjectsSectionProps) => {
                           {project.project_name || project.title}
                         </h3>
 
-                        <p
-                          className="text-base text-muted-foreground line-clamp-3"
-                          dangerouslySetInnerHTML={{
-                            __html: project.project_description
-                              ? `${project.project_description.slice(0, 260)}${
-                                  project.project_description.length > 260 ? "..." : ""
-                                }`
-                              : "",
-                          }}
-                        />
+                        <p className="text-base text-muted-foreground line-clamp-3">
+                          {stripHtml(project.project_description)}
+                        </p>
 
                         <div className="flex flex-wrap gap-2 pt-1">
-                          {(project.skills || []).slice(0, 5).map((skill, skillIndex) => (
-                            <span
-                              key={`${project.id}-skill-${skillIndex}`}
-                              className="px-3 py-1 bg-accent/10 border border-accent/25 text-accent text-xs rounded-full"
-                            >
-                              {skill.skill_name}
-                            </span>
-                          ))}
+                          {(project.skills || [])
+                            .slice(0, 5)
+                            .map((skill, skillIndex) => (
+                              <span
+                                key={`${project.id}-skill-${skillIndex}`}
+                                className="px-3 py-1 bg-accent/10 border border-accent/25 text-accent text-xs rounded-full"
+                              >
+                                {skill.skill_name}
+                              </span>
+                            ))}
                         </div>
                       </div>
                     </article>

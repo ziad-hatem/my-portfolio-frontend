@@ -2,6 +2,7 @@
 
 import { BackgroundBeams } from "@/components/ui/background-beams";
 import { CountUpNumber } from "@/components/ui/CountUpNumber";
+import { sanitizeHtml } from "@/utils/sanitize";
 import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 
@@ -34,7 +35,9 @@ interface HeroProps {
   };
 }
 
-function parseStatValue(value: string): { amount: number; suffix: string } | null {
+function parseStatValue(
+  value: string,
+): { amount: number; suffix: string } | null {
   const normalized = String(value || "").trim();
   const matched = normalized.match(/^(\d+(?:\.\d+)?)(\+?)$/);
 
@@ -83,7 +86,10 @@ const Hero = ({ data }: HeroProps) => {
               data-aos="fade-up"
               data-aos-delay="200"
               dangerouslySetInnerHTML={{
-                __html: data?.description || "Building performant, scalable web experiences.",
+                __html: sanitizeHtml(
+                  data?.description ||
+                    "Building performant, scalable web experiences.",
+                ),
               }}
             />
 
@@ -141,7 +147,11 @@ const Hero = ({ data }: HeroProps) => {
             ) : null}
           </div>
 
-          <div className="lg:col-span-4" data-aos="fade-up" data-aos-delay="250">
+          <div
+            className="lg:col-span-4"
+            data-aos="fade-up"
+            data-aos-delay="250"
+          >
             <article className="rounded-2xl border border-border/80 bg-card/80 p-5 lg:p-6 backdrop-blur-sm shadow-[0_20px_45px_-36px_rgba(0,245,192,0.6)]">
               <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground mb-4">
                 Snapshot
@@ -169,13 +179,16 @@ const Hero = ({ data }: HeroProps) => {
                         );
                       })()}
                     </p>
-                    <p className="text-[11px] text-muted-foreground mt-1">{stat.label}</p>
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      {stat.label}
+                    </p>
                   </div>
                 ))}
               </div>
 
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Focused on clean UI architecture, reliable APIs, and production-ready performance.
+                Focused on clean UI architecture, reliable APIs, and
+                production-ready performance.
               </p>
             </article>
           </div>

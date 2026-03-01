@@ -14,8 +14,9 @@ export async function generateMetadata() {
   try {
     const seoSettings = checkIfExist(homeData?.home?.seo_settings, {});
 
-    // Generate keywords from post titles
+    // Generate keywords from post titles (max 5 to prevent keyword stuffing)
     const postKeywords = posts
+      .slice(0, 5)
       .map((post: any) => post.title)
       .filter(Boolean)
       .join(", ");
@@ -31,7 +32,7 @@ export async function generateMetadata() {
     return {
       ...metadata,
       metadataBase: new URL(
-        process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000"
+        process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000",
       ),
     };
   } catch (error) {
@@ -40,7 +41,7 @@ export async function generateMetadata() {
       title: "Blog Posts | Frontend Developer Portfolio",
       description: "Read my latest blog posts about web development.",
       metadataBase: new URL(
-        process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000"
+        process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000",
       ),
     };
   }

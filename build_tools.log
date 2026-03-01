@@ -1,0 +1,88 @@
+
+> my-portfolio-frontend@0.1.0 build
+> next build
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   ▲ Next.js 16.0.8 (Turbopack)
+   - Environments: .env
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+   Creating an optimized production build ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ ✓ Compiled successfully in 4.3s
+   Running TypeScript ...
+   Collecting page data using 11 workers ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   Generating static pages using 11 workers (0/27) ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   Generating static pages using 11 workers (6/27) 
+   Generating static pages using 11 workers (13/27) 
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+   Generating static pages using 11 workers (20/27) 
+ ✓ Generating static pages using 11 workers (27/27) in 1265.1ms
+   Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /admin
+├ ƒ /admin/content
+├ ƒ /admin/content/home
+├ ƒ /admin/content/posts
+├ ƒ /admin/content/projects
+├ ƒ /admin/content/tools
+├ ƒ /api/admin/content/home
+├ ƒ /api/admin/content/posts
+├ ƒ /api/admin/content/posts/[id]
+├ ƒ /api/admin/content/projects
+├ ƒ /api/admin/content/projects/[id]
+├ ƒ /api/admin/content/tools
+├ ƒ /api/admin/media/upload
+├ ƒ /api/admin/og/generate
+├ ƒ /api/admin/revalidate
+├ ƒ /api/contact
+├ ƒ /api/content/home
+├ ƒ /api/content/posts
+├ ƒ /api/content/posts/[id]
+├ ƒ /api/content/projects
+├ ƒ /api/content/projects/[id]
+├ ƒ /api/content/tools
+├ ƒ /api/content/tools/[slug]
+├ ƒ /api/og/post
+├ ƒ /api/og/project
+├ ƒ /api/revalidate
+├ ƒ /api/tools/image-to-pdf/cleanup
+├ ƒ /api/tools/image-to-pdf/convert
+├ ƒ /api/tools/image-to-pdf/share/[token]
+├ ƒ /api/tools/image-to-pdf/share/[token]/download
+├ ○ /contact
+├ ○ /manifest.webmanifest
+├ ○ /posts
+├ ƒ /posts/[id]
+├ ○ /projects
+├ ƒ /projects/[id]
+├ ○ /robots.txt
+├ ○ /sitemap.xml
+├ ○ /tools
+├ ƒ /tools/[slug]/opengraph-image
+├ ○ /tools/compress-pdf
+├ ○ /tools/image-to-pdf
+├ ƒ /tools/image-to-pdf/share/[token]
+└ ○ /tools/opengraph-image
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

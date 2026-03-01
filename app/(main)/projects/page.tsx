@@ -14,10 +14,11 @@ export async function generateMetadata() {
   try {
     const seoSettings = checkIfExist(homeData?.home?.seo_settings, {});
 
-    // Generate keywords from project skills
+    // Generate keywords from project skills (max 5 projects to prevent keyword stuffing)
     const projectKeywords = projects
+      .slice(0, 5)
       .flatMap((project: any) =>
-        project.skills?.map((skill: any) => skill.skill_name)
+        project.skills?.map((skill: any) => skill.skill_name),
       )
       .filter(Boolean)
       .join(", ");
@@ -33,7 +34,7 @@ export async function generateMetadata() {
     return {
       ...metadata,
       metadataBase: new URL(
-        process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000"
+        process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000",
       ),
     };
   } catch (error) {
@@ -42,7 +43,7 @@ export async function generateMetadata() {
       title: "Projects | Frontend Developer Portfolio",
       description: "Explore my portfolio of web development projects.",
       metadataBase: new URL(
-        process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000"
+        process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000",
       ),
     };
   }

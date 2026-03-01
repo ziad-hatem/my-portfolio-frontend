@@ -1,25 +1,4 @@
-// Helper function to strip HTML tags and decode entities
-const stripHtml = (html: string): string => {
-  // Remove HTML tags
-  let text = html.replace(/<[^>]*>/g, '');
-
-  // Decode common HTML entities
-  const entities: Record<string, string> = {
-    '&amp;': '&',
-    '&lt;': '<',
-    '&gt;': '>',
-    '&quot;': '"',
-    '&#39;': "'",
-    '&nbsp;': ' ',
-  };
-
-  text = text.replace(/&[#\w]+;/g, (entity) => entities[entity] || entity);
-
-  // Remove extra whitespace
-  text = text.replace(/\s+/g, ' ').trim();
-
-  return text;
-};
+import { stripHtml } from "@/utils/stripHtml";
 
 const getStaticMetaData = ({
   title,
@@ -42,9 +21,8 @@ const getStaticMetaData = ({
   // Strip HTML from description for SEO
   const cleanDescription = description ? stripHtml(description) : undefined;
   const safeTitle = title || "Portfolio";
-
   return {
-    title,
+    title: safeTitle,
     description: cleanDescription,
     keywords: keywordsArray,
     icons: {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
+import { stripHtml } from "@/utils/stripHtml";
 
 interface ProjectCardProps {
   title: string;
@@ -12,13 +13,6 @@ interface ProjectCardProps {
   workContext?: string;
   projectId: string | number;
   imageFit?: "cover" | "contain";
-}
-
-function stripHtml(value: string): string {
-  return String(value || "")
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
 }
 
 export function ProjectCard({
@@ -48,7 +42,7 @@ export function ProjectCard({
           alt={title}
           className={imageClassName}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/85 via-background/20 to-transparent opacity-85" />
+        <div className="absolute inset-0 bg-linear-to-t from-background/85 via-background/20 to-transparent opacity-85" />
       </div>
 
       <div className="p-6">
@@ -58,11 +52,13 @@ export function ProjectCard({
               {title}
             </h3>
             {workContext ? (
-              <div className="text-xs text-muted-foreground mt-1">{workContext}</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {workContext}
+              </div>
             ) : null}
           </div>
           <ArrowUpRight
-            className="text-muted-foreground group-hover:text-accent transition-colors flex-shrink-0"
+            className="text-muted-foreground group-hover:text-accent transition-colors shrink-0"
             size={20}
           />
         </div>

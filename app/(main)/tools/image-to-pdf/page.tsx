@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -70,7 +69,10 @@ interface ConversionResult {
 const FILE_LIMIT = 25;
 
 function createId(): string {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
     return crypto.randomUUID();
   }
   return Math.random().toString(36).slice(2);
@@ -111,8 +113,14 @@ function SortableCard({
   index: number;
   onRemove: (id: string) => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: image.id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: image.id });
 
   return (
     <div
@@ -126,7 +134,12 @@ function SortableCard({
       }}
       className="group relative aspect-[3/4] overflow-hidden rounded-2xl border border-border/60 bg-card"
     >
-      <Image src={image.preview} alt={image.sourceName} fill className="object-cover" />
+      <Image
+        src={image.preview}
+        alt={image.sourceName}
+        fill
+        className="object-cover"
+      />
       <div className="absolute left-2 top-2 rounded-md bg-black/55 p-1 text-white/80">
         <GripVertical size={14} />
       </div>
@@ -169,7 +182,9 @@ export default function ImageToPdfPage() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   );
 
   const activeImage = activeId
@@ -247,7 +262,10 @@ export default function ImageToPdfPage() {
     const next: ImageItem[] = [];
 
     for (const file of incoming) {
-      if (!file.type.startsWith("image/") && !/\.(heic|heif)$/i.test(file.name)) {
+      if (
+        !file.type.startsWith("image/") &&
+        !/\.(heic|heif)$/i.test(file.name)
+      ) {
         toast.error(`Unsupported file: ${file.name}`);
         continue;
       }
@@ -260,6 +278,10 @@ export default function ImageToPdfPage() {
 
       if (isHeic) {
         const pendingId = toast.loading(`Converting ${file.name}...`);
+
+        // Yield main thread to allow the UI to paint the loading toast
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
         try {
           const heic2any = (await import("heic2any")).default;
           const output = await heic2any({
@@ -268,9 +290,13 @@ export default function ImageToPdfPage() {
             quality: 0.9,
           });
           const blob = Array.isArray(output) ? output[0] : output;
-          processed = new File([blob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), {
-            type: "image/jpeg",
-          });
+          processed = new File(
+            [blob],
+            file.name.replace(/\.(heic|heif)$/i, ".jpg"),
+            {
+              type: "image/jpeg",
+            },
+          );
         } catch {
           toast.error(`Failed to process ${file.name}`);
           toast.dismiss(pendingId);
@@ -285,6 +311,9 @@ export default function ImageToPdfPage() {
         preview: URL.createObjectURL(processed),
         sourceName: file.name,
       });
+
+      // Yield main thread between intensive file parsing iterations
+      await new Promise((resolve) => setTimeout(resolve, 0));
     }
 
     if (next.length > 0) {
@@ -331,7 +360,10 @@ export default function ImageToPdfPage() {
     setChallengeRequired(false);
     setTurnstileToken("");
     setShowAdvanced(false);
-    setOptions({ ...DEFAULT_IMAGE_TO_PDF_OPTIONS, filename: "portfolio-images" });
+    setOptions({
+      ...DEFAULT_IMAGE_TO_PDF_OPTIONS,
+      filename: "portfolio-images",
+    });
     if (localUrlRef.current) {
       URL.revokeObjectURL(localUrlRef.current);
       localUrlRef.current = null;
@@ -371,7 +403,8 @@ export default function ImageToPdfPage() {
 
       await new Promise<void>((resolve, reject) => {
         img.onload = () => resolve();
-        img.onerror = () => reject(new Error(`Failed to load ${source.sourceName}`));
+        img.onerror = () =>
+          reject(new Error(`Failed to load ${source.sourceName}`));
       });
 
       const imageRatio = img.width / img.height;
@@ -409,7 +442,9 @@ export default function ImageToPdfPage() {
 
   const convertServer = async (): Promise<ConversionResult> => {
     const formData = new FormData();
-    images.forEach((item) => formData.append("files[]", item.file, item.file.name));
+    images.forEach((item) =>
+      formData.append("files[]", item.file, item.file.name),
+    );
     formData.append("options", JSON.stringify(options));
     if (turnstileToken.trim()) {
       formData.append("turnstileToken", turnstileToken.trim());
@@ -423,26 +458,26 @@ export default function ImageToPdfPage() {
       body: formData,
     });
 
-    const payload = (await response.json().catch(() => null)) as
-      | {
-          success?: boolean;
-          error?: string;
-          challengeRequired?: boolean;
-          shareUrl?: string;
-          downloadUrl?: string;
-          expiresAt?: string;
-          pageCount?: number;
-          fileSizeBytes?: number;
-          warnings?: string[];
-        }
-      | null;
+    const payload = (await response.json().catch(() => null)) as {
+      success?: boolean;
+      error?: string;
+      challengeRequired?: boolean;
+      shareUrl?: string;
+      downloadUrl?: string;
+      expiresAt?: string;
+      pageCount?: number;
+      fileSizeBytes?: number;
+      warnings?: string[];
+    } | null;
 
     if (!response.ok || !payload?.success) {
       if (response.status === 429 && payload?.challengeRequired) {
         setChallengeRequired(true);
       }
 
-      throw new Error(`${response.status}:${payload?.error || "Conversion failed"}`);
+      throw new Error(
+        `${response.status}:${payload?.error || "Conversion failed"}`,
+      );
     }
 
     return {
@@ -472,7 +507,10 @@ export default function ImageToPdfPage() {
       toast.success("Converted on server.");
       return;
     } catch (errorInstance) {
-      const text = errorInstance instanceof Error ? errorInstance.message : "Conversion failed";
+      const text =
+        errorInstance instanceof Error
+          ? errorInstance.message
+          : "Conversion failed";
       const [statusText, ...rest] = text.split(":");
       const status = Number.parseInt(statusText, 10);
       const message = rest.length > 0 ? rest.join(":") : text;
@@ -527,12 +565,16 @@ export default function ImageToPdfPage() {
       return;
     }
 
-    setResult((current) => (current ? { ...current, shareUrl: null } : current));
+    setResult((current) =>
+      current ? { ...current, shareUrl: null } : current,
+    );
     toast.success("Share link revoked.");
   };
 
   const shareExpired =
-    result?.expiresAt !== null && result?.expiresAt !== undefined && expiresInMs !== null
+    result?.expiresAt !== null &&
+    result?.expiresAt !== undefined &&
+    expiresInMs !== null
       ? expiresInMs <= 0
       : false;
 
@@ -571,8 +613,8 @@ export default function ImageToPdfPage() {
                 Image to PDF Converter
               </h1>
               <p className="mt-2 max-w-3xl text-sm text-muted-foreground md:text-base">
-                One clean flow: upload, arrange, convert, and share. Temporary share links expire
-                automatically after 1 hour.
+                One clean flow: upload, arrange, convert, and share. Temporary
+                share links expire automatically after 1 hour.
               </p>
             </div>
 
@@ -592,7 +634,9 @@ export default function ImageToPdfPage() {
               data-aos="fade-up"
               data-aos-delay="90"
             >
-              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Images</p>
+              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                Images
+              </p>
               <p className="mt-2 text-2xl font-semibold">
                 <CountUpNumber value={images.length} duration={0.8} />
               </p>
@@ -602,7 +646,9 @@ export default function ImageToPdfPage() {
               data-aos="fade-up"
               data-aos-delay="130"
             >
-              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Mode</p>
+              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                Mode
+              </p>
               <p className="mt-2 text-2xl font-semibold">
                 {result?.mode === "local" ? "Local Fallback" : "Server"}
               </p>
@@ -612,7 +658,9 @@ export default function ImageToPdfPage() {
               data-aos="fade-up"
               data-aos-delay="170"
             >
-              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Max Files</p>
+              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                Max Files
+              </p>
               <p className="mt-2 text-2xl font-semibold">
                 <CountUpNumber value={FILE_LIMIT} duration={0.8} />
               </p>
@@ -630,9 +678,12 @@ export default function ImageToPdfPage() {
 
           {challengeRequired ? (
             <div className="relative mt-5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3">
-              <p className="text-sm font-semibold text-amber-200">Challenge required</p>
+              <p className="text-sm font-semibold text-amber-200">
+                Challenge required
+              </p>
               <p className="mt-1 text-sm text-amber-100/80">
-                Too many requests detected. Paste a Turnstile token and retry conversion.
+                Too many requests detected. Paste a Turnstile token and retry
+                conversion.
               </p>
               <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                 <input
@@ -653,7 +704,11 @@ export default function ImageToPdfPage() {
             </div>
           ) : null}
 
-          <div className="relative mt-6 space-y-5" data-aos="fade-up" data-aos-delay="120">
+          <div
+            className="relative mt-6 space-y-5"
+            data-aos="fade-up"
+            data-aos-delay="120"
+          >
             <div
               onClick={() => fileInputRef.current?.click()}
               onDrop={onDrop}
@@ -671,7 +726,9 @@ export default function ImageToPdfPage() {
               <div className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-full bg-accent/10 text-accent">
                 <Upload size={26} />
               </div>
-              <p className="mt-4 text-xl font-semibold">Drop images here or click to upload</p>
+              <p className="mt-4 text-xl font-semibold">
+                Drop images here or click to upload
+              </p>
               <p className="mt-2 text-sm text-muted-foreground">
                 Add up to {FILE_LIMIT} files, then drag to reorder below.
               </p>
@@ -680,7 +737,9 @@ export default function ImageToPdfPage() {
             {images.length > 0 ? (
               <>
                 <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/60 bg-background/45 p-3 text-sm text-muted-foreground">
-                  <p>{images.length} image(s) selected. Drag to reorder pages.</p>
+                  <p>
+                    {images.length} image(s) selected. Drag to reorder pages.
+                  </p>
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -743,7 +802,9 @@ export default function ImageToPdfPage() {
                 onClick={() => setShowAdvanced((value) => !value)}
                 className="rounded-lg border border-border/70 bg-background/60 px-3 py-2 text-sm"
               >
-                {showAdvanced ? "Hide advanced options" : "Show advanced options"}
+                {showAdvanced
+                  ? "Hide advanced options"
+                  : "Show advanced options"}
               </button>
 
               {showAdvanced ? (
@@ -774,7 +835,8 @@ export default function ImageToPdfPage() {
                       onChange={(event) =>
                         setOptions((current) => ({
                           ...current,
-                          pageSize: event.target.value as ImageToPdfOptions["pageSize"],
+                          pageSize: event.target
+                            .value as ImageToPdfOptions["pageSize"],
                         }))
                       }
                       className="w-full rounded-lg border border-border/70 bg-background/65 px-3 py-2 text-sm"
@@ -795,7 +857,8 @@ export default function ImageToPdfPage() {
                       onChange={(event) =>
                         setOptions((current) => ({
                           ...current,
-                          orientation: event.target.value as ImageToPdfOptions["orientation"],
+                          orientation: event.target
+                            .value as ImageToPdfOptions["orientation"],
                         }))
                       }
                       className="w-full rounded-lg border border-border/70 bg-background/65 px-3 py-2 text-sm"
@@ -815,7 +878,8 @@ export default function ImageToPdfPage() {
                       onChange={(event) =>
                         setOptions((current) => ({
                           ...current,
-                          imageFit: event.target.value as ImageToPdfOptions["imageFit"],
+                          imageFit: event.target
+                            .value as ImageToPdfOptions["imageFit"],
                         }))
                       }
                       className="w-full rounded-lg border border-border/70 bg-background/65 px-3 py-2 text-sm"
@@ -854,7 +918,8 @@ export default function ImageToPdfPage() {
                       onChange={(event) =>
                         setOptions((current) => ({
                           ...current,
-                          optimizeFor: event.target.value as ImageToPdfOptions["optimizeFor"],
+                          optimizeFor: event.target
+                            .value as ImageToPdfOptions["optimizeFor"],
                         }))
                       }
                       className="w-full rounded-lg border border-border/70 bg-background/65 px-3 py-2 text-sm"
@@ -935,14 +1000,18 @@ export default function ImageToPdfPage() {
                   </div>
                   <div className="rounded-lg border border-border/60 bg-card/45 p-3">
                     <p className="text-muted-foreground">File size</p>
-                    <p className="text-lg font-semibold">{formatBytes(result.fileSizeBytes)}</p>
+                    <p className="text-lg font-semibold">
+                      {formatBytes(result.fileSizeBytes)}
+                    </p>
                   </div>
                 </div>
 
                 {result.expiresAt && expiresInMs !== null ? (
                   <p className="text-sm text-muted-foreground">
                     Share link expires in:{" "}
-                    <span className={shareExpired ? "text-red-300" : "text-accent"}>
+                    <span
+                      className={shareExpired ? "text-red-300" : "text-accent"}
+                    >
                       {formatCountdown(expiresInMs)}
                     </span>
                   </p>
@@ -991,7 +1060,8 @@ export default function ImageToPdfPage() {
 
                 {result.mode === "server" ? (
                   <p className="text-xs text-muted-foreground">
-                    Source files are not stored. Temporary output is auto-deleted after expiry.
+                    Source files are not stored. Temporary output is
+                    auto-deleted after expiry.
                   </p>
                 ) : null}
               </div>

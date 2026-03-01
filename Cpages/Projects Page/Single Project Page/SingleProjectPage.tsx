@@ -57,13 +57,17 @@ function normalizeText(value: unknown): string {
     .trim();
 }
 
-function toViewData(project: FetchedProject | null | undefined): ProjectViewData | null {
+function toViewData(
+  project: FetchedProject | null | undefined,
+): ProjectViewData | null {
   if (!project) {
     return null;
   }
 
   const technologies = Array.from(
-    new Set((project.skills || []).map((skill) => skill.skill_name).filter(Boolean))
+    new Set(
+      (project.skills || []).map((skill) => skill.skill_name).filter(Boolean),
+    ),
   );
 
   return {
@@ -72,13 +76,18 @@ function toViewData(project: FetchedProject | null | undefined): ProjectViewData
     companyName: project.company_name || "Independent Project",
     description: normalizeText(project.project_description),
     image: project.project_image?.permalink || "/cover.jpg",
-    overview: (project.project_overview || []).map((item) => normalizeText(item)).filter(Boolean),
+    overview: (project.project_overview || [])
+      .map((item) => normalizeText(item))
+      .filter(Boolean),
     technologies,
     liveUrl: project.project_link || "",
   };
 }
 
-export function SingleProjectPage({ projectId, project: fetchedProject }: SingleProjectPageProps) {
+export function SingleProjectPage({
+  projectId,
+  project: fetchedProject,
+}: SingleProjectPageProps) {
   const project = useMemo(() => toViewData(fetchedProject), [fetchedProject]);
 
   if (!project) {
@@ -88,7 +97,8 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
           <div className="rounded-2xl border border-border/80 bg-card/80 p-8 text-center">
             <p className="text-2xl text-foreground mb-2">Project not found</p>
             <p className="text-muted-foreground mb-6">
-              The requested project could not be found or is no longer available.
+              The requested project could not be found or is no longer
+              available.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               <Link
@@ -142,7 +152,7 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
               className="absolute inset-0 w-full h-full object-contain"
             />
             <div className="absolute inset-0 bg-black/20" />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-background/10 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-background/70 via-background/10 to-transparent" />
           </div>
 
           <div className="relative p-6 md:p-10 lg:p-14">
@@ -161,7 +171,11 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
                 data-aos-delay="120"
               >
                 <Layers size={12} aria-hidden="true" />
-                <CountUpNumber value={project.technologies.length} duration={1.1} /> technologies
+                <CountUpNumber
+                  value={project.technologies.length}
+                  duration={1.1}
+                />{" "}
+                technologies
               </span>
             </div>
 
@@ -207,7 +221,11 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
                 </Link>
               </div>
 
-              <ShareButtons title={project.title} itemId={projectId} itemType="project" />
+              <ShareButtons
+                title={project.title}
+                itemId={projectId}
+                itemType="project"
+              />
             </div>
           </div>
         </section>
@@ -219,7 +237,9 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
               data-aos="fade-up"
               data-aos-delay="90"
             >
-              <h2 className="text-2xl text-foreground mb-5">Project Overview</h2>
+              <h2 className="text-2xl text-foreground mb-5">
+                Project Overview
+              </h2>
 
               {project.overview.length > 0 ? (
                 <div className="space-y-3">
@@ -230,8 +250,13 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
                       data-aos="fade-up"
                       data-aos-delay={Math.min(index * 70, 350)}
                     >
-                      <CheckCircle2 className="text-accent flex-shrink-0 mt-0.5" size={18} />
-                      <p className="text-muted-foreground leading-relaxed">{item}</p>
+                      <CheckCircle2
+                        className="text-accent flex-shrink-0 mt-0.5"
+                        size={18}
+                      />
+                      <p className="text-muted-foreground leading-relaxed">
+                        {item}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -247,7 +272,9 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
               data-aos="fade-up"
               data-aos-delay="120"
             >
-              <h2 className="text-2xl text-foreground mb-5">Technology Stack</h2>
+              <h2 className="text-2xl text-foreground mb-5">
+                Technology Stack
+              </h2>
 
               {project.technologies.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
@@ -272,7 +299,9 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
               data-aos="fade-up"
               data-aos-delay="150"
             >
-              <h3 className="text-base font-semibold text-foreground mb-4">Project Snapshot</h3>
+              <h3 className="text-base font-semibold text-foreground mb-4">
+                Project Snapshot
+              </h3>
               <dl className="space-y-3 text-sm">
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-muted-foreground">Project ID</dt>
@@ -283,23 +312,37 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-muted-foreground">Company</dt>
-                  <dd className="text-foreground text-right">{project.companyName}</dd>
+                  <dd className="text-foreground text-right">
+                    {project.companyName}
+                  </dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-muted-foreground">Overview Points</dt>
                   <dd className="text-foreground">
-                    <CountUpNumber value={project.overview.length} duration={1.1} />
+                    <CountUpNumber
+                      value={project.overview.length}
+                      duration={1.1}
+                    />
                   </dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-muted-foreground">Tech Count</dt>
                   <dd className="text-foreground">
-                    <CountUpNumber value={project.technologies.length} duration={1.1} />
+                    <CountUpNumber
+                      value={project.technologies.length}
+                      duration={1.1}
+                    />
                   </dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-muted-foreground">Live Site</dt>
-                  <dd className={project.liveUrl ? "text-emerald-300" : "text-muted-foreground"}>
+                  <dd
+                    className={
+                      project.liveUrl
+                        ? "text-emerald-300"
+                        : "text-muted-foreground"
+                    }
+                  >
                     {project.liveUrl ? "Available" : "Not listed"}
                   </dd>
                 </div>
@@ -311,9 +354,12 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
               data-aos="fade-up"
               data-aos-delay="200"
             >
-              <h3 className="text-base font-semibold text-foreground mb-2">Need a Similar Build?</h3>
+              <h3 className="text-base font-semibold text-foreground mb-2">
+                Need a Similar Build?
+              </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                I can help design and ship a production-ready product with modern architecture.
+                I can help design and ship a production-ready product with
+                modern architecture.
               </p>
               <Link
                 href="/contact"
@@ -331,7 +377,9 @@ export function SingleProjectPage({ projectId, project: fetchedProject }: Single
           data-aos="fade-up"
           data-aos-delay="160"
         >
-          <p className="text-sm text-muted-foreground">Want to explore more case studies?</p>
+          <p className="text-sm text-muted-foreground">
+            Want to explore more case studies?
+          </p>
           <Link
             href="/projects"
             className="inline-flex items-center gap-2 text-accent hover:underline"

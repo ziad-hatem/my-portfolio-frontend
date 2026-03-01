@@ -8,9 +8,9 @@ const contactRateLimiter = rateLimit({
   prefix: "portfolio:rate-limit:contact",
 });
 
-function isValidEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
+import { isValidEmail } from "@/utils/validateEmail";
+
+let resendClient: Resend | null = null;
 
 function escapeHtml(value: string): string {
   return value
@@ -22,15 +22,21 @@ function escapeHtml(value: string): string {
 }
 
 function getRequesterIp(request: NextRequest): string {
-  const forwardedFor = request.headers.get("x-forwarded-for");
+  // Prefer infrastructure-provided headers that cannot be spoofed by the client
+  const vercelForwardedFor = request.headers.get("x-vercel-forwarded-for");
   const realIp = request.headers.get("x-real-ip");
+  const forwardedFor = request.headers.get("x-forwarded-for");
 
-  if (forwardedFor) {
-    return forwardedFor.split(",")[0].trim();
+  if (vercelForwardedFor) {
+    return vercelForwardedFor.split(",")[0].trim();
   }
 
   if (realIp) {
     return realIp.trim();
+  }
+
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0].trim();
   }
 
   // @ts-expect-error NextRequest may expose ip depending on runtime adapter
@@ -88,7 +94,9 @@ interface ContactPayload {
   message: string;
 }
 
-function parseAndValidatePayload(payload: unknown):
+function parseAndValidatePayload(
+  payload: unknown,
+):
   | { success: true; data: ContactPayload }
   | { success: false; status: number; error: string } {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
@@ -100,8 +108,10 @@ function parseAndValidatePayload(payload: unknown):
   }
 
   const body = payload as Record<string, unknown>;
-  const name = typeof body.name === "string" ? body.name.trim().slice(0, 120) : "";
-  const email = typeof body.email === "string" ? body.email.trim().slice(0, 200) : "";
+  const name =
+    typeof body.name === "string" ? body.name.trim().slice(0, 120) : "";
+  const email =
+    typeof body.email === "string" ? body.email.trim().slice(0, 200) : "";
   const subject =
     typeof body.subject === "string" ? body.subject.trim().slice(0, 200) : "";
   const message =
@@ -143,7 +153,7 @@ export async function POST(request: NextRequest) {
       if (error instanceof Error && error.message === "Rate limit exceeded") {
         return NextResponse.json(
           { success: false, error: "Rate limit exceeded" },
-          { status: 429 }
+          { status: 429 },
         );
       }
 
@@ -157,7 +167,7 @@ export async function POST(request: NextRequest) {
     } catch {
       return NextResponse.json(
         { success: false, error: "Invalid JSON body" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -165,7 +175,7 @@ export async function POST(request: NextRequest) {
     if (!payloadResult.success) {
       return NextResponse.json(
         { success: false, error: payloadResult.error },
-        { status: payloadResult.status }
+        { status: payloadResult.status },
       );
     }
 
@@ -174,14 +184,16 @@ export async function POST(request: NextRequest) {
       console.error("[Contact API] Missing mail configuration");
       return NextResponse.json(
         { success: false, error: configResult.error },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     const { name, email, subject, message } = payloadResult.data;
-    const { resendApiKey, toEmail, fromEmail, confirmationFromEmail } =
-      configResult.data;
-    const resend = new Resend(resendApiKey);
+    const { resendApiKey, toEmail, fromEmail } = configResult.data;
+    if (!resendClient) {
+      resendClient = new Resend(resendApiKey);
+    }
+    const resend = resendClient;
 
     const escapedName = escapeHtml(name);
     const escapedEmail = escapeHtml(email);
@@ -214,46 +226,29 @@ export async function POST(request: NextRequest) {
     });
 
     if (notification.error) {
-      console.error("[Contact API] Notification send failure:", notification.error);
+      console.error(
+        "[Contact API] Notification send failure:",
+        notification.error,
+      );
       return NextResponse.json(
         { success: false, error: "Failed to send email" },
-        { status: 502 }
+        { status: 502 },
       );
     }
 
-    const confirmation = await resend.emails.send({
-      from: confirmationFromEmail,
-      to: [email],
-      subject: "Thanks for reaching out",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333; border-bottom: 2px solid #00f5c0; padding-bottom: 10px; text-align: center;">
-            Thanks for your message
-          </h2>
-          <p style="color: #333; line-height: 1.6;">Hi ${escapedName},</p>
-          <p style="color: #333; line-height: 1.6;">
-            Your message was received successfully. I will respond as soon as possible.
-          </p>
-          <div style="background-color: #f5f5f5; padding: 16px; border-radius: 8px; margin: 16px 0;">
-            <p style="margin: 0;"><strong>Subject:</strong> ${escapedSubject}</p>
-          </div>
-        </div>
-      `,
-    });
-
-    if (confirmation.error) {
-      console.error("[Contact API] Confirmation send failure:", confirmation.error);
-    }
-
     return NextResponse.json(
-      { success: true, message: "Email sent successfully", id: notification.data?.id },
-      { status: 200 }
+      {
+        success: true,
+        message: "Email sent successfully",
+        id: notification.data?.id,
+      },
+      { status: 200 },
     );
   } catch (error) {
     console.error("[Contact API] Unexpected failure:", error);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

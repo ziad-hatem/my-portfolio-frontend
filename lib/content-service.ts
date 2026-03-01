@@ -1,3 +1,4 @@
+import React from "react";
 import { unstable_cache } from "next/cache";
 import {
   getHomeContent,
@@ -29,7 +30,7 @@ const cachedHomeContent = unstable_cache(
   {
     tags: [PUBLIC_CONTENT_CACHE_TAGS.all, PUBLIC_CONTENT_CACHE_TAGS.home],
     revalidate: false,
-  }
+  },
 );
 
 const cachedProjectsContent = unstable_cache(
@@ -38,7 +39,7 @@ const cachedProjectsContent = unstable_cache(
   {
     tags: [PUBLIC_CONTENT_CACHE_TAGS.all, PUBLIC_CONTENT_CACHE_TAGS.projects],
     revalidate: false,
-  }
+  },
 );
 
 const cachedProjectById = unstable_cache(
@@ -47,7 +48,7 @@ const cachedProjectById = unstable_cache(
   {
     tags: [PUBLIC_CONTENT_CACHE_TAGS.all, PUBLIC_CONTENT_CACHE_TAGS.projects],
     revalidate: false,
-  }
+  },
 );
 
 const cachedPostsContent = unstable_cache(
@@ -56,7 +57,7 @@ const cachedPostsContent = unstable_cache(
   {
     tags: [PUBLIC_CONTENT_CACHE_TAGS.all, PUBLIC_CONTENT_CACHE_TAGS.posts],
     revalidate: false,
-  }
+  },
 );
 
 const cachedPostById = unstable_cache(
@@ -65,7 +66,7 @@ const cachedPostById = unstable_cache(
   {
     tags: [PUBLIC_CONTENT_CACHE_TAGS.all, PUBLIC_CONTENT_CACHE_TAGS.posts],
     revalidate: false,
-  }
+  },
 );
 
 const cachedToolsContent = unstable_cache(
@@ -74,7 +75,7 @@ const cachedToolsContent = unstable_cache(
   {
     tags: [PUBLIC_CONTENT_CACHE_TAGS.all, PUBLIC_CONTENT_CACHE_TAGS.tools],
     revalidate: false,
-  }
+  },
 );
 
 const cachedToolSeoBySlug = unstable_cache(
@@ -83,7 +84,7 @@ const cachedToolSeoBySlug = unstable_cache(
   {
     tags: [PUBLIC_CONTENT_CACHE_TAGS.all, PUBLIC_CONTENT_CACHE_TAGS.tools],
     revalidate: false,
-  }
+  },
 );
 
 export async function getPublicHomeContent(): Promise<HomeContentDoc | null> {
@@ -95,7 +96,7 @@ export async function getPublicProjectsContent(): Promise<ProjectContentDoc[]> {
 }
 
 export async function getPublicProjectContentById(
-  id: string
+  id: string,
 ): Promise<ProjectContentDoc | null> {
   return cachedProjectById(id);
 }
@@ -105,7 +106,7 @@ export async function getPublicPostsContent(): Promise<PostContentDoc[]> {
 }
 
 export async function getPublicPostContentById(
-  id: string
+  id: string,
 ): Promise<PostContentDoc | null> {
   return cachedPostById(id);
 }
@@ -115,7 +116,7 @@ export async function getPublicToolsContent(): Promise<ToolsContentDoc | null> {
 }
 
 export async function getPublicToolSeoBySlug(
-  slug: string
+  slug: string,
 ): Promise<ToolPageSeoEntry | null> {
   return cachedToolSeoBySlug(slug);
 }
@@ -146,7 +147,7 @@ export async function getProjectsEntriesData(): Promise<{
 }
 
 export async function getProjectEntryData(
-  id: string
+  id: string,
 ): Promise<{ entry: ProjectContentDoc | null }> {
   const project = await getPublicProjectContentById(id);
   return { entry: project };
@@ -164,7 +165,7 @@ export async function getPostsEntriesData(): Promise<{
 }
 
 export async function getPostEntryData(
-  id: string
+  id: string,
 ): Promise<{ entry: PostContentDoc | null }> {
   const post = await getPublicPostContentById(id);
   return { entry: post };
@@ -178,7 +179,7 @@ export async function getToolsSeoData(): Promise<{
 }
 
 export async function getToolSeoEntryData(
-  slug: string
+  slug: string,
 ): Promise<{ entry: ToolPageSeoEntry | null }> {
   const tool = await getPublicToolSeoBySlug(slug);
   return { entry: tool };

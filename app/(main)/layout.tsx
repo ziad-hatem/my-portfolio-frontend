@@ -1,6 +1,6 @@
 import { Navigation } from "@/components/Layout/Navigation";
 import { Footer } from "@/components/Layout/Footer";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/next";
 export default function MainLayout({
   children,
 }: Readonly<{
@@ -10,9 +10,7 @@ export default function MainLayout({
     <>
       <Analytics />
       <Navigation />
-      <main className="z-50 relative" data-aos="fade-up" data-aos-delay="40">
-        {children}
-      </main>
+      <main className="z-50 relative">{children}</main>
       <Footer />
     </>
   );

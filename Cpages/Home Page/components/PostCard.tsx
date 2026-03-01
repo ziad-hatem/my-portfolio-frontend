@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Calendar, ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
+import { stripHtml } from "@/utils/stripHtml";
 
 interface PostCardProps {
   title: string;
@@ -13,13 +14,6 @@ interface PostCardProps {
   imageFit?: "cover" | "contain";
   "data-aos"?: string;
   "data-aos-delay"?: string | number;
-}
-
-function stripHtml(value: string): string {
-  return String(value || "")
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
 }
 
 export function PostCard({
@@ -52,7 +46,7 @@ export function PostCard({
           alt={title}
           className={imageClassName}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/85 via-background/20 to-transparent opacity-85" />
+        <div className="absolute inset-0 bg-linear-to-t from-background/85 via-background/20 to-transparent opacity-85" />
       </div>
 
       <div className="p-6">

@@ -1,6 +1,7 @@
+import React from "react";
 import { getPostsEntriesData } from "../content-service";
 
-const getPostsData = async () => {
+const getPostsData = React.cache(async () => {
   try {
     return await getPostsEntriesData();
   } catch (error) {
@@ -9,6 +10,6 @@ const getPostsData = async () => {
       entries: { data: [] },
     };
   }
-};
+});
 
 export default getPostsData;

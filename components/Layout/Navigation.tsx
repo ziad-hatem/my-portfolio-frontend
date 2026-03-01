@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowUpRight, Github, Linkedin, Mail, Menu, Sparkles, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  Github,
+  Linkedin,
+  Mail,
+  Menu,
+  Sparkles,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 const menuItems = [
@@ -96,7 +104,10 @@ export function Navigation() {
               </span>
             </Link>
 
-            <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
+            <nav
+              className="hidden items-center gap-1 md:flex"
+              aria-label="Primary"
+            >
               {menuItems.map((item) => {
                 const isActive = isActivePath(pathname, item.link);
 
@@ -113,7 +124,7 @@ export function Navigation() {
                     aria-current={isActive ? "page" : undefined}
                   >
                     {isActive ? (
-                      <span className="absolute inset-x-2 -bottom-0.5 h-px bg-gradient-to-r from-transparent via-accent to-transparent" />
+                      <span className="absolute inset-x-2 -bottom-0.5 h-px bg-linear-to-r from-transparent via-accent to-transparent" />
                     ) : null}
                     {item.label}
                   </Link>

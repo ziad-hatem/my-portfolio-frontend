@@ -1,6 +1,9 @@
+"use client";
+
 import LogoLoop from "@/components/ui/LogoLoop";
 import React from "react";
 import Image from "next/image";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 interface SkillsSectionProps {
   data: {
@@ -44,7 +47,9 @@ export default function SkillsSection({ data }: SkillsSectionProps) {
             className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto"
             data-aos="fade-up"
             data-aos-delay="100"
-            dangerouslySetInnerHTML={{ __html: data.description || "" }}
+            dangerouslySetInnerHTML={{
+              __html: sanitizeHtml(data.description || ""),
+            }}
           />
         </div>
 

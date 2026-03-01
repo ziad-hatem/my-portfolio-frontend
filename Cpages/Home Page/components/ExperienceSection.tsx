@@ -1,7 +1,10 @@
+﻿"use client";
+
 import React, { useEffect, useRef } from "react";
 import { Briefcase } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -26,7 +29,6 @@ export default function ExperienceSection({ data }: ExperienceSectionProps) {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Only animate the timeline stick
       gsap.from(timelineRef.current, {
         scrollTrigger: {
           trigger: timelineRef.current,
@@ -42,6 +44,8 @@ export default function ExperienceSection({ data }: ExperienceSectionProps) {
 
     return () => ctx.revert();
   }, []);
+
+  const experiences = data.experiences || [];
 
   return (
     <section className="py-20">
@@ -60,7 +64,7 @@ export default function ExperienceSection({ data }: ExperienceSectionProps) {
                 className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto"
                 data-aos="fade-up"
                 data-aos-delay="100"
-                dangerouslySetInnerHTML={{ __html: data.description }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(data.description || "") }}
               ></p>
             </div>
 
@@ -74,7 +78,7 @@ export default function ExperienceSection({ data }: ExperienceSectionProps) {
 
               {/* Experience items */}
               <div className="space-y-12 md:space-y-24">
-                {data.experiences.map((exp, index) => (
+                {experiences.map((exp, index) => (
                   <div
                     key={exp.id}
                     className={`relative flex items-center ${
@@ -114,7 +118,7 @@ export default function ExperienceSection({ data }: ExperienceSectionProps) {
                         <p
                           className="text-muted-foreground leading-relaxed text-sm md:text-base"
                           dangerouslySetInnerHTML={{
-                            __html: exp.job_description,
+                            __html: sanitizeHtml(exp.job_description || ""),
                           }}
                         ></p>
                       </div>
