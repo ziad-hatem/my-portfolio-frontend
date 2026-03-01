@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
-import { mkdir, readFile, writeFile } from "fs/promises";
+import { readFile } from "fs/promises";
 import path from "path";
 import sharp from "sharp";
+import { put } from "@vercel/blob";
 import { validateAdminApiKey } from "@/lib/admin-auth";
 import {
   ensureLegacyPostOgAsset,
@@ -20,14 +21,7 @@ interface OgGenerateRequestBody {
   author?: unknown;
 }
 
-const GENERATED_OG_DIR = path.join(
-  process.cwd(),
-  "public",
-  "uploads",
-  "admin",
-  "og-generated"
-);
-const GENERATED_OG_PUBLIC_PREFIX = "/uploads/admin/og-generated";
+const GENERATED_OG_BLOB_PREFIX = "uploads/admin/og-generated";
 const LOGO_PATH = path.join(process.cwd(), "public", "logo.png");
 
 function withCacheBust(permalink: string): string {
@@ -50,6 +44,38 @@ function normalizeFallbackImagePermalink(image: string | null): string {
   }
 
   return `/${trimmed}`;
+}
+
+function sanitizeBlobSegment(value: string): string {
+  return String(value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 60);
+}
+
+async function uploadOgBufferToBlob(input: {
+  kind: OgGenerateKind;
+  title: string;
+  buffer: Buffer;
+}): Promise<string> {
+  const safeTitle = sanitizeBlobSegment(input.title) || input.kind;
+  const stamp = Date.now().toString(36);
+  const digest = createHash("sha256")
+    .update(`${input.kind}|${input.title}|${stamp}`)
+    .digest("hex")
+    .slice(0, 14);
+  const pathname = `${GENERATED_OG_BLOB_PREFIX}/${input.kind}-${stamp}-${safeTitle}-${digest}.png`;
+
+  const blob = await put(pathname, input.buffer, {
+    access: "public",
+    addRandomSuffix: false,
+    contentType: "image/png",
+  });
+
+  return blob.url;
 }
 
 function escapeXml(value: string): string {
@@ -277,17 +303,11 @@ async function generateStoredFallbackOgImage(input: {
     .png({ quality: 92, compressionLevel: 9 })
     .toBuffer();
 
-  const stamp = Date.now().toString(36);
-  const digest = createHash("sha256")
-    .update(`${input.kind}|${input.title}|${input.subtitle}|${input.image || ""}|${stamp}`)
-    .digest("hex")
-    .slice(0, 16);
-  const fileName = `${input.kind}-${stamp}-${digest}.png`;
-
-  await mkdir(GENERATED_OG_DIR, { recursive: true });
-  await writeFile(path.join(GENERATED_OG_DIR, fileName), pngBuffer);
-
-  return `${GENERATED_OG_PUBLIC_PREFIX}/${fileName}`;
+  return uploadOgBufferToBlob({
+    kind: input.kind,
+    title: input.title,
+    buffer: pngBuffer,
+  });
 }
 
 async function resolveFallbackPermalink(input: {
@@ -365,6 +385,17 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Server configuration error: BLOB_READ_WRITE_TOKEN is not configured.",
+        },
+        { status: 500 }
+      );
+    }
+
     const body = await request.json();
     const validation = validateBody(body);
 
@@ -384,13 +415,28 @@ export async function POST(request: NextRequest) {
           baseUrl: request.nextUrl.origin,
           forceRegenerate: true,
         });
+        let permalink = withCacheBust(buildProjectOgPath(generated.assetKey));
+        let warning: string | undefined;
+        try {
+          const blobUrl = await uploadOgBufferToBlob({
+            kind: "project",
+            title: validation.title,
+            buffer: Buffer.from(generated.buffer),
+          });
+          permalink = withCacheBust(blobUrl);
+        } catch (blobError) {
+          console.error("[Admin OG] Failed to upload project OG to Blob:", blobError);
+          warning =
+            "Generated OG image, but failed to store on Blob. Using API permalink.";
+        }
 
         return NextResponse.json({
           success: true,
+          warning,
           data: {
             kind: "project",
             assetKey: generated.assetKey,
-            permalink: withCacheBust(buildProjectOgPath(generated.assetKey)),
+            permalink,
           },
         });
       } catch (firstError) {
@@ -434,15 +480,29 @@ export async function POST(request: NextRequest) {
             baseUrl: request.nextUrl.origin,
             forceRegenerate: true,
           });
+          let permalink = withCacheBust(buildProjectOgPath(generated.assetKey));
+          let warning =
+            "OG generated without source image because the uploaded image format is not supported by the renderer.";
+          try {
+            const blobUrl = await uploadOgBufferToBlob({
+              kind: "project",
+              title: validation.title,
+              buffer: Buffer.from(generated.buffer),
+            });
+            permalink = withCacheBust(blobUrl);
+          } catch (blobError) {
+            console.error("[Admin OG] Failed to upload project OG retry result to Blob:", blobError);
+            warning =
+              "OG generated without source image, but failed to store on Blob. Using API permalink.";
+          }
 
           return NextResponse.json({
             success: true,
-            warning:
-              "OG generated without source image because the uploaded image format is not supported by the renderer.",
+            warning,
             data: {
               kind: "project",
               assetKey: generated.assetKey,
-              permalink: withCacheBust(buildProjectOgPath(generated.assetKey)),
+              permalink,
             },
           });
         } catch (secondError) {
@@ -482,13 +542,28 @@ export async function POST(request: NextRequest) {
         baseUrl: request.nextUrl.origin,
         forceRegenerate: true,
       });
+      let permalink = withCacheBust(buildPostOgPath(generated.assetKey));
+      let warning: string | undefined;
+      try {
+        const blobUrl = await uploadOgBufferToBlob({
+          kind: "post",
+          title: validation.title,
+          buffer: Buffer.from(generated.buffer),
+        });
+        permalink = withCacheBust(blobUrl);
+      } catch (blobError) {
+        console.error("[Admin OG] Failed to upload post OG to Blob:", blobError);
+        warning =
+          "Generated OG image, but failed to store on Blob. Using API permalink.";
+      }
 
       return NextResponse.json({
         success: true,
+        warning,
         data: {
           kind: "post",
           assetKey: generated.assetKey,
-          permalink: withCacheBust(buildPostOgPath(generated.assetKey)),
+          permalink,
         },
       });
     } catch (firstError) {
@@ -532,15 +607,29 @@ export async function POST(request: NextRequest) {
           baseUrl: request.nextUrl.origin,
           forceRegenerate: true,
         });
+        let permalink = withCacheBust(buildPostOgPath(generated.assetKey));
+        let warning =
+          "OG generated without source image because the uploaded image format is not supported by the renderer.";
+        try {
+          const blobUrl = await uploadOgBufferToBlob({
+            kind: "post",
+            title: validation.title,
+            buffer: Buffer.from(generated.buffer),
+          });
+          permalink = withCacheBust(blobUrl);
+        } catch (blobError) {
+          console.error("[Admin OG] Failed to upload post OG retry result to Blob:", blobError);
+          warning =
+            "OG generated without source image, but failed to store on Blob. Using API permalink.";
+        }
 
         return NextResponse.json({
           success: true,
-          warning:
-            "OG generated without source image because the uploaded image format is not supported by the renderer.",
+          warning,
           data: {
             kind: "post",
             assetKey: generated.assetKey,
-            permalink: withCacheBust(buildPostOgPath(generated.assetKey)),
+            permalink,
           },
         });
       } catch (secondError) {
